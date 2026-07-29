@@ -170,3 +170,6 @@ function finish(ctx, args, ui) {
 }
 
 export function onClose(ctx) { /* not closable */ }
+
+/** The game speaking, not a surface in the world. Centred column. */
+export const fullBleed = false;

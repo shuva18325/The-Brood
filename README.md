@@ -12,17 +12,30 @@ shotgun, and everything he owned.
 
 ---
 
-## Status: PROMPT 1 (SKELETON) — complete
+## Status: PROMPT 2 (GRAPHICS) — complete
 
-This is the skeleton build. All fifteen days are playable start to finish, all
-three endings resolve, and every system works. It is deliberately ugly:
-programmer-art lighting, no post effects, no sound. That is the plan.
+All fifteen days are playable, all three endings resolve, and the game now
+looks like something. There is still no sound.
 
 | Prompt | Owns | State |
 |---|---|---|
 | 1 | Systems, content, structure. Everything runnable. | **done** |
-| 2 | `effects.js` + tuning `config.js`. Lighting, grade, horror effects. | not started |
+| 2 | `effects.js` + tuning `config.js`. Lighting, grade, horror effects. | **done** |
 | 3 | `audio.js`. Ambient bed, positional cues, bugs. | not started |
+
+### The thesis
+
+**The 3D apartment is beautiful and dark. The 2D screens are aggressively,
+authentically ugly.** The player sits in an oppressive sodium-lit room and
+reads about the end of the world on a website that also has a sidebar ad for
+a personal injury attorney and a weather widget with a stock photo of a beach.
+
+The governing rule everywhere in the 2D layer is **diegetic vs decorative**.
+Horror lives *inside* the content — forensic plates, tape damage, EAS
+takeovers, redaction. It never touches the *chrome*: no blood on a masthead,
+no horror fonts, no grunge over an interface, nothing that looks designed or
+looks like a game UI. A station CMS renders eleven people missing in the same
+layout it uses for high school football scores, and that is the horror.
 
 ## Running it
 
@@ -78,6 +91,12 @@ src/
   state.js                 the whole game in one object + localStorage
   main.js                  bootstrap, the loop, window.BROOD
 
+  fx/
+    post.js                one render target, one shader: barrel → CA →
+                           edge softness → grade → vignette → grain → flash
+    entityArt.js           the entities, drawn in three layers
+    photo.js               the degradation that makes a drawing a photograph
+
   systems/
     clock.js               time of day; runs behind overlays too
     concealment.js         the master clock, and the two detection profiles
@@ -97,10 +116,15 @@ src/
     index.js               World — the only thing that imports three
 
   ui/
-    index.js               the freeze-and-overlay manager
-    ui.css                 prompt 1 styling (legible, grey, unfinished)
-    screens/               news, computer, phone, food, sleep, notes,
+    index.js               the freeze-and-overlay manager + settings
+    imagery.js             every on-screen image, generated on a canvas
+    css/base.css           the game's own chrome (HUD, plate, menu)
+    css/web.css            the news site, the forum, the sheet, scans
+    css/os.css             the desktop, mail, the phone, the television
+    screens/               tv, computer, phone, food, sleep, notes,
                            laptop, leave, brave, ending, scene
+    web/                   newssite, forum, sheet, files — sites in a browser
+    apps/mail.js           three-pane mail client
 
   content/
     news.js                40 articles across the four movements
@@ -120,24 +144,23 @@ src/
 Prompt 1 leaves hooks. **If prompt 2 or 3 finds itself refactoring, something
 here was violated and should be fixed rather than worked around.**
 
-### `effects.js` — prompt 2
+### `effects.js` — implemented in prompt 2
 
-Every function is a no-op that records the call. Systems already call them at
-the right moments; prompt 2 replaces the bodies and edits nothing else.
+The stub contract is unchanged: fire-and-forget, safe to call twice a frame,
+safe to call while the scene is frozen, and `corruptText` still returns a
+string. What the bodies now do:
 
-- `init(ctx)` gets `{ renderer, scene, camera, world, state }`.
-- `update(dt)` runs every frame, always, including behind an overlay.
-- `degrade(0..4)` is the standing degradation level. `syncFromState(state)`
-  recomputes it from condition, darkness and accumulated sightings.
-- `corruptText(text, opts)` **must return a string.** It is called on every
-  news headline, article, forum post, document, note and phone message before
-  display. Prompt 1 returns the input unchanged. Prompt 2 makes text harder to
-  read, and then makes it alter itself between glances.
-- One-shots: `sighting · flicker · shake · push · flash · blackout ·
-  peripheral · warmth · screenNoise · signalLoss · billboard · atmosphere`.
-
-Everything is fire-and-forget, safe to call twice a frame, and safe to call
-while the scene is frozen.
+- Camera sway, breathing and headbob driven by condition. Each sighting adds
+  to sway **permanently** — it is the one thing here that never decays.
+- `corruptText` alters exactly one word per *glance* once degradation is bad
+  enough, never repeats an alteration, and is stable within a glance so a
+  rerender never churns. Never flagged.
+- Brownouts cut everything for a beat, leaving only the streetlight through
+  the bars, then the bulb stutters back.
+- Anguish exposure: low-amplitude rate-limited flashing, aberration spike,
+  permanent worst-tier degradation for the rest of the run.
+- `pathogenManifest()` stops the frame and recolours the monitor's light in
+  the 3D room. No creature.
 
 ### `audio.js` — prompt 3
 
@@ -150,11 +173,37 @@ Sound does enormous work in this game. The gaps between the collapses, the
 total silence that means Anguish, the static on Day 15 that is the loudest
 thing in the apartment — those are all already emitted as events.
 
-### `config.js` — prompt 2
+### `config.js`
 
-Lighting per phase, fog per phase and per interior/exterior, grade, player
-feel, the clock, every Concealment rate, food, condition tiers, transition
-timings. Prompt 2 retunes this file rather than hunting through the codebase.
+Lighting per phase, fog, the post chain, the fifteen-day grade bands, player
+feel, the clock, every Concealment rate, food, condition tiers, the broadcast
+decay curve, the apartment's decay schedule, accessibility, timings.
+
+**A note on light units:** three.js is physically correct — intensity is
+candela and irradiance falls off as 1/d². The window spotlight is ~9 m from
+the floor it lands on, so its numbers are two orders of magnitude larger than
+the bulbs'. That is arithmetic, not taste. Diffuse surfaces then divide by π
+and by a dark albedo, which is another factor of ten.
+
+### The lighting model
+
+Three motivated sources and nothing else:
+
+| Source | Colour | Character |
+|---|---|---|
+| Streetlight through the bars | sodium `#C87F3A` | the only warm light in the game; hard bar-shadows |
+| Interior bulb | dying CFL `#B4C2AC` | ugly, too dim, flickering at the edge of perception |
+| Screens | CRT `#9FB8CE` | lights a face and nothing else |
+
+Ambient is a floor value, not a light. If a corner is not lit by one of those
+three it is black, and blackness is the point.
+
+The **bar-shadows** are the signature image. One shadow-casting spotlight sits
+outside the west wall; its colour is the time of day and its existence is the
+curtain. Two things it depends on and neither is obvious: the shadow
+`normalBias` must stay far below the bar radius (32 mm) or the sample offsets
+straight past them, and the apartment needs a **roof** — never seen — or the
+cone clears the wall tops and floods the interior from above.
 
 ---
 
@@ -182,6 +231,18 @@ to date a highway beats that clock outright. Neither meter is ever shown.
 poverty detail, then a security feature that keeps things out, then the reason
 he cannot get out — the same object, and the game never states any of it. It
 is also a light switch: no glass means daylight enters freely when it's open.
+
+## Accessibility
+
+- **Reduced flashing** in Settings, reachable from the title screen and the
+  pause menu. `prefers-reduced-motion` forces it on and locks the control.
+  Every luminance flash is amplitude-capped and rate-limited to 3 Hz in both
+  modes; nothing in the game requires seeing one.
+- **Volume** in the same panel. Both choices persist per machine.
+- Keyboard focus stays visible on every 2D surface; sites, tabs, files and
+  mail rows are all reachable by tab and Enter.
+- Post is a single fullscreen pass on one render target, pixel ratio capped
+  at 1.5, one shadow-casting light in the room and one outside it.
 
 ## Save data
 

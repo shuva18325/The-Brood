@@ -37,3 +37,6 @@ export function render(ctx, host, args, ui) {
     ));
   }
 }
+
+/** The game speaking, not a surface in the world. Centred column. */
+export const fullBleed = false;

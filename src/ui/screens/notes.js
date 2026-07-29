@@ -46,3 +46,6 @@ function firstLine(body) {
   const l = body.split('\n').find(x => x.trim().length) || '';
   return l.length > 64 ? l.slice(0, 61) + '…' : l;
 }
+
+/** The game speaking, not a surface in the world. Centred column. */
+export const fullBleed = false;

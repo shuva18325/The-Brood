@@ -97,3 +97,6 @@ function renderPathogen(ctx, host, args, ui) {
     wipe(); location.reload();
   } }, 'again', h('small', {}, 'from the first morning')));
 }
+
+/** The game speaking, not a surface in the world. Centred column. */
+export const fullBleed = false;

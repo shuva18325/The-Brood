@@ -84,3 +84,6 @@ async function doSleep(ctx, ui, quality) {
   ctx.script.onWake(wasDay + 1);
   ctx.resume();
 }
+
+/** The game speaking, not a surface in the world. Centred column. */
+export const fullBleed = false;

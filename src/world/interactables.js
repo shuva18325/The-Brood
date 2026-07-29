@@ -63,7 +63,7 @@ export function buildInteractables(ctx) {
       state.tvOn = !state.tvOn;
       if (state.tvOn) {
         audio.play('tv_on'); bus.emit('tv:on');
-        ui.open('news');
+        ui.open('tv');
       } else {
         audio.play('tv_off');
       }

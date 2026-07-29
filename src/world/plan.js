@@ -51,8 +51,10 @@ export const WINDOW = {
   width: 1.5,
   sill: 0.95,
   height: 1.25,
-  barCount: 7,
-  barRadius: 0.018,
+  // Square-section security bar, 32 mm, at 167 mm centres. Not a security
+  // upgrade anyone chose — they came with the building, along with the damp.
+  barCount: 9,
+  barRadius: 0.016,
 };
 
 /** Where the exterior lives. Everything beyond this is fog. */

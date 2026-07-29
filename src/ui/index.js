@@ -14,7 +14,7 @@ import audio from '../audio.js';
 import effects from '../effects.js';
 import clock from '../systems/clock.js';
 
-import * as scrNews from './screens/news.js';
+import * as scrTv from './screens/tv.js';
 import * as scrComputer from './screens/computer.js';
 import * as scrPhone from './screens/phone.js';
 import * as scrFood from './screens/food.js';
@@ -27,7 +27,7 @@ import * as scrEnding from './screens/ending.js';
 import * as scrScene from './screens/scene.js';
 
 const SCREENS = {
-  news: scrNews,
+  tv: scrTv,
   computer: scrComputer,
   phone: scrPhone,
   food: scrFood,
@@ -123,6 +123,7 @@ export class UI {
     audio.duck(0.45, 0.25);
 
     this.el.body.innerHTML = '';
+    this.el.body.className = mod.fullBleed === false ? 'framed' : '';
     this.el.overlay.classList.remove('hidden');
     requestAnimationFrame(() => this.el.overlay.classList.add('up'));
     this.el.hint.textContent = this._closable ? 'ESC — step back' : '';
@@ -137,6 +138,7 @@ export class UI {
     if (!this.open_) return;
     if (args) Object.assign(this.open_.args, args);
     this.el.body.innerHTML = '';
+    this.el.body.className = this.open_.mod.fullBleed === false ? 'framed' : '';
     this.open_.mod.render(this.ctx, this.el.body, this.open_.args, this);
   }
 
@@ -148,6 +150,7 @@ export class UI {
     this._closable = args.closable !== false && mod.closable !== false;
     this.el.hint.textContent = this._closable ? 'ESC — step back' : '';
     this.el.body.innerHTML = '';
+    this.el.body.className = mod.fullBleed === false ? 'framed' : '';
     this.el.body.scrollTop = 0;
     mod.render(this.ctx, this.el.body, args, this);
   }
@@ -161,6 +164,7 @@ export class UI {
     if (prev) {
       this.open_ = prev;
       this.el.body.innerHTML = '';
+      this.el.body.className = prev.mod.fullBleed === false ? 'framed' : '';
       this.el.body.scrollTop = 0;
       prev.mod.render(this.ctx, this.el.body, prev.args, this);
       return;
@@ -233,11 +237,84 @@ export class UI {
     this.ctx.controls.releaseLock();
     this.showMenu([
       { label: 'back to it', onClick: () => { this.hideMenu(); this.ctx.resume(); } },
+      { label: 'settings', onClick: () => this.settings() },
       { label: 'save and stop', sub: 'the save is automatic anyway',
         onClick: () => { this.ctx.saveNow(); this.hideMenu(); this.ctx.resume(); } },
       { label: 'start again', sub: 'this erases the fifteen days you have',
         onClick: () => this.ctx.restart() },
     ], `Day ${state.day} · ${clock.label()}`);
+  }
+
+  /**
+   * §10. Photosensitivity and volume, reachable without leaving the game.
+   * prefers-reduced-motion is honoured whether or not the toggle is set.
+   */
+  settings() {
+    this.el.menuButtons.innerHTML = '';
+    const box = document.createElement('div');
+    this.el.menuButtons.appendChild(box);
+
+    const osReduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    const flashRow = document.createElement('div');
+    flashRow.className = 'opt-row';
+    const flashLabel = document.createElement('label');
+    flashLabel.setAttribute('for', 'opt-flash');
+    flashLabel.textContent = 'Reduced flashing';
+    const flashInput = document.createElement('input');
+    flashInput.type = 'checkbox';
+    flashInput.id = 'opt-flash';
+    flashInput.checked = CONFIG.a11y.reducedFlashing || osReduced;
+    flashInput.disabled = osReduced;
+    flashInput.onchange = () => {
+      CONFIG.a11y.reducedFlashing = flashInput.checked;
+      try { localStorage.setItem('thebrood.a11y.flash', flashInput.checked ? '1' : '0'); } catch { /* ignore */ }
+    };
+    flashRow.appendChild(flashLabel); flashRow.appendChild(flashInput);
+    box.appendChild(flashRow);
+
+    const note = document.createElement('div');
+    note.className = 'opt-note';
+    note.textContent = osReduced
+      ? 'Your system asks for reduced motion, so this is already on and cannot be turned off here.'
+      : 'Caps every luminance flash to a low, short pulse. Nothing in the game requires you to see one.';
+    box.appendChild(note);
+
+    const volRow = document.createElement('div');
+    volRow.className = 'opt-row';
+    const volLabel = document.createElement('label');
+    volLabel.setAttribute('for', 'opt-vol');
+    volLabel.textContent = 'Volume';
+    const vol = document.createElement('input');
+    vol.type = 'range'; vol.id = 'opt-vol'; vol.min = '0'; vol.max = '100';
+    vol.value = String(Math.round(CONFIG.a11y.masterVolume * 100));
+    vol.oninput = () => {
+      CONFIG.a11y.masterVolume = Number(vol.value) / 100;
+      audio.master(CONFIG.a11y.masterVolume);
+      try { localStorage.setItem('thebrood.a11y.vol', vol.value); } catch { /* ignore */ }
+    };
+    volRow.appendChild(volLabel); volRow.appendChild(vol);
+    box.appendChild(volRow);
+
+    const back = document.createElement('button');
+    back.className = 'choice';
+    back.textContent = 'back';
+    back.onclick = () => this.pause();
+    box.appendChild(back);
+
+    this.el.menuFoot.textContent = 'WASD move · mouse look · E interact · C crouch · ESC back';
+    flashInput.focus();
+  }
+
+  /** Restore the accessibility choices this machine has already made. */
+  loadSettings() {
+    try {
+      const f = localStorage.getItem('thebrood.a11y.flash');
+      if (f !== null) CONFIG.a11y.reducedFlashing = f === '1';
+      const v = localStorage.getItem('thebrood.a11y.vol');
+      if (v !== null) CONFIG.a11y.masterVolume = Number(v) / 100;
+    } catch { /* ignore */ }
+    audio.master(CONFIG.a11y.masterVolume);
   }
 }
 

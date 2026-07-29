@@ -71,6 +71,7 @@ const ctx = {
 
 const ui = new UI(ctx);
 ctx.ui = ui;
+ui.loadSettings();
 const script = new Script(ctx);
 ctx.script = script;
 
@@ -166,6 +167,10 @@ function showTitle() {
     onClick: () => startNew(),
   });
 
+  buttons.push({
+    label: 'settings', sub: 'reduced flashing · volume',
+    onClick: () => ui.settings(),
+  });
   ui.showMenu(buttons,
     `WASD — move · mouse — look · E — the thing you are looking at · C — crouch · ESC — stop<br>` +
     `One save slot. It writes itself when you sleep.`);

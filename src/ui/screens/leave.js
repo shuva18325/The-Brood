@@ -63,3 +63,6 @@ async function go(ctx, ui) {
 }
 
 export const closable = true;
+
+/** The game speaking, not a surface in the world. Centred column. */
+export const fullBleed = false;

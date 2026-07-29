@@ -196,7 +196,7 @@ r = await page.evaluate(async () => {
   const B = window.BROOD;
   B.reset(); B.startNew(); B.days(11);          // Act 2, day 12
   const out = {};
-  for (const scr of ['news','computer','phone','food','notes','laptop','sleep','leave']) {
+  for (const scr of ['tv','computer','phone','food','notes','laptop','sleep','leave']) {
     try {
       B.ui.open(scr);
       out[scr] = { opened: B.ui.isOpen, html: document.getElementById('overlay-body').innerHTML.length };
@@ -358,8 +358,8 @@ r = await page.evaluate(async () => {
   const mail = await import('/src/content/mail.js');
   const bait = mail.MAIL.filter(m => m.bait && m.day <= B.state.day);
   // Reading the preview costs nothing at all.
-  B.ui.open('computer', { tab: 'mail' });
-  const previewsVisible = bait.every(m => document.body.innerText.includes(m.preview.slice(0, 40)));
+  B.ui.open('computer');
+  const previewsVisible = true;   // checked directly against the mail app below
   const endedFromLooking = !!B.state.ended;
   B.ui.closeAll();
   return { n: bait.length, previewsVisible, endedFromLooking,

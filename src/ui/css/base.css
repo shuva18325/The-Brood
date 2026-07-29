@@ -1,0 +1,207 @@
+/* base.css — the game's own chrome: HUD, overlay shell, plate, menu.
+ *
+ * This is the ONLY file allowed to look designed, because it is the game
+ * speaking rather than a website. Everything inside the overlay body is
+ * governed by the surface it is imitating.
+ */
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0; padding: 0; height: 100%; overflow: hidden;
+  background: #040507; color: #cfcabf;
+  font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  font-size: 15px; line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+canvas#scene { position: fixed; inset: 0; width: 100%; height: 100%; display: block; }
+
+.hidden { display: none !important; }
+
+:focus-visible {
+  outline: 2px solid #c9a05a;
+  outline-offset: 1px;
+}
+
+/* ---------------- HUD ---------------- */
+#hud { position: fixed; inset: 0; pointer-events: none; z-index: 10; }
+
+#reticle {
+  position: absolute; left: 50%; top: 50%;
+  width: 3px; height: 3px; margin: -1.5px 0 0 -1.5px;
+  background: rgba(220,215,205,0.28); border-radius: 50%;
+}
+
+#prompt {
+  position: absolute; left: 50%; top: 56%; transform: translateX(-50%);
+  font-size: 14px; letter-spacing: 0.04em;
+  color: #ddd6c8; text-shadow: 0 1px 4px #000;
+  background: rgba(6,7,9,0.5); padding: 5px 12px;
+  border: 1px solid rgba(180,170,150,0.16);
+}
+#prompt-key {
+  display: inline-block; min-width: 18px; text-align: center;
+  border: 1px solid rgba(200,190,170,0.45); padding: 0 4px; margin-right: 6px;
+  font-size: 12px; color: #efe8d8;
+}
+
+#subtitle {
+  position: absolute; left: 50%; bottom: 12%; transform: translateX(-50%);
+  max-width: min(720px, 76vw); text-align: center;
+  font-size: 15px; line-height: 1.7; color: #d8d2c4;
+  text-shadow: 0 2px 8px #000; white-space: pre-wrap;
+}
+
+#clock {
+  position: absolute; right: 18px; bottom: 14px;
+  font-size: 12px; color: rgba(200,192,178,0.38); letter-spacing: 0.1em;
+}
+#carry {
+  position: absolute; left: 18px; bottom: 14px;
+  font-size: 12px; color: rgba(200,192,178,0.45); letter-spacing: 0.06em;
+}
+
+/* ---------------- the cut ---------------- */
+#overlay {
+  position: fixed; inset: 0; z-index: 20;
+  background: #0a0b0d;
+  display: flex; flex-direction: column; align-items: center;
+  overflow: hidden;
+  opacity: 0; transition: opacity 300ms ease;
+}
+#overlay.up { opacity: 1; }
+
+#overlay-frame {
+  width: 100%; height: 100%;
+  display: flex; flex-direction: column;
+  overflow: hidden;
+}
+#overlay-body { flex: 1; overflow: auto; position: relative; }
+/* Screens that are the game speaking, rather than a surface in the world,
+   get a quiet centred column. Web and OS surfaces are full-bleed. */
+#overlay-body.framed { padding: 26px 0 60px; }
+#overlay-body.framed > * { width: min(1000px, 92vw); margin-left: auto; margin-right: auto; }
+
+#overlay-hint {
+  position: fixed; right: 14px; bottom: 10px; z-index: 30;
+  font-size: 11px; color: rgba(190,182,168,0.32); letter-spacing: 0.1em;
+  pointer-events: none;
+  font-family: ui-monospace, Menlo, Consolas, monospace;
+}
+
+/* A frame that is not a website gets the game's own quiet centred layout. */
+.plainframe {
+  width: min(1000px, 92vw); margin: 0 auto; padding: 26px 0 60px;
+}
+
+/* ---------------- generic furniture for non-web screens ---------------- */
+.scr-head {
+  display: flex; align-items: baseline; gap: 14px;
+  border-bottom: 1px solid #23262b; padding-bottom: 10px; margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+.scr-title { font-size: 19px; letter-spacing: 0.1em; color: #e2dbcc; }
+.scr-sub { font-size: 12px; color: #6d6f74; }
+.scr-tabs { display: flex; gap: 4px; margin-left: auto; flex-wrap: wrap; }
+.tab {
+  cursor: pointer; padding: 4px 11px; font-size: 12px;
+  border: 1px solid #23262b; color: #8d8f94; background: #101214;
+}
+.tab:hover { color: #d6cfc0; border-color: #3a3e45; }
+.tab.on { color: #12140f; background: #b9b2a0; border-color: #b9b2a0; }
+
+.row { padding: 11px 12px; border-bottom: 1px solid #16181b; cursor: pointer; }
+.row:hover { background: #101215; }
+.row .meta { font-size: 11px; color: #63666b; letter-spacing: 0.05em; }
+.row .h { color: #d3ccbd; }
+.row.read .h { color: #7e8085; }
+
+.body-text { white-space: pre-wrap; line-height: 1.72; max-width: 76ch; color: #c6c0b2; }
+.body-text p { margin: 0 0 1.05em; }
+
+.back { cursor: pointer; color: #8b8d92; font-size: 12px; letter-spacing: 0.08em;
+  margin-bottom: 14px; display: inline-block; }
+.back:hover { color: #d6cfc0; }
+
+.dim { color: #63666b; } .warn { color: #b8895c; }
+.bad { color: #a4514a; } .ok { color: #7f9a78; }
+hr.rule { border: 0; border-top: 1px solid #1c1f23; margin: 20px 0; }
+
+.choice {
+  display: block; width: 100%; text-align: left; cursor: pointer;
+  background: #101214; border: 1px solid #23262b; color: #cbc4b6;
+  padding: 12px 14px; margin: 8px 0; font: inherit;
+}
+.choice:hover { border-color: #4c5158; background: #15181c; color: #ece5d6; }
+.choice:disabled { opacity: 0.35; cursor: default; }
+.choice small { display: block; color: #6d6f74; margin-top: 5px; font-size: 12px; }
+
+/* ---------------- plate / menu / ending ---------------- */
+#plate {
+  position: fixed; inset: 0; z-index: 40; background: #000;
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0; transition: opacity 700ms ease;
+}
+#plate.up { opacity: 1; }
+#plate-text { color: #9a948a; font-size: 16px; letter-spacing: 0.22em;
+  text-align: center; white-space: pre-wrap; line-height: 2; }
+
+#menu {
+  position: fixed; inset: 0; z-index: 50; background: #030405;
+  display: flex; align-items: center; justify-content: center;
+}
+.menu-inner { text-align: center; max-width: 560px; padding: 0 24px; }
+.menu-inner h1 { font-size: 40px; letter-spacing: 0.34em; margin: 0 0 10px;
+  color: #ded7c8; font-weight: 400; }
+.menu-sub { color: #6d6f74; font-size: 13px; letter-spacing: 0.1em; margin: 0 0 34px; }
+#menu-buttons { display: flex; flex-direction: column; gap: 10px; align-items: stretch; }
+.menu-foot { margin-top: 26px; font-size: 11px; color: #4c4f54; line-height: 1.8; }
+
+.opt-row { display: flex; align-items: center; gap: 10px; justify-content: space-between;
+  border: 1px solid #1c1f23; padding: 10px 14px; margin: 8px 0; }
+.opt-row label { font-size: 13px; color: #b6b0a3; cursor: pointer; }
+.opt-row input[type=range] { width: 160px; }
+.opt-note { font-size: 11px; color: #55585d; margin: -4px 0 12px; text-align: left; }
+
+.ending-beat { max-width: 68ch; margin: 0 auto 1.9em; white-space: pre-wrap;
+  line-height: 1.85; color: #c8c2b4; }
+.ending-title { text-align: center; letter-spacing: 0.3em; font-size: 22px;
+  color: #ded7c8; margin: 40px 0 30px; }
+.ending-foot { text-align: center; color: #55585d; font-size: 12px;
+  margin: 44px 0 20px; letter-spacing: 0.08em; }
+
+.defence-clock { text-align: center; font-size: 26px; letter-spacing: 0.2em;
+  color: #9c958a; margin: 18px 0 26px; }
+.defence-log { max-width: 66ch; margin: 0 auto 22px; }
+.defence-log div { margin: 0 0 0.8em; color: #b6b0a3; white-space: pre-wrap; }
+
+/* ---------------- condition degradation (§8.2) ----------------
+ * Screen text becomes harder to read. This is applied to the whole
+ * overlay, so it hits every surface equally — which is correct, because
+ * it is his eyes, not the website.
+ */
+#overlay { --deg-blur: 0px; --deg-fade: 1; }
+:root[data-deg="1"] #overlay { --deg-blur: 0.14px; --deg-fade: 0.96; }
+:root[data-deg="2"] #overlay { --deg-blur: 0.32px; --deg-fade: 0.90; }
+:root[data-deg="3"] #overlay { --deg-blur: 0.55px; --deg-fade: 0.82; }
+:root[data-deg="4"] #overlay { --deg-blur: 0.85px; --deg-fade: 0.74; }
+#overlay-body { filter: blur(var(--deg-blur)); opacity: var(--deg-fade); }
+
+:root.fx-exposed #overlay-body { filter: blur(0.95px) contrast(0.86) saturate(0.7); }
+
+/* Screen interference, driven by effects.screenNoise(). */
+#overlay.noise-mild::after, #overlay.noise-heavy::after {
+  content: ''; position: absolute; inset: 0; pointer-events: none; z-index: 5;
+  background: repeating-linear-gradient(0deg,
+    rgba(255,255,255,0.045) 0 1px, rgba(0,0,0,0) 1px 3px);
+  animation: roll 0.9s linear infinite;
+}
+#overlay.noise-heavy::after { background: repeating-linear-gradient(0deg,
+    rgba(255,255,255,0.10) 0 1px, rgba(0,0,0,0.06) 1px 2px); }
+@keyframes roll { from { background-position-y: 0; } to { background-position-y: 12px; } }
+
+@media (prefers-reduced-motion: reduce) {
+  #overlay.noise-mild::after, #overlay.noise-heavy::after { animation: none; }
+  #overlay { transition: none; }
+}

@@ -1,0 +1,334 @@
+/* web.css — the browser, the news site, the forum, the spreadsheet.
+ *
+ * THE RULE (§1): none of this may look designed, and none of it may look
+ * like a game. The test is whether you could screenshot the interface with
+ * no content in it and have somebody believe it was a real website from a
+ * mid-size American city.
+ *
+ * So: system fonts, hard 1px borders, zero border-radius, no shadows, no
+ * white space, and a font-size mismatch between the headlines and the body
+ * that is CORRECT and must not be harmonised.
+ */
+
+/* ================================================================== */
+/* the browser window                                                  */
+/* ================================================================== */
+
+.browser { position: absolute; inset: 0; display: flex; flex-direction: column;
+  background: #ffffff; color: #111; }
+
+.br-chrome {
+  background: linear-gradient(#f0f0f0, #dedede);
+  border-bottom: 1px solid #a9a9a9;
+  padding: 4px 6px 0; font-family: Tahoma, "Segoe UI", sans-serif; font-size: 11px;
+  flex: 0 0 auto;
+}
+.br-tabs { display: flex; gap: 2px; align-items: flex-end; }
+.br-tab {
+  background: #cfcfcf; border: 1px solid #a9a9a9; border-bottom: none;
+  padding: 3px 10px 4px; max-width: 190px; overflow: hidden; white-space: nowrap;
+  text-overflow: ellipsis; color: #333; cursor: pointer;
+}
+.br-tab.on { background: #ffffff; color: #000; }
+.br-bar { display: flex; gap: 4px; align-items: center; padding: 4px 2px;
+  border-top: 1px solid #fff; }
+.br-btn { width: 20px; height: 18px; border: 1px solid #a9a9a9; background: #ececec;
+  color: #555; font-size: 10px; line-height: 16px; text-align: center; cursor: pointer; }
+.br-url { flex: 1; border: 1px solid #7f9db9; background: #fff; padding: 2px 6px;
+  font-size: 11px; color: #222; overflow: hidden; white-space: nowrap; }
+.br-viewport { flex: 1; overflow: auto; background: #fff; position: relative; }
+
+/* ================================================================== */
+/* WKRV 9 — a local affiliate, last redesigned in 2017 by a vendor       */
+/* ================================================================== */
+
+.wkrv { font-family: Arial, Helvetica, sans-serif; font-size: 13px; color: #222;
+  background: #fff; min-height: 100%; }
+
+.wkrv-cookie {
+  background: #2b2b2b; color: #eee; font-size: 11px; padding: 7px 12px;
+  display: flex; align-items: center; gap: 12px;
+}
+.wkrv-cookie button { font-size: 11px; padding: 3px 10px; border: 1px solid #888;
+  background: #4a4a4a; color: #fff; cursor: pointer; font-family: inherit; }
+
+.wkrv-leader { background: #eee; border-bottom: 1px solid #ddd; text-align: center;
+  padding: 6px 0; }
+.wkrv-leader img { display: inline-block; vertical-align: middle; }
+.wkrv-adlabel { font-size: 9px; color: #999; letter-spacing: .08em; text-align: center;
+  padding: 2px 0; text-transform: uppercase; }
+
+.wkrv-masthead { background: #0B2A4A; padding: 8px 14px; display: flex;
+  align-items: center; gap: 14px; }
+.wkrv-masthead img { display: block; }
+.wkrv-mast-right { margin-left: auto; color: #b8c8da; font-size: 11px; text-align: right; }
+.wkrv-live { background: #C4242B; color: #fff; padding: 3px 9px; font-weight: bold;
+  font-size: 11px; display: inline-block; }
+
+.wkrv-nav { background: #143a61; border-bottom: 3px solid #C4242B; padding: 0 8px;
+  white-space: nowrap; overflow-x: auto; }
+.wkrv-nav a { display: inline-block; color: #dbe6f0; text-decoration: none;
+  font-size: 11.5px; padding: 7px 9px; font-weight: bold; letter-spacing: .02em; }
+.wkrv-nav a:hover { background: #1d4d7c; color: #fff; }
+
+.wkrv-breaking { background: #C4242B; color: #fff; padding: 6px 12px; font-weight: bold;
+  font-size: 12px; letter-spacing: .04em; }
+.wkrv-breaking span { font-weight: normal; }
+
+.wkrv-alert { background: #f5e6a8; border-top: 2px solid #8a7118; border-bottom: 2px solid #8a7118;
+  color: #3a2f06; padding: 8px 12px; font-size: 12px; }
+.wkrv-alert b { display: block; font-size: 12.5px; }
+
+.wkrv-cols { display: flex; gap: 14px; padding: 12px; align-items: flex-start; }
+.wkrv-main { flex: 1 1 auto; min-width: 0; }
+.wkrv-side { flex: 0 0 300px; }
+
+.wkrv-lead { border-bottom: 1px solid #ccc; padding-bottom: 10px; margin-bottom: 10px; }
+.wkrv-lead h1 { font-family: Arial, Helvetica, sans-serif; font-size: 25px;
+  line-height: 1.15; margin: 0 0 5px; color: #111; font-weight: bold; }
+.wkrv-lead h1 a { color: #111; text-decoration: none; }
+.wkrv-lead h1 a:hover { text-decoration: underline; }
+.wkrv-byline { font-size: 11px; color: #777; margin-bottom: 6px; }
+.wkrv-dek { font-family: Georgia, "Times New Roman", serif; font-size: 14px;
+  color: #333; line-height: 1.45; }
+
+.wkrv-list { list-style: none; margin: 0; padding: 0; }
+.wkrv-list li { border-bottom: 1px solid #e2e2e2; padding: 8px 0; }
+.wkrv-list h2 { font-size: 15px; margin: 0 0 3px; font-weight: bold; line-height: 1.2; }
+.wkrv-list h2 a { color: #16406d; text-decoration: none; }
+.wkrv-list h2 a:visited { color: #5a4a75; }
+.wkrv-list h2 a:hover { text-decoration: underline; }
+.wkrv-list .meta { font-size: 10.5px; color: #888; }
+.wkrv-list .snip { font-family: Georgia, serif; font-size: 12.5px; color: #444; margin-top: 3px; }
+
+.wkrv-secthead { background: #eef1f4; border-left: 4px solid #0B2A4A; font-size: 12px;
+  font-weight: bold; padding: 5px 8px; margin: 14px 0 6px; text-transform: uppercase;
+  letter-spacing: .04em; color: #0B2A4A; }
+
+.wkrv-wx { border: 1px solid #ccc; margin-bottom: 12px; }
+.wkrv-wx img { display: block; width: 100%; }
+.wkrv-wx-now { display: flex; align-items: center; gap: 8px; padding: 8px; }
+.wkrv-wx-temp { font-size: 34px; font-weight: bold; color: #0B2A4A; line-height: 1; }
+.wkrv-wx-meta { font-size: 11px; color: #555; }
+.wkrv-wx-week { display: flex; border-top: 1px solid #ddd; }
+.wkrv-wx-week div { flex: 1; text-align: center; font-size: 10px; padding: 5px 0;
+  border-right: 1px solid #eee; color: #444; }
+.wkrv-wx-week div:last-child { border-right: none; }
+.wkrv-wx-week b { display: block; font-size: 11px; color: #111; }
+
+.wkrv-mostread { border: 1px solid #ccc; margin-bottom: 12px; }
+.wkrv-mostread h3 { background: #0B2A4A; color: #fff; font-size: 12px; margin: 0;
+  padding: 6px 8px; letter-spacing: .06em; }
+.wkrv-mostread ol { margin: 0; padding: 6px 8px 8px 26px; }
+.wkrv-mostread li { font-size: 12px; margin-bottom: 6px; line-height: 1.3; }
+.wkrv-mostread a { color: #16406d; text-decoration: none; }
+.wkrv-mostread a:hover { text-decoration: underline; }
+
+.wkrv-article { max-width: 640px; }
+.wkrv-article h1 { font-size: 27px; line-height: 1.15; margin: 0 0 6px; }
+.wkrv-article .wkrv-body { font-family: Georgia, "Times New Roman", serif;
+  font-size: 15px; line-height: 1.6; color: #222; }
+.wkrv-article .wkrv-body p { margin: 0 0 1em; }
+.wkrv-share { border-top: 1px solid #ddd; border-bottom: 1px solid #ddd; padding: 6px 0;
+  margin: 10px 0; font-size: 11px; color: #777; }
+.wkrv-share span { display: inline-block; border: 1px solid #ccc; padding: 2px 8px;
+  margin-right: 4px; background: #f6f6f6; }
+
+.wkrv-broken { display: inline-block; border: 1px solid #bbb; background: #f4f4f4;
+  color: #777; font-size: 11px; padding: 20px 14px; font-family: Georgia, serif; }
+.wkrv-broken::before { content: '⊘'; display: block; font-size: 20px; color: #aaa; }
+
+.wkrv-foot { background: #eee; border-top: 1px solid #ccc; padding: 12px;
+  font-size: 10.5px; color: #777; }
+.wkrv-foot a { color: #16406d; }
+
+/* --- Days 13–15: the CSS fails to load. -------------------------------
+ * This is not a style. It is the ABSENCE of one — browser defaults,
+ * Times New Roman, blue underlined links, left aligned on white. It costs
+ * nothing to build and it is the most frightening frame in the game.
+ */
+.unstyled, .unstyled * {
+  all: revert;
+  font-family: "Times New Roman", Times, serif !important;
+  background: #fff !important; color: #000 !important;
+}
+.unstyled { padding: 8px; min-height: 100%; }
+.unstyled a { color: #0000EE !important; text-decoration: underline !important; }
+.unstyled a:visited { color: #551A8B !important; }
+.unstyled h1 { font-size: 2em; margin: .67em 0; }
+.unstyled h2 { font-size: 1.5em; margin: .83em 0; }
+.unstyled img { max-width: 100%; }
+.unstyled hr { border: 1px inset; }
+
+/* ================================================================== */
+/* the forum — vBulletin-era, after everyone stopped maintaining it     */
+/* ================================================================== */
+
+.vb { font-family: Verdana, Geneva, sans-serif; font-size: 11px; color: #000;
+  background: #E1E7EC; min-height: 100%; padding-bottom: 30px; }
+
+.vb-head { background: #4A6A8A; padding: 8px 10px; color: #fff;
+  border-bottom: 3px solid #2f4a63; }
+.vb-head b { font-size: 17px; letter-spacing: .02em; font-family: Tahoma, sans-serif; }
+.vb-head .sub { font-size: 10px; color: #c6d6e4; }
+.vb-strip { background: #33516b; color: #cfe0ee; font-size: 10px; padding: 3px 10px; }
+.vb-strip a { color: #ffffff; }
+
+.vb-crumb { padding: 6px 10px; font-size: 10px; color: #33516b; }
+.vb-crumb a { color: #0000EE; }
+
+.vb-table { width: calc(100% - 16px); margin: 0 8px 12px; border-collapse: collapse;
+  border: 1px solid #7C93A9; background: #fff; }
+.vb-table th { background: #4A6A8A; color: #fff; font-size: 10px; text-align: left;
+  padding: 4px 7px; font-weight: normal; letter-spacing: .04em; }
+.vb-table td { border-top: 1px solid #D1D9E0; padding: 6px 7px; vertical-align: top; }
+.vb-table tr:nth-child(odd) td { background: #F5F5F5; }
+.vb-table tr:nth-child(even) td { background: #EDEDED; }
+.vb-table tr:hover td { background: #e3ecf3; }
+.vb-table a { color: #0000EE; text-decoration: none; font-weight: bold; }
+.vb-table a:visited { color: #551A8B; }
+.vb-table a:hover { text-decoration: underline; }
+.vb-num { width: 62px; text-align: center; color: #555; font-size: 10px; }
+.vb-sticky { font-size: 9px; color: #8a1f1f; font-weight: bold; }
+
+.vb-post { border: 1px solid #7C93A9; margin: 0 8px 6px; background: #fff; }
+.vb-post-top { background: #DDE3EA; border-bottom: 1px solid #7C93A9; padding: 3px 7px;
+  font-size: 10px; color: #445; display: flex; justify-content: space-between; }
+.vb-post-body { display: flex; align-items: stretch; }
+.vb-userbox { flex: 0 0 148px; border-right: 1px solid #C4CFD9; padding: 7px;
+  background: #F5F7F9; font-size: 10px; color: #444; }
+.vb-userbox .who { font-size: 12px; font-weight: bold; color: #16406d; word-break: break-all; }
+.vb-userbox .title { font-style: italic; color: #666; margin-bottom: 5px; }
+.vb-userbox img { display: block; margin: 4px 0 6px; border: 1px solid #aaa; }
+.vb-userbox .stat { color: #555; }
+.vb-postcontent { flex: 1; padding: 8px 10px; min-width: 0; }
+.vb-text { font-size: 11.5px; line-height: 1.55; color: #111; white-space: pre-wrap;
+  word-wrap: break-word; }
+.vb-quote { border: 1px solid #B0BCC8; background: #F2F5F8; margin: 6px 0; padding: 5px 8px;
+  font-size: 10.5px; color: #333; }
+.vb-quote .qh { font-weight: bold; color: #555; border-bottom: 1px solid #C8D2DB;
+  margin-bottom: 4px; padding-bottom: 2px; }
+.vb-edit { font-size: 9.5px; color: #888; font-style: italic; margin-top: 8px; }
+.vb-sig { border-top: 1px solid #D6DDE4; margin-top: 10px; padding-top: 5px;
+  font-size: 10px; color: #666; white-space: pre-wrap; line-height: 1.35; }
+.vb-sig a { color: #0000EE; }
+.vb-attach { margin: 8px 0; }
+.vb-attach img { border: 1px solid #888; display: block; max-width: 100%; }
+.vb-attach .cap { font-size: 9.5px; color: #777; margin-top: 2px; }
+.vb-pages { margin: 8px; font-size: 10px; color: #444; }
+.vb-pages a, .vb-pages b { border: 1px solid #7C93A9; background: #fff; padding: 1px 5px;
+  margin-right: 2px; text-decoration: none; color: #0000EE; display: inline-block; }
+.vb-pages b { background: #4A6A8A; color: #fff; }
+.vb-post.gone .vb-text { color: #777; }
+
+/* ================================================================== */
+/* the shared spreadsheet                                              */
+/* ================================================================== */
+
+.sheet-app { font-family: Arial, Helvetica, sans-serif; background: #f5f5f5;
+  min-height: 100%; display: flex; flex-direction: column; }
+.sheet-top { background: #fff; border-bottom: 1px solid #ccc; padding: 6px 10px; }
+.sheet-title { font-size: 15px; color: #222; }
+.sheet-meta { font-size: 11px; color: #777; }
+.sheet-meta b { color: #1a7f37; font-weight: normal; }
+.sheet-grid-wrap { flex: 1; overflow: auto; background: #fff; }
+table.gsheet { border-collapse: collapse; font-size: 11.5px; color: #111; }
+table.gsheet th, table.gsheet td { border: 1px solid #d4d4d4; padding: 3px 6px;
+  text-align: left; vertical-align: top; white-space: nowrap; }
+table.gsheet thead th { background: #f1f3f4; color: #444; font-weight: normal;
+  position: sticky; top: 0; z-index: 1; }
+table.gsheet td.rowhead { background: #f8f9fa; color: #888; text-align: center;
+  width: 30px; font-size: 10px; }
+table.gsheet td.wrap { white-space: normal; min-width: 220px; }
+table.gsheet td.v { color: #1a7f37; }
+table.gsheet td.x { color: #b3261e; }
+table.gsheet td.u { color: #a06000; }
+table.gsheet td.hot { background: #fff4c2; }
+.sheet-tabs { background: #f1f3f4; border-top: 1px solid #ccc; padding: 3px 6px;
+  display: flex; gap: 2px; flex: 0 0 auto; }
+.sheet-tab { font-size: 11px; padding: 4px 12px; border: 1px solid transparent;
+  cursor: pointer; color: #444; }
+.sheet-tab.on { background: #fff; border-color: #ccc; border-bottom-color: #fff;
+  color: #111; font-weight: bold; }
+.sheet-comment { background: #fff8dc; border: 1px solid #e0c86a; padding: 6px 8px;
+  font-size: 11px; color: #4a3c05; margin: 6px 10px; }
+.sheet-comment b { color: #6b5405; }
+
+/* ================================================================== */
+/* the file host the Foundation scans are posted to                    */
+/* ================================================================== */
+
+.filehost { font-family: Arial, Helvetica, sans-serif; background: #fff; min-height: 100%; }
+.fh-head { background: #333; color: #ddd; padding: 7px 12px; font-size: 13px; }
+.fh-head span { color: #888; font-size: 11px; }
+.fh-list { padding: 8px 12px; }
+.fh-row { border-bottom: 1px solid #e4e4e4; padding: 7px 0; cursor: pointer;
+  display: flex; gap: 10px; align-items: baseline; }
+.fh-row:hover { background: #f6f6f6; }
+.fh-row .n { color: #16406d; font-size: 13px; text-decoration: underline; }
+.fh-row .s { color: #999; font-size: 11px; margin-left: auto; }
+
+/* ================================================================== */
+/* the scanned document (§5A.4)                                        */
+/* ================================================================== */
+
+.scanwrap { background: #3a3a38; padding: 22px 0 40px; min-height: 100%; }
+.scan {
+  width: min(760px, 92%); margin: 0 auto; background: #e9e6dc; color: #191713;
+  padding: 46px 52px 60px; position: relative;
+  font-family: "Courier New", Courier, monospace; font-size: 13px; line-height: 1.62;
+  white-space: pre-wrap;
+  /* the page never goes in the scanner straight */
+  transform: rotate(-0.35deg);
+  box-shadow: 0 0 0 1px #cbc7ba;
+}
+.scan::before {
+  /* scanner shadow down the gutter edge */
+  content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 34px;
+  background: linear-gradient(90deg, rgba(20,18,14,0.30), rgba(20,18,14,0));
+  pointer-events: none;
+}
+.scan::after {
+  /* the ghost of the text on the reverse, and the fold */
+  content: ''; position: absolute; inset: 0; pointer-events: none;
+  background:
+    linear-gradient(180deg, rgba(0,0,0,0) 47%, rgba(90,80,60,0.10) 49.5%, rgba(0,0,0,0) 52%),
+    repeating-linear-gradient(91deg, rgba(120,110,90,0.030) 0 2px, rgba(0,0,0,0) 2px 5px);
+}
+.scan.gen2 { background: #dedbd0; filter: contrast(1.18) brightness(0.98); transform: rotate(0.5deg); }
+.scan.gen3 { background: #d6d3c6; filter: contrast(1.35) brightness(0.95); transform: rotate(-0.8deg); }
+
+.scan-stamp {
+  position: absolute; top: 26px; right: 40px; transform: rotate(-7deg);
+  border: 3px solid #7d2b26; color: #7d2b26; padding: 5px 12px;
+  font-family: Arial, sans-serif; font-weight: bold; font-size: 13px;
+  letter-spacing: .14em; opacity: .78;
+}
+.scan-margin { position: absolute; left: 10px; top: 50%; transform: rotate(-90deg);
+  transform-origin: left center; font-size: 9px; letter-spacing: .3em; color: #6c665a; }
+.scan-hand { font-family: "Segoe Script", "Bradley Hand", cursive;
+  color: #26355e; font-size: 13.5px; line-height: 1.45; }
+.scan-hand.later { color: #4a2a2a; }
+.scan-note { position: absolute; right: -6px; width: 190px; padding: 4px 8px;
+  font-family: "Segoe Script", "Bradley Hand", cursive; font-size: 12px;
+  color: #26355e; transform: rotate(1.4deg); }
+
+/* Redaction: solid black, line lengths preserved so the player can see
+ * exactly how much is missing. */
+.redact { background: #14120f; color: #14120f; user-select: none; }
+.redact.thin { background: #14120f; }
+/* Occasionally one that didn't take. */
+.redact.failed { background: rgba(20,18,15,0.90); color: rgba(220,214,198,0.16); }
+
+.plate { margin: 16px 0; }
+.plate img { display: block; max-width: 100%; border: 1px solid #8d8778; }
+.plate .cap { font-family: "Courier New", monospace; font-size: 11px;
+  color: #4a463d; margin-top: 4px; }
+
+/* ================================================================== */
+/* accessibility                                                       */
+/* ================================================================== */
+.browser a:focus-visible, .vb a:focus-visible, .sheet-tab:focus-visible,
+.fh-row:focus-visible, .br-tab:focus-visible, .wkrv-list h2 a:focus-visible {
+  outline: 2px solid #C4242B; outline-offset: 1px;
+}

@@ -70,3 +70,6 @@ function describe(p) {
   if (p <= 12) return `Tins, rice, a bag of onions, three things of his that you are still treating as his.\n\nYou take from the left because that is where the old stuff is. He set it up like that. You have not moved anything.`;
   return `More food than has been in this apartment since you got here.\n\nHe carried all of it up two flights in one trip because he did not want to do the stairs twice.`;
 }
+
+/** The game speaking, not a surface in the world. Centred column. */
+export const fullBleed = false;

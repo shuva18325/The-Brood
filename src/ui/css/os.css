@@ -1,0 +1,213 @@
+/* os.css — the desktop, its windows, the mail client, and the phone.
+ *
+ * A desktop tower from around 2014 running an OS from around 2011, which
+ * has never once been cleaned up. Tahoma / Segoe UI, 11–12px, system stack,
+ * nothing else. Windows have title bars; they are NOT fullscreen takeovers,
+ * so the messy desktop stays visible behind them.
+ */
+
+.desktop {
+  position: absolute; inset: 0; overflow: hidden;
+  font-family: Tahoma, "Segoe UI", Verdana, sans-serif; font-size: 11px;
+  color: #fff; user-select: none;
+}
+.desktop-bg { position: absolute; inset: 0; background-size: cover;
+  background-position: center; }
+.desktop-bg.dim { filter: brightness(0.72); }
+
+/* --- icons, in no arrangement, several over the wallpaper's subject --- */
+.dt-icon { position: absolute; width: 76px; text-align: center; cursor: pointer;
+  padding: 3px 2px; }
+.dt-icon:hover { background: rgba(60,110,180,0.28); outline: 1px dotted rgba(255,255,255,0.4); }
+.dt-icon .gl { width: 32px; height: 32px; margin: 0 auto 3px; display: block; }
+.dt-icon .lb { font-size: 10.5px; color: #fff; text-shadow: 0 1px 2px #000, 0 0 3px #000;
+  line-height: 1.15; word-wrap: break-word; }
+
+/* --- taskbar --- */
+.taskbar { position: absolute; left: 0; right: 0; bottom: 0; height: 30px;
+  background: linear-gradient(#3f7dc4, #1e4f8c 18%, #17407a);
+  border-top: 1px solid #6ea3dd; display: flex; align-items: center; padding: 0 2px; }
+.tb-start { background: linear-gradient(#67b04a, #2f7a24); border: 1px solid #2a5f1e;
+  color: #fff; font-weight: bold; font-size: 12px; padding: 3px 16px 4px;
+  border-radius: 0 12px 12px 0; margin-right: 6px; cursor: pointer;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.5); }
+.tb-item { background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.18);
+  color: #e8f0fa; font-size: 11px; padding: 3px 10px; margin-right: 3px; cursor: pointer;
+  max-width: 170px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.tb-item.on { background: rgba(255,255,255,0.28); }
+.tb-tray { margin-left: auto; display: flex; align-items: center; gap: 7px;
+  padding: 0 8px 0 10px; border-left: 1px solid rgba(255,255,255,0.2); height: 100%; }
+.tb-tray .ic { width: 14px; height: 14px; opacity: .85; }
+/* The clock becomes the most-checked object in the game. Keep it legible. */
+.tb-clock { font-size: 11.5px; color: #fff; text-align: center; line-height: 1.15;
+  min-width: 56px; text-shadow: 0 1px 1px rgba(0,0,0,0.6); }
+.tb-clock b { display: block; font-weight: normal; font-size: 12.5px; }
+.tb-clock span { font-size: 10px; color: #cfe0f4; }
+
+/* --- windows --- */
+.win { position: absolute; background: #f0f0f0; border: 1px solid #4a6f9e;
+  display: flex; flex-direction: column; box-shadow: 2px 2px 0 rgba(0,0,0,0.25); }
+.win-title { background: linear-gradient(#5b8fc9, #3d6ea8); color: #fff;
+  padding: 3px 6px; font-size: 11.5px; display: flex; align-items: center; gap: 6px;
+  cursor: default; }
+.win-title .t { flex: 1; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.win-btn { width: 21px; height: 17px; border: 1px solid #7fa4cd; background: #cfe0f2;
+  color: #163a63; font-size: 10px; line-height: 15px; text-align: center; cursor: pointer; }
+.win-btn.close { background: #c9564f; border-color: #8c3630; color: #fff; }
+.win-body { flex: 1; overflow: hidden; background: #fff; position: relative; }
+.win.max { inset: 0 0 30px 0; }
+
+/* --- boot --- */
+.boot { position: absolute; inset: 0; background: #000; color: #c8c8c8;
+  font-family: "Courier New", monospace; font-size: 12px; padding: 24px; }
+.boot .cursor { display: inline-block; width: 7px; height: 13px; background: #c8c8c8;
+  vertical-align: -2px; animation: blink 1s steps(1) infinite; }
+@keyframes blink { 50% { opacity: 0; } }
+.boot.unclean { color: #d8c88a; }
+
+/* ================================================================== */
+/* mail client — three panes, system fonts, unread counts               */
+/* ================================================================== */
+
+.mail { position: absolute; inset: 0; display: flex; background: #fff;
+  font-family: Tahoma, "Segoe UI", sans-serif; font-size: 11.5px; color: #111; }
+.mail-folders { flex: 0 0 158px; background: #eef2f7; border-right: 1px solid #c4cfda;
+  padding: 6px 0; }
+.mail-folders div { padding: 4px 12px; cursor: pointer; display: flex; gap: 6px; }
+.mail-folders div.on { background: #cfe0f2; font-weight: bold; }
+.mail-folders .cnt { margin-left: auto; color: #16406d; }
+.mail-list { flex: 0 0 300px; border-right: 1px solid #c4cfda; overflow-y: auto; }
+.mail-item { border-bottom: 1px solid #e6e6e6; padding: 6px 9px; cursor: pointer; }
+.mail-item:hover { background: #f2f6fb; }
+.mail-item.on { background: #cfe0f2; }
+.mail-item .from { color: #333; }
+.mail-item.unread .from, .mail-item.unread .subj { font-weight: bold; color: #000; }
+.mail-item .subj { color: #222; }
+.mail-item .prev { color: #777; font-size: 11px; margin-top: 2px;
+  display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;
+  overflow: hidden; }
+.mail-read { flex: 1; overflow-y: auto; padding: 12px 16px; min-width: 0; }
+.mail-read h2 { font-size: 15px; margin: 0 0 3px; font-weight: normal; color: #111; }
+.mail-hdr { border-bottom: 1px solid #ddd; padding-bottom: 8px; margin-bottom: 12px;
+  font-size: 11px; color: #666; }
+/* Plain text. No images. Correct spelling. Calm. */
+.mail-body { font-family: "Courier New", Courier, monospace; font-size: 12.5px;
+  line-height: 1.65; color: #111; white-space: pre-wrap; max-width: 68ch; }
+/* An ordinary hyperlink. No glow, no pulse, no hover treatment beyond the
+ * underline it already has. The restraint is what makes it work. */
+.mail-body a { color: #0000EE; text-decoration: underline; cursor: pointer; }
+.mail-body a:visited { color: #551A8B; }
+
+/* ================================================================== */
+/* the phone                                                           */
+/* ================================================================== */
+
+.phone-shell { width: 330px; margin: 20px auto; background: #0d0f12;
+  border: 1px solid #22262c; border-radius: 18px; padding: 10px 8px 16px;
+  font-family: -apple-system, "Segoe UI", Roboto, sans-serif; }
+.phone-status { display: flex; justify-content: space-between; align-items: center;
+  font-size: 11px; color: #8a9099; padding: 2px 10px 8px; }
+.phone-thread { padding: 0 6px; max-height: 46vh; overflow-y: auto; }
+.msg { margin: 7px 0; padding: 8px 12px; max-width: 82%; font-size: 13.5px;
+  line-height: 1.42; border-radius: 16px; }
+.msg.them { background: #23262b; color: #d3cec4; border-bottom-left-radius: 4px; }
+.msg.me { background: #2b5c3a; color: #dfe8dd; margin-left: auto;
+  border-bottom-right-radius: 4px; }
+.msg .t { display: block; font-size: 10px; color: #6a7078; margin-top: 5px; }
+.msg.failed { opacity: .55; }
+.msg.failed::after { content: ' Not Delivered'; font-size: 10px; color: #a35550; }
+.phone-actions { padding: 10px 8px 0; }
+
+/* ================================================================== */
+/* the television                                                      */
+/* ================================================================== */
+
+.tvwrap { position: absolute; inset: 0; background: #000; display: flex;
+  align-items: center; justify-content: center; overflow: hidden; }
+.tvscreen { position: relative; width: min(1000px, 92vw); aspect-ratio: 4 / 3;
+  background: #05060a; overflow: hidden;
+  font-family: Arial, Helvetica, sans-serif; color: #fff; }
+
+/* Broadcast decay: colour first, then chroma bleed, then sync, then snow. */
+.tvscreen { --sat: 1; --bleed: 0px; --roll: 0px; }
+.tv-pic { position: absolute; inset: 0; filter: saturate(var(--sat));
+  transform: translateY(var(--roll)); }
+.tv-pic.bleed { text-shadow: var(--bleed) 0 rgba(255,0,0,.55), calc(-1 * var(--bleed)) 0 rgba(0,180,255,.5); }
+
+.tv-studio { position: absolute; inset: 0;
+  background: linear-gradient(180deg, #12233b 0%, #0b1626 55%, #070d16 100%); }
+.tv-desk { position: absolute; left: 0; right: 0; bottom: 0; height: 34%;
+  background: linear-gradient(#1d3252, #12203a); border-top: 2px solid #2c4a72; }
+.tv-anchor { position: absolute; left: 50%; bottom: 30%; transform: translateX(-50%);
+  width: 22%; }
+.tv-anchor .head { width: 62%; padding-top: 74%; margin: 0 auto;
+  background: #6b5040; border-radius: 46% 46% 42% 42%; }
+.tv-anchor .body { margin-top: -6%; height: 90px; background: #1d2b3f;
+  border-radius: 40% 40% 0 0; }
+
+.tv-lower { position: absolute; left: 4%; right: 4%; bottom: 12%; }
+.tv-lower .l1 { background: #0B2A4A; color: #fff; font-size: 22px; font-weight: bold;
+  padding: 7px 14px; letter-spacing: .01em; }
+.tv-lower .l2 { background: #C4242B; color: #fff; font-size: 14px; padding: 4px 14px;
+  letter-spacing: .04em; }
+.tv-bug { position: absolute; right: 3%; top: 4%; opacity: .9; }
+.tv-clockbug { position: absolute; left: 3%; top: 4%; background: rgba(11,42,74,.82);
+  color: #fff; font-size: 15px; padding: 3px 10px; letter-spacing: .05em; }
+
+.tv-crawl { position: absolute; left: 0; right: 0; bottom: 0; background: #0B2A4A;
+  color: #fff; font-size: 15px; padding: 6px 0; overflow: hidden; white-space: nowrap; }
+.tv-crawl span { display: inline-block; padding-left: 100%;
+  animation: crawl 34s linear infinite; }
+@keyframes crawl { to { transform: translateX(-100%); } }
+
+/* --- the ident. Play it straight. It should be indistinguishable from a
+ * real affiliate bumper for the first eight days. --- */
+.tv-ident { position: absolute; inset: 0; background: #0B2A4A;
+  display: flex; align-items: center; justify-content: center; }
+.tv-ident img { transform: scale(1.6); animation: identin 1.6s ease-out; }
+@keyframes identin { from { transform: scale(2.4); opacity: 0; } to { transform: scale(1.6); opacity: 1; } }
+.tv-ident .tagline { position: absolute; bottom: 24%; color: #b8c8da; font-size: 15px;
+  letter-spacing: .28em; }
+
+/* --- EAS. The single most effective analog horror asset there is, and it
+ * is nearly free. The visual language NEVER changes; only the content. --- */
+.tv-eas { position: absolute; inset: 0; background: #1a1ea8; color: #fff;
+  padding: 5% 6%; font-family: "Courier New", Courier, monospace; }
+.tv-eas h1 { font-size: 26px; margin: 0 0 4px; letter-spacing: .05em;
+  font-family: Arial, sans-serif; }
+.tv-eas .agency { font-size: 15px; color: #cfd2ff; margin-bottom: 18px; }
+.tv-eas .msg { font-size: 17px; line-height: 1.55; white-space: pre-wrap; }
+.tv-eas .counties { font-size: 13px; color: #c8cbff; margin-top: 16px; line-height: 1.5;
+  max-height: 28%; overflow: hidden; }
+.tv-eas .tone { position: absolute; right: 6%; bottom: 6%; font-size: 12px;
+  color: #9fa4ff; letter-spacing: .2em; }
+
+.tv-bars { position: absolute; inset: 0; background-size: 100% 100%; }
+.tv-signoff { position: absolute; inset: 0; background: #000; color: #d8d2c4;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 14px; text-align: center; font-size: 15px; letter-spacing: .12em; }
+
+.tv-snow { position: absolute; inset: 0; background: #808080; }
+.tv-snow canvas { width: 100%; height: 100%; display: block; }
+
+.tv-insert { position: absolute; inset: 0; background-size: cover;
+  background-position: center; }
+
+.tv-shell { position: absolute; inset: 0; pointer-events: none;
+  box-shadow: inset 0 0 120px 30px rgba(0,0,0,0.75);
+  background: repeating-linear-gradient(0deg,
+    rgba(0,0,0,0.16) 0 1px, rgba(0,0,0,0) 1px 3px); }
+
+.tv-controls { position: absolute; left: 0; right: 0; bottom: -46px;
+  display: flex; gap: 8px; justify-content: center; }
+.tv-controls .k { border: 1px solid #2a2e34; background: #101214; color: #9aa0a8;
+  font-size: 11px; padding: 4px 12px; cursor: pointer;
+  font-family: ui-monospace, monospace; letter-spacing: .06em; }
+.tv-controls .k:hover { color: #e0d8c8; border-color: #4c5158; }
+.tv-controls .k.on { background: #b9b2a0; color: #12140f; }
+
+@media (prefers-reduced-motion: reduce) {
+  .tv-crawl span { animation-duration: 90s; }
+  .tv-ident img { animation: none; }
+  .boot .cursor { animation: none; }
+}

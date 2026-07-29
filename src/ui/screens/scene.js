@@ -29,3 +29,6 @@ export function render(ctx, host, args, ui) {
 
   void bodyText;
 }
+
+/** The game speaking, not a surface in the world. Centred column. */
+export const fullBleed = false;
