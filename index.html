@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>THE BROOD</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' fill='%23070809'/%3E%3Crect x='6' y='3' width='4' height='10' fill='%232a2f36'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="src/ui/ui.css">
+<script type="importmap">
+{
+  "imports": {
+    "three": "./vendor/three/three.module.min.js",
+    "three/": "./vendor/three/"
+  }
+}
+</script>
+</head>
+<body>
+
+<canvas id="scene"></canvas>
+
+<!-- ===== 3D HUD (thin, diegetic-ish, always sparse) ===== -->
+<div id="hud" class="hidden">
+  <div id="prompt" class="hidden"><span id="prompt-key">E</span> <span id="prompt-text"></span></div>
+  <div id="subtitle" class="hidden"></div>
+  <div id="clock"></div>
+  <div id="carry" class="hidden"></div>
+  <div id="reticle"></div>
+</div>
+
+<!-- ===== Fullscreen 2D overlay: every screen in the game lives here ===== -->
+<div id="overlay" class="hidden">
+  <div id="overlay-frame">
+    <div id="overlay-body"></div>
+  </div>
+  <div id="overlay-hint">ESC — step back</div>
+</div>
+
+<!-- ===== Blackout / transition plate ===== -->
+<div id="plate" class="hidden"><div id="plate-text"></div></div>
+
+<!-- ===== Title / pause / menu ===== -->
+<div id="menu">
+  <div class="menu-inner">
+    <h1>THE BROOD</h1>
+    <p class="menu-sub">Fifteen days. One room. Two ways out.</p>
+    <div id="menu-buttons"></div>
+    <p class="menu-foot" id="menu-foot"></p>
+  </div>
+</div>
+
+<noscript>This requires JavaScript.</noscript>
+<script type="module" src="src/main.js"></script>
+</body>
+</html>
