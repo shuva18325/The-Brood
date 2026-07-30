@@ -24,11 +24,12 @@ import bus from '../../bus.js';
 import audio from '../../audio.js';
 import effects from '../../effects.js';
 import understanding from '../../systems/understanding.js';
-import { mailFor, TERMINAL_LINE } from '../../content/mail.js';
+import concealment from '../../systems/concealment.js';
+import { mailFor, TERMINAL_LINE, RED_REPLY_LINE } from '../../content/mail.js';
 
 export function render(host, args, nav, ui, ctx) {
   const day = state.day;
-  const all = mailFor(day);
+  const all = mailFor(day, state.flags);
   const folder = args.folder || 'inbox';
   const items = folder === 'junk' ? all.filter(m => m.junk) : all.filter(m => !m.junk);
   const sel = args.mail || (items.length ? items[items.length - 1].id : null);
@@ -89,7 +90,36 @@ export function render(host, args, nav, ui, ctx) {
   const body = h('div', { class: 'mail-body' });
   read.appendChild(body);
 
-  if (m.bait) {
+  if (m.redReply) {
+    /* The reply from the site that does not reply. One line of boilerplate,
+     * and under it a red link — red because every link on that site is red,
+     * and this message came from that site.
+     *
+     * Opening it does NOT end the game. Nothing is offered and nothing is
+     * taken. One sentence appears, and it is in the second person PLURAL,
+     * and it is therefore not addressed to the person reading it. */
+    body.appendChild(document.createTextNode(m.body + '\n\n'));
+    if (state.flags.redReplyOpened) {
+      body.appendChild(redLine());
+    } else {
+      const slot = h('span', {});
+      slot.appendChild(h('a', {
+        class: 'red', href: '#',
+        onclick: (e) => {
+          e.preventDefault();
+          state.flags.redReplyOpened = true;
+          // No stinger. It costs concealment, silently, because a live
+          // address is now confirmed — and the player is never told.
+          concealment.event('postedLocation');
+          audio.play('menu_select');
+          slot.textContent = '';
+          slot.appendChild(redLine());
+        },
+      }, '▸ 查看完整回复'));
+      body.appendChild(slot);
+    }
+    body.appendChild(document.createTextNode('\n'));
+  } else if (m.bait) {
     // It never lies and never disguises itself. It tells you not to.
     body.appendChild(document.createTextNode(m.warning + '\n\n'));
     const label = m.body.split('\n').filter(Boolean).pop().trim();
@@ -102,6 +132,16 @@ export function render(host, args, nav, ui, ctx) {
     body.appendChild(document.createTextNode(
       effects.corruptText(m.body || '(no message body)', { source: 'doc' })));
   }
+}
+
+/**
+ * The sentence behind the red link. Rendered as text, selectable, and NOT
+ * translated — the game will not tell the player what it says. The
+ * translator on the desktop will, if they think to use it, and finding out
+ * for yourself is worth more than being told.
+ */
+function redLine() {
+  return h('span', { class: 'red-line' }, RED_REPLY_LINE.zh);
 }
 
 /**

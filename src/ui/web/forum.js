@@ -139,6 +139,36 @@ function replyTime(id) {
   return `${String(hh).padStart(2, '0')}:${String(mm).padStart(2, '0')}`;
 }
 
+/**
+ * §4.1. A bare URL in a post is a link, because on a real board it is —
+ * vBulletin has auto-linked pasted addresses since 2001. Returns an array
+ * of text nodes and anchors, so it drops straight into `h(...)`.
+ *
+ * The addresses people paste here go to real pages in the game. A link
+ * that is styled like a link and does nothing is the single most
+ * immersion-breaking thing a fake computer can do.
+ */
+function linkify(text, nav) {
+  const out = [];
+  const re = /\bhttps?:\/\/[^\s<>"')\]]+/g;
+  let last = 0, m;
+  while ((m = re.exec(text))) {
+    if (m.index > last) out.push(document.createTextNode(text.slice(last, m.index)));
+    // Trailing punctuation belongs to the sentence, not to the address.
+    let url = m[0];
+    let tail = '';
+    while (/[.,;:!?]$/.test(url)) { tail = url.slice(-1) + tail; url = url.slice(0, -1); }
+    out.push(h('a', {
+      href: url, class: 'vb-url',
+      onclick: (e) => { e.preventDefault(); nav.go(url); },
+    }, url));
+    if (tail) out.push(document.createTextNode(tail));
+    last = m.index + m[0].length;
+  }
+  out.push(document.createTextNode(text.slice(last)));
+  return out;
+}
+
 function firstLine(body) {
   const l = String(body).split('\n').find(x => x.trim());
   return (l || '').slice(0, 120);
@@ -440,7 +470,7 @@ function renderThread(page, id, loc, nav, day) {
     }
 
     content.appendChild(h('div', { class: 'vb-text' },
-      p.mine ? p.body : effects.corruptText(p.body, { source: 'forum', reread })));
+      ...linkify(p.mine ? p.body : effects.corruptText(p.body, { source: 'forum', reread }), nav)));
 
     const att = ATTACHMENTS[p.id];
     if (att) {

@@ -14,19 +14,24 @@ import { CONFIG } from '../../config.js';
 import state, { save } from '../../state.js';
 import audio from '../../audio.js';
 import clock from '../../systems/clock.js';
+import pathogen from '../../systems/pathogen.js';
 import IMG from '../imagery.js';
 import { MAIL } from '../../content/mail.js';
 
 import * as browser from '../web/browser.js';
 import * as appMail from '../apps/mail.js';
+import * as appTrans from '../apps/translator.js';
 
 /* The archaeology of a real life. None of it opens. */
 const ICONS = [
   { id: 'browser',  label: 'Internet',            x: 22,  y: 18,  gl: 'globe' },
   { id: 'mail',     label: 'Mail',                x: 22,  y: 108, gl: 'mail' },
-  { id: 'x1',       label: 'taxes 2023 FINAL.pdf',x: 22,  y: 198, gl: 'pdf' },
-  { id: 'x2',       label: 'taxes 2023 FINAL (2).pdf', x: 22, y: 300, gl: 'pdf' },
-  { id: 'x3',       label: 'resume_current.docx', x: 22,  y: 402, gl: 'doc' },
+  // It came bundled with a scanner in about 2011 and has never been opened.
+  // It is the only way to find out what any of the Chinese says.
+  { id: 'trans',    label: 'LingoDesk 3.2',       x: 22,  y: 198, gl: 'trans' },
+  { id: 'x1',       label: 'taxes 2023 FINAL.pdf',x: 22,  y: 290, gl: 'pdf' },
+  { id: 'x2',       label: 'taxes 2023 FINAL (2).pdf', x: 118, y: 494, gl: 'pdf' },
+  { id: 'x3',       label: 'resume_current.docx', x: 22,  y: 392, gl: 'doc' },
   { id: 'x4',       label: 'stuff',               x: 118, y: 18,  gl: 'folder' },
   { id: 'x5',       label: 'vlc-setup.exe',       x: 118, y: 108, gl: 'exe' },
   { id: 'x6',       label: 'JavaSetup8u341.exe',  x: 118, y: 198, gl: 'exe' },
@@ -74,6 +79,7 @@ export function render(ctx, host, args, ui) {
     const open = () => {
       if (ic.id === 'browser') openWin(ctx, ui, args, 'browser');
       else if (ic.id === 'mail') openWin(ctx, ui, args, 'mail');
+      else if (ic.id === 'trans') openWin(ctx, ui, args, 'trans');
       else { audio.play('menu_move'); ui.say(NOTHING[ic.id] || NOTHING._, 4200); }
     };
     el.addEventListener('dblclick', open);
@@ -101,12 +107,21 @@ export function render(ctx, host, args, ui) {
   for (const w of args.wins) {
     const label = w.kind === 'mail'
       ? `Inbox — Mail${unreadMail() ? ` (${unreadMail()})` : ''}`
+      : w.kind === 'trans' ? 'LingoDesk 3.2'
       : browser.pageTitle(browser.parse(browser.current()));
     tb.appendChild(h('button', {
       class: 'tb-item' + (w.min ? '' : ' on'), type: 'button',
       onclick: () => { w.min = !w.min; audio.play('menu_move'); ui.rerender(); },
     }, label));
   }
+  /* And whatever else is on the machine. It reaches the CRT two days before
+   * it reaches this, because this is newer — and by the time it is here it
+   * has already been in the flat for two days. See CONFIG.pathogen.
+   *
+   * Nothing about this is announced, and the delay is so it does not land
+   * on the same frame as the window that was just opened. */
+  setTimeout(() => pathogen.tryGlimpse('monitor', IMG.pathogenPlate()), 1800);
+
   tb.appendChild(h('div', { class: 'tb-tray' },
     ...['net', 'vol', 'shield', 'usb'].map(k => h('img', { class: 'ic', src: glyph(k), alt: '' })),
     // The clock: the player's most-checked object in the game.
@@ -136,12 +151,13 @@ function openWin(ctx, ui, args, kind) {
   const existing = args.wins.find(w => w.kind === kind);
   if (existing) { existing.min = false; ui.rerender(); return; }
   args.wins.length = 0;                       // one window at a time, like he does
-  args.wins.push(kind === 'mail'
-    ? { kind: 'mail', state: { folder: 'inbox', mail: null } }
+  args.wins.push(
+    kind === 'mail' ? { kind: 'mail', state: { folder: 'inbox', mail: null } }
+    : kind === 'trans' ? { kind: 'trans', state: {} }
     // The browser has no per-site state any more: the URL is the state, and
     // it lives in the save so history and bookmarks survive a reload.
     : { kind: 'browser', find: { open: false, q: '', index: 0, count: 0 } });
-  audio.play(kind === 'mail' ? 'menu_select' : 'pc_fan');
+  audio.play(kind === 'browser' ? 'pc_fan' : 'menu_select');
   ui.rerender();
 }
 
@@ -162,6 +178,7 @@ function windowEl(ctx, ui, args, w) {
 
   const title = w.kind === 'mail'
     ? `Inbox — Mail${unreadMail() ? ` (${unreadMail()} unread)` : ''}`
+    : w.kind === 'trans' ? 'LingoDesk 3.2'
     : browser.pageTitle(browser.parse(browser.current()));
 
   const close = () => {
@@ -176,7 +193,10 @@ function windowEl(ctx, ui, args, w) {
   }, glyphText);
 
   const bar = h('div', { class: 'win-title' },
-    h('img', { src: glyph(w.kind === 'mail' ? 'mail' : 'globe'), width: 14, height: 14, alt: '' }),
+    h('img', {
+      src: glyph(w.kind === 'mail' ? 'mail' : w.kind === 'trans' ? 'trans' : 'globe'),
+      width: 14, height: 14, alt: '',
+    }),
     h('div', { class: 't' }, title),
     btn('', '–', 'Minimise', () => { w.min = true; ui.rerender(); }),
     btn('', geom.max ? '❐' : '□', geom.max ? 'Restore' : 'Maximise', () => {
@@ -216,6 +236,8 @@ function windowEl(ctx, ui, args, w) {
   if (w.kind === 'mail') {
     const nav = { go: (patch) => { Object.assign(w.state, patch); ui.rerender(); } };
     appMail.render(body, w.state, nav, ui, ctx);
+  } else if (w.kind === 'trans') {
+    appTrans.render(body, w.state, null, ui);
   } else {
     browser.render(body, w, ui, ctx);
   }
@@ -332,6 +354,17 @@ function glyph(kind) {
       g.fillStyle = '#e8ecef'; g.fillRect(3, 8, 26, 17);
       g.strokeStyle = '#6d7d8c'; g.strokeRect(3.5, 8.5, 25, 16);
       g.beginPath(); g.moveTo(3, 8); g.lineTo(16, 18); g.lineTo(29, 8); g.stroke(); break;
+    case 'trans':
+      // A CD-bundled utility's icon: a globe with a character on it, in the
+      // flat teal every scanner bundle used.
+      g.fillStyle = '#1f7d78'; g.beginPath(); g.arc(16, 16, 12, 0, 7); g.fill();
+      g.strokeStyle = '#9fd8d4'; g.lineWidth = 1.2;
+      g.beginPath(); g.ellipse(16, 16, 5.5, 12, 0, 0, 7); g.stroke();
+      g.fillStyle = '#ffffff';
+      g.font = 'bold 13px "Noto Sans CJK SC","Microsoft YaHei",sans-serif';
+      g.textAlign = 'center'; g.textBaseline = 'middle';
+      g.fillText('文', 16, 17);
+      g.textAlign = 'left'; g.textBaseline = 'alphabetic'; break;
     case 'pdf': paper(); g.fillStyle = '#b3231f'; g.fillRect(6, 18, 20, 9);
       g.fillStyle = '#fff'; g.font = 'bold 8px Arial'; g.fillText('PDF', 8, 25); break;
     case 'doc': paper(); g.fillStyle = '#2b579a'; g.fillRect(6, 18, 20, 9);

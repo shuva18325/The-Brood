@@ -33,6 +33,7 @@ import * as siteNews from './newssite.js';
 import * as siteForum from './forum.js';
 import * as siteSheet from './sheet.js';
 import * as siteFiles from './files.js';
+import * as siteSketchy from './sketchy.js';
 
 /* ------------------------------------------------------------------ */
 /* the sites, and how to reach them                                    */
@@ -47,6 +48,13 @@ export const SITES = {
            tab: 'SIGHTINGS TRACKER', scheme: 'https' },
   files: { mod: siteFiles, host: 'f.mirrorbox.io',
            tab: 'mirrorbox', scheme: 'http' },
+  // Two mirrors, several hops out, in a language this town does not speak.
+  // They are reachable from the forum and from the file host; nothing in
+  // the game ever recommends them.
+  jiance: { mod: siteSketchy, host: siteSketchy.HOSTS.jiance,
+            tab: '网络安全检测中心', scheme: 'http', transient: true },
+  pan:    { mod: siteSketchy, host: siteSketchy.HOSTS.pan,
+            tab: '七月潭网盘', scheme: 'http', transient: true },
 };
 
 /** The four addresses in the bookmarks bar from the start. His bookmarks. */
@@ -153,11 +161,17 @@ export function render(host, win, ui, ctx) {
     ui.rerender();
   };
 
-  /* ---- tab strip. One tab per site, and the tab is a navigation. ---- */
+  /* ---- tab strip. One tab per site, and the tab is a navigation.
+   *
+   * `transient` sites get no permanent tab — they are places the player
+   * stumbles into from a link, not places he keeps open. A tab appears for
+   * one while you are on it and goes away when you leave, which is what a
+   * browser does with a page you opened once. ---- */
   const chrome = h('div', { class: 'br-chrome' });
   const tabs = h('div', { class: 'br-tabs' });
   for (const [id, S] of Object.entries(SITES)) {
     const on = id === loc.site;
+    if (S.transient && !on) continue;
     tabs.appendChild(h('button', {
       class: 'br-tab' + (on ? ' on' : ''),
       type: 'button',
@@ -250,7 +264,7 @@ export function render(host, win, ui, ctx) {
   if (!loc.site) {
     viewport.appendChild(notFound(loc, nav));
   } else {
-    SITES[loc.site].mod.render(viewport, loc, nav);
+    SITES[loc.site].mod.render(viewport, loc, nav, ui);
   }
 
   // Scroll restore has to happen after the page is in the DOM.

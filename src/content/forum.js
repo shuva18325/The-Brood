@@ -16,6 +16,10 @@ export const THREADS = [
   { id:'berkley', title:'in Berkley. posting while I can.', day:8 },
   { id:'video',   title:'video thread — post what you filmed, no debate in here', day:3 },
   { id:'frame',   title:'did anyone else get a frame on 9 tonight', day:16 },
+  /* Crossposted in from an academic list by somebody who thought it would
+   * settle the argument. It does not settle the argument. */
+  { id:'histor',  title:'x-post: ANE list thread on the "Ctesiphon roll" (long, and they are not gentle)', day:9 },
+  { id:'mirror',  title:'the photos are all on some chinese mirror now. links inside, be careful.', day:11 },
 ];
 
 export const POSTS = [
@@ -880,6 +884,194 @@ I've been writing descriptions of the ones I watched before they went. It's not 
 The thing nobody says about these videos is that they're boring. Ninety seconds of a kid breathing and a fence and a car alarm. Eighty of those seconds are nothing.
 
 It's the last ten that get you, and you have to sit through the eighty. That's what this is actually like.`, u:4 },
+
+/* ================= histor =================
+ *
+ * Historians. §8.1/§8.2 give the King and the Zānuwām a documentary
+ * existence and nothing else — no sighting, no photograph, no window event
+ * in two and a half thousand years — so the only people who have ever
+ * really dealt with them are the people who read the documents for a
+ * living, and those people do not believe in any of this.
+ *
+ * That is the register. Nobody in this thread is frightened. They are
+ * annoyed. They are annoyed in the specific way scholars are annoyed by
+ * amateurs quoting a bad translation of a text they have spent twenty
+ * years with, and every methodological objection they raise is CORRECT.
+ * The provenance really is unverifiable. The 1897 engraving really is a
+ * Victorian fantasy. "Crippled" really is a mistranslation.
+ *
+ * They dismantle the whole thing, accurately, and the dismantling changes
+ * nothing whatsoever about what is outside the window. That is the joke and
+ * it is the only joke in the game.
+ */
+
+{ id:'f200', thread:'histor', day:9, author:'archivist_p', time:'13:00', op:true,
+  body:`Somebody on an Ancient Near East mailing list picked up the Ctesiphon thread and it has turned into forty replies of actual specialists going through the material line by line.
+
+I am posting the whole thing because I think people here should read scholars being rude about the documents we are all making decisions from.
+
+It does not say what you want it to say. It did not say what I wanted it to say either.`, u:9 },
+
+{ id:'f201', thread:'histor', day:9, author:'archivist_p', time:'13:04',
+  body:`——— FORWARDED ———
+
+Re: "Ctesiphon roll" / so-called Zānuwām material
+
+I have been sent this four times in a fortnight, so, briefly, and then I would like to go back to work.
+
+There is no Ctesiphon roll. There is a photostat of a typescript of a translation, the typescript is unsigned, the photostat is undated, and the translation is into English from an unspecified intermediary. Nobody has produced the Pahlavi. Nobody has produced a shelfmark. Nobody has produced the negative.
+
+I am not saying it is a forgery. I am saying that "corroborated by four independent sources" is a sentence somebody wrote on the internet, and that the four sources are one source quoted by three later authors who all cite each other.
+
+— H. Ashworth-Vane, Sassanian history` },
+
+{ id:'f202', thread:'histor', day:9, author:'archivist_p', time:'13:07',
+  body:`——— FORWARDED ———
+
+Seconding all of the above and adding the philology, since nobody has.
+
+"Zānuwām" is not a Middle Persian word. It is not a word. If you want it to be one you have to assume a metathesis nobody has attested, and then you get something close to zānūg — knee — which is presumably how the "crippled" business started, and which is the sort of etymology one does at two in the morning.
+
+The Tyre tablet is a separate problem. It is Neo-Assyrian, it is four hundred years older than the Persian material and nine hundred miles away, and the only thing connecting them is that a man in 1897 thought they were connected. He also thought Sargon II was Nimrod.
+
+— D. Oyelaran, Assyriology` },
+
+{ id:'f203', thread:'histor', day:10, author:'archivist_p', time:'09:20',
+  body:`——— FORWARDED ———
+
+On the "Crippled King", since this is the part that gets reproduced.
+
+The word in the Tyre tablet is broken. What survives is a determinative, a sign that is either LU or a damaged ŠU, and then a break. Rawlinson read it as "lame". Layard read it as "seated". A German edition in 1911 read it as "the one who does not rise", which is not the same claim at all and is the only one of the three that is defensible from the sign.
+
+"Does not rise" is a statement about posture. It has been translated into English as an infirmity, engraved as an infirmity in 1897, and repeated as an infirmity for a hundred and twenty years, and the entire mythology of a wounded king on a throne rests on a Victorian gentleman's guess about half a broken sign.
+
+If it helps: the tablet does not say he cannot rise. It says he has not.
+
+— D. Oyelaran` },
+
+{ id:'f204', thread:'histor', day:10, author:'mudflat', time:'10:02',
+  body:`Read that last line again.
+
+"It does not say he cannot rise. It says he has not."
+
+She is correcting the record. She thinks she is being pedantic about a determinative. Read what she actually wrote.`, u:14, flags:['crippled_mistranslation'] },
+
+{ id:'f205', thread:'histor', day:10, author:'Cal_Whitfield', time:'11:15',
+  body:`mudflat, with respect, that is exactly the move that makes this stuff unfalsifiable.
+
+A specialist says "the text is weaker than you think it is" and you read it as "the text is worse than you think it is". Every correction becomes evidence. There is no sentence anybody could write that you would accept as deflating.
+
+I say this as someone who has changed his own routine twice on the strength of these documents.` },
+
+{ id:'f206', thread:'histor', day:11, author:'archivist_p', time:'08:40',
+  body:`——— FORWARDED ———
+
+Since it has been asked off-list twice: yes, I have seen the 1897 plate. No, it is not evidence of anything.
+
+It is a steel engraving made from a description, not from the object, by a man who had not been to Tyre. The crown is a Victorian crown. The throne is a Victorian throne. The proportions are those of the Assyrian reliefs then on display in Bloomsbury, because that is what he had to look at.
+
+What the 1897 plate is evidence OF is what a Londoner in 1897 imagined when he read a broken line about a king who had not stood up. That is a genuinely interesting question and it is a question about London.
+
+— H. Ashworth-Vane` },
+
+{ id:'f207', thread:'histor', day:11, author:'nightjar_88', time:'12:00',
+  body:`ok but why did anybody in 500 AD write any of it down` },
+
+{ id:'f208', thread:'histor', day:12, author:'archivist_p', time:'07:30',
+  body:`——— FORWARDED ———
+
+Because people write things down. That is the whole of the answer and I am sorry it is not satisfying.
+
+Sassanian administrative records are full of accounts of things that did not happen. Prodigies, portents, monstrous births, a rain of stones at Bishapur. They were recorded carefully, by literate men, in the same hand and the same ledger as the grain receipts, and the grain receipts are accurate.
+
+A civilisation being right about grain does not make it right about portents. It makes it a civilisation with a filing system.
+
+— H. Ashworth-Vane` },
+
+{ id:'f209', thread:'histor', day:12, author:'archivist_p', time:'07:34',
+  body:`——— FORWARDED ———
+
+One thing in the material is odd and I will grant it, because I do not want to be accused of dismissing the whole of it.
+
+The Persis account contains a detail nobody had a reason to invent: that the thing was polite. Not fearsome, not terrible — courteous. It is described as behaving correctly at a door.
+
+Invented monsters are not courteous. Courtesy is expensive to invent and it does not thrill anybody. When a text hands you a detail that does no rhetorical work at all, that detail is usually a report.
+
+That is not an argument that it existed. It is an argument that somebody thought they saw something and wrote down what they thought they saw, and I would say the same about a Roman who reported a comet.
+
+— D. Oyelaran` },
+
+{ id:'f210', thread:'histor', day:13, author:'oysterknife', time:'19:00',
+  body:`Two of them just spent four days proving the documents are junk and the last thing either of them said was "somebody saw something".
+
+I don't know what to do with that. I genuinely don't.`, u:11 },
+
+{ id:'f211', thread:'histor', day:15, author:'archivist_p', time:'22:10',
+  body:`I wrote to both of them privately with the sighting photographs. The ones from the tracker, with the times and the streets.
+
+Oyelaran replied in about an hour. She was kind about it. She said that she works on the eighth century BC and has no competence whatsoever in whatever this is, that she hopes I am somewhere safe, and that if I am able to photograph anything at all I should photograph it with a scale in frame and a note of the time, because in two hundred years that is the only thing that will still be worth anything.
+
+Ashworth-Vane has not replied.`, u:6 },
+
+{ id:'f212', thread:'histor', day:18, author:'archivist_p', time:'03:00',
+  body:`Ashworth-Vane replied.
+
+Four words, no signature, no subject line.
+
+"Which one is it."`, u:22, flags:['crippled_exists'] },
+
+/* ================= mirror ================= */
+
+{ id:'f220', thread:'mirror', day:11, author:'deadmall', time:'02:20', op:true,
+  body:`Every photo that has been pulled off this board in the last week is up on a Chinese site. All of them. Including the two the mods took down within about ninety seconds.
+
+http://www.wlaq-jiance.com.cn/
+
+Captions are machine-translated back out of English so they read like nonsense, but the images are the originals, not re-uploads. Same file sizes.
+
+I am not telling anybody to go there. I am saying it exists and somebody other than us is keeping a copy.`, u:12 },
+
+{ id:'f221', thread:'mirror', day:11, author:'granby_st', time:'07:40',
+  body:`Leaving this up but locking it if it turns into a download thread.
+
+deadmall — how did you find it.` },
+
+{ id:'f222', thread:'mirror', day:11, author:'deadmall', time:'09:15',
+  body:`Reverse image search on the kerb photo. Third result. It has been indexed since before we posted it here.
+
+I want to be careful about how I say the next part. The site's timestamp on that image is a day earlier than ours.
+
+That is almost certainly their server clock. Servers have bad clocks. That is genuinely the most likely explanation and I want it on the record that I said so.`, u:9 },
+
+{ id:'f223', thread:'mirror', day:12, author:'Q_from_Suffolk', time:'11:00',
+  body:`It's a scraper farm. There are thousands of them. They hoover up whatever gets traction and wrap ads around it, that's the entire business model, and the clock is off because it's a five dollar VPS in a country that isn't ours.
+
+Nobody is watching you. You are being scraped, which is boring, and which is happening to everybody.` },
+
+{ id:'f224', thread:'mirror', day:13, author:'deadmall', time:'23:30',
+  body:`Q is right and I want that said clearly before I say this.
+
+The about page has one sentence on it that is not machine-translated. Everything else on the entire site reads like it went through a dictionary. That one line is written by a person.
+
+I put it through three different translators and they all give me the same thing, near enough:
+
+"We have already watched it. Your side is comparatively late."
+
+Scraper farms do not write sentences. Scraper farms do not have an "already".`, u:18 },
+
+{ id:'f225', thread:'mirror', day:14, author:'mudflat', time:'01:10',
+  body:`Do not email the site.
+
+I know what the contact link looks like. I know it is just a webmaster address on a bad website and I know exactly how stupid this sounds.
+
+The difference between everything else in this town and that link is that everything else found us. That one you have to go and click.`, u:26 },
+
+{ id:'f226', thread:'mirror', day:16, author:'deadmall', time:'04:00',
+  body:`Somebody clicked it.
+
+I'm not going to say who and they have asked me not to. They did not send anything. They clicked the link, the page showed an address, and that was all that happened.
+
+They got a reply anyway.` },
 
 ];
 

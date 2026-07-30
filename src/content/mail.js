@@ -172,6 +172,31 @@ Press 1 to speak with a representative.`, u:0, junk:true },
     ▸ callback log, 64W`,
   u:0 },
 
+/* ================================================================== */
+/* THE REPLY                                                           */
+/*                                                                     */
+/* This one is not on the schedule. It arrives the day after the player */
+/* clicks the red link on wlaq-jiance.com.cn — the link that does       */
+/* nothing except reveal an address.                                    */
+/*                                                                     */
+/* It is not bait in the sense that p01–p07 are bait. There is no       */
+/* document behind it, nothing is offered, and opening it does not end  */
+/* the game. It is a reply from a webmaster who does not reply, and the */
+/* only thing in it is a red link, and behind the red link is one       */
+/* sentence, and the sentence is not addressed to the player alone.     */
+/*                                                                     */
+/* The player was never asked for an address. They clicked a link on a  */
+/* website. That is the entire mechanism and it is not explained.       */
+/* ================================================================== */
+
+{ id:'r01', day:1, needs:'redLink', after:1, redReply:true,
+  from:'zw@wlaq-jiance.com.cn', subject:'回复：（无主题）',
+  preview:'本站不回复任何来信。',
+  body:`本站不回复任何来信。
+
+The station does not reply to any incoming letter.`,
+  u:0 },
+
 ];
 
 /**
@@ -185,8 +210,28 @@ export const TERMINAL_LINE = {
   en: "There's no Help for you; you're doomed.",
 };
 
-export function mailFor(day) {
-  return MAIL.filter(m => m.day <= day);
+/**
+ * What is behind the red link in the reply. Second person plural — 你们,
+ * not 你. It is not talking to the person reading it. That is the only
+ * thing about it that is worth noticing and the game never points at it.
+ */
+export const RED_REPLY_LINE = {
+  zh: '你对此无能为力。你们都将终生受苦。',
+  en: 'There is nothing you can do about this. You will all suffer for the rest of your lives.',
+};
+
+/**
+ * §4.1. Mail is gated on the day AND on flags, so a message can arrive
+ * because of something the player did rather than because of the calendar.
+ * `needs` names a flag; `after` is how many days later it turns up.
+ */
+export function mailFor(day, flags = {}) {
+  return MAIL.filter(m => {
+    if (!m.needs) return m.day <= day;
+    if (!flags[m.needs]) return false;
+    const since = flags[m.needs + 'Day'] || day;
+    return day >= since + (m.after || 0);
+  });
 }
 
 export default MAIL;

@@ -18,6 +18,7 @@ import effects from '../../effects.js';
 import clock from '../../systems/clock.js';
 import understanding from '../../systems/understanding.js';
 import concealment from '../../systems/concealment.js';
+import pathogen from '../../systems/pathogen.js';
 import { newsFor } from '../../content/news.js';
 import IMG from '../imagery.js';
 
@@ -104,6 +105,7 @@ export function render(ctx, host, args, ui) {
       }, 2200);
     }
     maybeInsert(st);
+    maybeGlimpse(st);
   }, 1000);
 }
 
@@ -152,6 +154,20 @@ function maybeInsert(st) {
   setTimeout(() => f.remove(), CONFIG.tv.insertFrameMs);
   // No cue. No shake. Nothing marks it. If the player catches it, they
   // catch it, and if they do not it never happened.
+}
+
+/**
+ * And the other thing that comes through the set, which is not an insert
+ * and is not once. See CONFIG.pathogen. It is on the CRT from day 11,
+ * because the CRT is the oldest device in the flat.
+ *
+ * Deliberately called from the same place as the insert and with the same
+ * silence around it: no audio, no shake, no acknowledgement anywhere.
+ */
+function maybeGlimpse(st) {
+  if (st.mode === 'off') return;
+  if (st.elapsed < 3) return;
+  pathogen.tryGlimpse('tv', IMG.pathogenPlate());
 }
 
 /* ------------------------------------------------------------------ */

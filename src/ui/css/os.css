@@ -241,3 +241,51 @@
   .tv-ident img { animation: none; }
   .boot .cursor { animation: none; }
 }
+
+/* ================================================================== */
+/* LingoDesk 3.2                                                       */
+/* ================================================================== */
+.trans { position: absolute; inset: 0; display: flex; flex-direction: column;
+  gap: 6px; padding: 8px; background: #ece9d8;
+  font: 12px "Segoe UI", Tahoma, sans-serif; color: #111; }
+.trans-bar { display: flex; align-items: center; gap: 6px; }
+.trans-sel { font: inherit; padding: 1px 2px; border: 1px solid #7f9db9;
+  background: #fff; }
+.trans-arrow { color: #666; }
+.trans-in { flex: 1 1 40%; resize: none; border: 1px solid #7f9db9; background: #fff;
+  padding: 6px 8px; font: 14px "SimSun","Songti SC","Noto Serif CJK SC",serif;
+  line-height: 1.8; color: #111; }
+.trans-in:focus { outline: 1px solid #3c7fb1; outline-offset: -2px; }
+.trans-btns { display: flex; align-items: center; gap: 6px; }
+.trans-btns button { font: inherit; border: 1px solid #8b8b8b; background: #f2f2f2;
+  padding: 3px 14px; cursor: pointer; }
+.trans-btns button:hover { background: #fafafa; }
+.trans-go { font-weight: bold; }
+.trans-ver { margin-left: auto; color: #7a7a7a; font-size: 11px; }
+.trans-out { flex: 1 1 40%; overflow: auto; border: 1px solid #a8a8a8;
+  background: #fbfbf8; padding: 6px 8px; line-height: 1.7;
+  white-space: pre-wrap; user-select: text; }
+
+/* The line behind the red link in the reply. It is red because the message
+ * came from a site where every link is red — not because the game is
+ * flagging it. Nothing about it moves, glows or is announced. */
+.mail-body a.red { color: #cc0000; }
+.mail-body a.red:visited { color: #7a0f0f; }
+.red-line { font: 15px/1.9 "SimSun","Songti SC","Noto Serif CJK SC",serif;
+  color: #b00000; user-select: text; }
+
+/* The Pathogen, when it comes through a display. See CONFIG.pathogen.
+ *
+ * No animation. No transition in, no transition out, no filter, no shadow.
+ * It is there and then it is not there, and how long that is is the only
+ * thing that changes across Act 2. Anything added here that draws attention
+ * to it — a fade, a pulse, a border — breaks the one thing it is for. */
+.fx-glimpse {
+  /* Fixed and on the document, not inside the screen that summoned it: it
+   * is on the display, and a rerender of the app underneath must not be
+   * able to cut it short. */
+  position: fixed; inset: 0; z-index: 9000;
+  background: #05070a center/contain no-repeat;
+  pointer-events: none;
+}
+@media (prefers-reduced-motion: reduce) { .fx-glimpse { /* no motion to reduce */ } }

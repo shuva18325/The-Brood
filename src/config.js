@@ -542,6 +542,43 @@ export const CONFIG = {
   },
 
   /* ------------------------------------------------------------------ */
+  /* THE PATHOGEN'S SCHEDULE                                             */
+  /*                                                                     */
+  /* It used to appear exactly once, on the bad ending, which meant the  */
+  /* only player who ever saw it was the player who had already lost —   */
+  /* and by then it reads as a death screen rather than as a thing that  */
+  /* has been in the house.                                              */
+  /*                                                                     */
+  /* So it comes through displays from the middle of Act 2, briefly and  */
+  /* repeatedly. The rules, which are absolute:                          */
+  /*                                                                     */
+  /*   · It is never announced. No sting, no shake, no cut, no subtitle. */
+  /*   · The first ones are BELOW the threshold at which a person can be */
+  /*     sure. 50 ms is two frames. The player will not be certain and   */
+  /*     the game will never confirm it.                                 */
+  /*   · Nothing is granted. Seeing it teaches the player nothing and    */
+  /*     costs them nothing. It is not a mechanic; it is weather.        */
+  /*   · Once per surface per day, at most, so it cannot be farmed.      */
+  /*   · It gets longer. By day 20 it is on the screen long enough that  */
+  /*     there is no longer any question, and by then the player has     */
+  /*     already seen it five times and told themselves it was signal.   */
+  /* ------------------------------------------------------------------ */
+  pathogen: {
+    /** [day, milliseconds]. Two frames, to a second and a half. */
+    glimpses: [
+      [11, 50], [12, 50], [13, 66], [14, 83], [15, 100],
+      [16, 150], [17, 220], [18, 330], [19, 640], [20, 1500],
+    ],
+    /** Per look at a surface, so it is not on every single render. */
+    chance: 0.26,
+    /** It reaches the CRT first. The computer is newer and takes longer. */
+    tvFromDay: 11,
+    monitorFromDay: 13,
+    /** Below this it is not even fully opaque. */
+    opacityByDay: { from: 0.55, to: 1.0, full: 18 },
+  },
+
+  /* ------------------------------------------------------------------ */
   /* TRANSITIONS                                                         */
   /* ------------------------------------------------------------------ */
   timing: {
