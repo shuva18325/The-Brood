@@ -26,6 +26,7 @@ import * as scrLeave from './screens/leave.js';
 import * as scrBrave from './screens/brave.js';
 import * as scrEnding from './screens/ending.js';
 import * as scrScene from './screens/scene.js';
+import * as scrStranger from './screens/stranger.js';
 
 const SCREENS = {
   tv: scrTv,
@@ -39,6 +40,7 @@ const SCREENS = {
   brave: scrBrave,
   ending: scrEnding,
   scene: scrScene,
+  stranger: scrStranger,
 };
 
 export class UI {

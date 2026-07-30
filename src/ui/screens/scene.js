@@ -1,7 +1,7 @@
 /**
  * scene.js (screen) — a scripted beat rendered as a plain block of text.
  *
- * Used for the Day 9 handoff, the Incursion's writing, the voice in the
+ * Used for the Day 10 handoff, the Incursion's writing, the voice in the
  * street, and anything else that is a moment rather than an interface.
  */
 

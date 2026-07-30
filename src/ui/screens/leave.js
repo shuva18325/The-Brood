@@ -42,7 +42,7 @@ function flavour() {
   if (state.hasShotgun) lines.push(`You are carrying his shotgun. It does not go in a car well and you are going to take it anyway.`);
   if (state.foodPortions <= 2) lines.push(`There is nothing left in the fridge worth carrying.`);
   if (state.concealment < 30) lines.push(`Whatever was in the box is nearly finished. You can tell because you have started listening differently.`);
-  if (state.day >= CONFIG.days.last) lines.push(`Today is the fifteenth.`);
+  if (state.day >= CONFIG.days.last) lines.push(`Today is the twentieth.`);
 
   lines.push(`Down two flights, out the street door, forty metres to the kerb. The blue one, parked where it has been parked for the whole time you have been here.`);
   return lines.join('\n\n');

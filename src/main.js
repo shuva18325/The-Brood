@@ -205,6 +205,7 @@ if (CONFIG.debug.exposeApi) {
     ctx, state, bus, audio, effects, world, ui, script,
     clock, concealment, understanding, day, endings,
     controls: world.controls,
+    CONFIG,
 
     /**
      * Fire a ray into the scene and report what it hits, as plain data. Used

@@ -29,18 +29,23 @@ let snowRaf = 0;
 /* ------------------------------------------------------------------ */
 
 export function scheduleFor(day, hour) {
-  // Off-air hours. The station reduced its broadcast day on the eleventh,
+  const T = CONFIG.tv;
+  // Off-air hours. The station cuts its broadcast day down to two windows,
   // and before that it simply signed off overnight like any affiliate.
-  const onAir = day >= 11
+  const onAir = day >= T.reducedFromDay
     ? (hour >= 6 && hour < 8) || (hour >= 18 && hour < 20)
     : (hour >= 5.5 && hour < 25.5);
 
-  if (day >= 15) return 'snow';
-  if (day >= 14) return 'bars';
-  if (day === CONFIG.tv.signOffDay && hour >= 14 && hour < 15.5) return 'signoff';
+  if (day >= T.snowFromDay) return 'snow';
+  if (day >= T.barsFromDay) return 'bars';
+  if (day === T.signOffDay && hour >= 14 && hour < 15.5) return 'signoff';
   if (!onAir) return 'bars';
-  // From the fifth the EAS starts taking the broadcast at the top of the hour.
-  if (day >= 5 && (hour % 2) < 0.45) return 'eas';
+  // The EAS starts taking the broadcast at the top of the hour, and from
+  // there it takes more of it, more often, until there is nothing else.
+  if (day >= T.easFromDay) {
+    const share = Math.min(0.92, 0.45 + (day - T.easFromDay) * 0.075);
+    if ((hour % 2) < share) return 'eas';
+  }
   return 'news';
 }
 
@@ -239,8 +244,11 @@ function easContent(day) {
     'HAMPTON CITY', 'NEWPORT NEWS CITY', 'SUFFOLK CITY', 'ISLE OF WIGHT', 'SOUTHAMPTON',
     'SURRY', 'YORK', 'JAMES CITY', 'GLOUCESTER', 'MATHEWS', 'ACCOMACK', 'NORTHAMPTON'];
 
-  /* Days 5–9: ordinary, correct alerts. Boring. Right. */
-  if (day <= 9) {
+  /* Before the wrong-message day: ordinary, correct alerts. Boring. Right.
+   * The whole chain only works because this baseline is completely credible
+   * for a week and a half. */
+  const W = CONFIG.tv.wrongMessageFromDay;
+  if (day < W) {
     return {
       agency: 'ISSUED BY: VIRGINIA DEPARTMENT OF EMERGENCY MANAGEMENT',
       msg: 'THIS IS NOT A TEST.\n\nA CIVIL EMERGENCY MESSAGE IS IN EFFECT FOR THE ' +
@@ -252,10 +260,11 @@ function easContent(day) {
     };
   }
 
-  /* Days 10–13: the same screen, and something in it is not right.
-   * An agency that does not exist. A county list with no state on it.
-   * An instruction that does not parse. Nothing points at any of it. */
-  if (day === 10) {
+  /* From here the same screen, and something in it is not right. An agency
+   * that does not exist. A county list with no state on it. An instruction
+   * that does not parse. An instruction printed twice. Nothing points at any
+   * of it, and the tone in front of it is still exactly correct. */
+  if (day === W) {
     return {
       agency: 'ISSUED BY: OFFICE OF COASTAL CONTINUITY',
       msg: 'THIS IS NOT A TEST.\n\nSHELTER IN PLACE. DO NOT TRAVEL BETWEEN 8 PM AND ' +
@@ -265,7 +274,7 @@ function easContent(day) {
       flag: 'choir_bait',
     };
   }
-  if (day === 11) {
+  if (day === W + 1) {
     return {
       agency: 'ISSUED BY: OFFICE OF COASTAL CONTINUITY',
       msg: 'THIS IS NOT A TEST.\n\nREMAIN INDOORS. DO NOT RESPOND TO VOICES FROM THE ' +
@@ -279,7 +288,7 @@ function easContent(day) {
       flag: 'choir_bait',
     };
   }
-  if (day === 12) {
+  if (day === W + 2) {
     return {
       agency: 'ISSUED BY: OFFICE OF COASTAL CONTINUITY',
       msg: 'THIS IS NOT A TEST.\n\nREMAIN INDOORS.\n\nDO NOT ANSWER THE DOOR FOR ' +
@@ -287,6 +296,27 @@ function easContent(day) {
       counties: 'INCLUDED AREAS: 41 AREAS',
       tone: 'ATTENTION SIGNAL',
       flag: 'texts_are_bait',
+    };
+  }
+  if (day === W + 3) {
+    return {
+      agency: 'ISSUED BY: OFFICE OF COASTAL CONTINUITY',
+      msg: 'THIS IS NOT A TEST.\n\nREMAIN INDOORS.\n\nIF YOU ARE ALONE, ' +
+           'REMAIN ALONE.\n\nDO NOT MAKE THE PREMISES APPEAR OCCUPIED.',
+      counties: 'INCLUDED AREAS: 41 AREAS',
+      tone: 'ATTENTION SIGNAL',
+      flag: 'incursion_habitation',
+    };
+  }
+  if (day === W + 4) {
+    return {
+      agency: 'ISSUED BY: OFFICE OF COASTAL CONTINUITY',
+      msg: 'THIS IS NOT A TEST.\n\nTHE FOLLOWING AREAS ARE NO LONGER BEING ' +
+           'REPORTED.\n\nTHIS IS NOT AN INSTRUCTION.',
+      counties: 'NORFOLK CITY · PORTSMOUTH CITY · ██████████ · ██████████ · ' +
+                '██████████ · ██████████',
+      tone: 'ATTENTION SIGNAL',
+      flag: 'city_composition',
     };
   }
   return {
@@ -303,7 +333,7 @@ function paintBars(pic, st) {
   const el = h('div', { class: 'tv-bars' });
   el.style.backgroundImage = `url(${IMG.colourBars()})`;
   pic.appendChild(el);
-  if (st.day >= 14) {
+  if (st.day >= CONFIG.tv.barsFromDay) {
     understanding.read('n38', { u: 1 });
     pic.appendChild(h('div', { class: 'tv-clockbug' }, '1 kHz'));
   }
@@ -348,7 +378,7 @@ function paintSnow(pic, st) {
   };
   draw();
 
-  if (st && st.day >= 15) {
+  if (st && st.day >= CONFIG.tv.snowFromDay) {
     audio.play('bed_tv_static', { loop: true });
     understanding.read('n39', { u: 1 });
   }

@@ -1,7 +1,7 @@
 /**
  * verify.mjs — drives the game headlessly through the debug API.
  *
- * Checks that the player can start on Day 1, reach Day 15, and that all
+ * Checks that the player can start on Day 1, reach Day 20, and that all
  * three endings resolve. Not a unit test suite; a smoke test for the
  * skeleton, which is exactly what prompt 1 is meant to produce.
  */
@@ -52,12 +52,19 @@ if (!has) {
 const results = [];
 function log(name, ok, detail='') { results.push({name, ok, detail}); console.log((ok?'  ok  ':' FAIL ') + name + (detail? '  — '+detail : '')); }
 
+/* The run length comes from the game, not from this file, so changing it in
+ * config never leaves the suite asserting a structure that no longer exists. */
+const DAYS = await page.evaluate(() => ({ ...window.BROOD.CONFIG.days }));
+const { last: LAST, actTwo: ACT2, handoff: HANDOFF } = DAYS;
+console.log(`   run: ${LAST} days, Act 2 from ${ACT2}, handoff on ${HANDOFF}`);
+
 /* ---- 1. start, walk the fifteen days ---- */
 let r = await page.evaluate(async () => {
   const B = window.BROOD;
   B.startNew();
   const trace = [];
-  for (let i = 0; i < 20 && B.state.day < 15 && !B.state.ended; i++) {
+  const LAST = B.CONFIG.days.last;
+  for (let i = 0; i < LAST + 4 && B.state.day < LAST && !B.state.ended; i++) {
     B.sleep('good');
     trace.push({ day: B.state.day, conceal: Math.round(B.state.concealment),
                  cond: Math.round(B.state.condition), act: B.state.act,
@@ -66,8 +73,8 @@ let r = await page.evaluate(async () => {
   return { day: B.state.day, act: B.state.act, ended: !!B.state.ended, trace,
            bedroom: B.state.bedroomUnlocked, keys: B.state.hasKeys };
 });
-log('reaches Day 15 from Day 1', r.day === 15 && !r.ended, `day=${r.day} act=${r.act} ended=${r.ended}`);
-log('Act 2 opens on Day 10', r.act === 2 && r.bedroom && r.keys);
+log('reaches the last day from Day 1', r.day === LAST && !r.ended, `day=${r.day} act=${r.act} ended=${r.ended}`);
+log(`Act 2 opens on Day ${ACT2}`, r.act === 2 && r.bedroom && r.keys);
 console.log('   day/conceal/cond/food:', r.trace.map(t=>`${t.day}:${t.conceal}/${t.cond}/${t.food}`).join(' '));
 
 /* ---- 2. content is day-gated and readable ---- */
@@ -80,7 +87,7 @@ r = await page.evaluate(async () => {
   const notes = await import('/src/content/notes.js');
   const mail  = await import('/src/content/mail.js');
   return {
-    news: news.NEWS.length, newsD1: news.newsFor(1).length, newsD15: news.newsFor(15).length,
+    news: news.NEWS.length, newsD1: news.newsFor(1).length, newsLast: news.newsFor(window.BROOD.CONFIG.days.last).length,
     posts: forum.POSTS.length, threads: forum.THREADS.length,
     docs: docs.DOCS.length, videos: docs.VIDEOS.length,
     impacts: sheet.IMPACTS.length,
@@ -89,7 +96,7 @@ r = await page.evaluate(async () => {
     mail: mail.MAIL.length, bait: mail.MAIL.filter(m=>m.bait).length,
   };
 });
-log('~40 news articles', r.news >= 38, `${r.news} (day1: ${r.newsD1}, day15: ${r.newsD15})`);
+log('~40 news articles', r.news >= 38, `${r.news} (day1: ${r.newsD1}, last day: ${r.newsLast})`);
 log('~80 forum posts', r.posts >= 80, `${r.posts} across ${r.threads} threads`);
 log('foundation docs + video logs', r.docs >= 15 && r.videos >= 12, `${r.docs} docs, ${r.videos} videos`);
 log('friend notes 10-15', r.notes >= 10 && r.notes <= 16, `${r.notes} notes, ${r.laptop} laptop items`);
@@ -103,7 +110,7 @@ r = await page.evaluate(() => {
   const out = {};
 
   // A — high understanding
-  B.reset(); B.startNew(); B.state.day = 14; B.state.act = 2; B.state.hasKeys = true;
+  B.reset(); B.startNew(); B.state.day = B.CONFIG.days.last - 1; B.state.act = 2; B.state.hasKeys = true;
   B.grant('roadkill_window','spreadsheet_impacts','roads_flooded','undertow_water',
           'anguish_dont_look','roadkill_adapt','tormentor_noise_light','incursion_habitation',
           'incursion_fragile','zanuwam_solar_obsolete','city_composition','crippled_mistranslation',
@@ -116,21 +123,21 @@ r = await page.evaluate(() => {
   out.keysHigh = { tier: B.tier(), score: B.score(), r: B.endKeys() };
 
   // A — low understanding
-  B.reset(); B.startNew(); B.state.day = 15; B.state.act = 2; B.state.hasKeys = true;
+  B.reset(); B.startNew(); B.state.day = B.CONFIG.days.last; B.state.act = 2; B.state.hasKeys = true;
   B.believe('shoot_anguish','light_repels','zanuwam_daylight');
   out.keysLow = { tier: B.tier(), score: B.score(), r: B.endKeys() };
 
   // B — brave
-  B.reset(); B.startNew(); B.state.day = 15; B.state.act = 2; B.state.hasShotgun = true;
+  B.reset(); B.startNew(); B.state.day = B.CONFIG.days.last; B.state.act = 2; B.state.hasShotgun = true;
   B.grant('incursion_fragile','incursion_needs_opening','incursion_habitation','texts_are_bait');
   out.brave = { tier: B.tier(), r: B.endBrave({ held:true, mistakes:0, fired:1, letIn:false }) };
 
   // B — let it in
-  B.reset(); B.startNew(); B.state.day = 15; B.state.act = 2;
+  B.reset(); B.startNew(); B.state.day = B.CONFIG.days.last; B.state.act = 2;
   out.braveLetIn = { r: B.endBrave({ held:false, mistakes:2, fired:0, letIn:true }) };
 
   // C — concealment zero
-  B.reset(); B.startNew(); B.state.day = 13; B.state.act = 2;
+  B.reset(); B.startNew(); B.state.day = B.CONFIG.days.last - 2; B.state.act = 2;
   B.state.hotProfile = 'habitation';
   out.found = { r: B.endFound() };
 
@@ -149,7 +156,7 @@ log('Ending C — found mid-deliberation', r.found.r.id === 'found' && r.found.r
 r = await page.evaluate(() => {
   const B = window.BROOD;
   B.reset(); B.startNew();
-  B.days(9);                       // into Act 2
+  B.days(B.CONFIG.days.actTwo - 1);   // into Act 2
   const before = B.state.concealment;
   B.burnConcealment();
   return { before, ended: B.state.ended ? B.state.ended.id : null, day: B.state.day };
@@ -232,7 +239,7 @@ log('corruptText is identity in prompt 1', r.identity);
 log('systems route through the stubs', r.fxCalls > 0 && r.snCalls > 0, `${r.fxCalls} fx / ${r.snCalls} audio calls recorded`);
 
 
-/* ---- 9. the fifteen days actually run in real time ---- */
+/* ---- 9. every day actually runs, in real time ---- */
 r = await page.evaluate(async () => {
   const B = window.BROOD;
   B.reset(); B.startNew();
@@ -244,14 +251,15 @@ r = await page.evaluate(async () => {
 
   // Drive the in-game clock straight through every day, letting the
   // script fire everything scheduled, without waiting 8 real minutes.
-  for (let d = 1; d <= 15; d++) {
+  const LAST = B.CONFIG.days.last;
+  for (let d = 1; d <= LAST; d++) {
     for (let hh = 6; hh <= 30; hh += 0.25) {
       B.clock.advanceTo(hh);
       B.script.update();
     }
     B.ui.closeAll();
     if (B.state.ended) break;
-    if (d < 15) { B.sleep('good'); }
+    if (d < LAST) { B.sleep('good'); }
   }
   window.removeEventListener('error', onErr);
   off();
@@ -259,12 +267,12 @@ r = await page.evaluate(async () => {
            conceal: Math.round(B.state.concealment), cond: Math.round(B.state.condition),
            sightings: B.state.sightings, marks: B.state.marksOnWall };
 });
-log('every scripted beat fires across 15 days', r.fired.length >= 25 && r.errs.length === 0,
+log('every scripted beat fires across the whole run', r.fired.length >= 34 && r.errs.length === 0,
     `${r.fired.length} events, day=${r.day}, conceal=${r.conceal}, cond=${r.cond}` + (r.errs.length ? ' ERRS: ' + r.errs.join('; ') : ''));
-log('the Day 9 handoff runs', r.fired.includes('e9c'));
+log('the handoff runs on the last night of Act 1', r.fired.includes('e10c'));
 log('Act 2 transition runs', r.fired.includes('e10a'));
 log('the texts from his number begin on Day 12', r.fired.includes('e12a'));
-log('the finale triggers on Day 15', r.fired.includes('e15b'));
+log('the finale triggers on the last day', r.fired.includes('e20b'));
 
 /* ---- 10. every interactable resolves ---- */
 r = await page.evaluate(async () => {
@@ -290,14 +298,14 @@ r = await page.evaluate(() => {
   const B = window.BROOD;
 
   // loud + lit, quiet habitation off
-  B.reset(); B.startNew(); B.days(9);
+  B.reset(); B.startNew(); B.days(B.CONFIG.days.actTwo - 1);
   B.state.lights.main = true; B.state.tvOn = true; B.setHour(22);
   for (let i = 0; i < 40; i++) B.concealment.update(1);
   B.concealment.rollDay();
   const noisy = { hot: B.state.hotProfile, ...B.concealmentDebug() };
 
   // dark and silent, but cooking and dishes and routine
-  B.reset(); B.startNew(); B.days(9);
+  B.reset(); B.startNew(); B.days(B.CONFIG.days.actTwo - 1);
   B.setHour(22);
   for (let i = 0; i < 6; i++) B.concealment.event('hotMeal');
   for (let i = 0; i < 6; i++) B.concealment.event('dishesLeft');
@@ -337,7 +345,7 @@ r = await page.evaluate(async () => {
   let withWindow = 0;
   for (let i = 0; i < 200; i++) {
     B.reset(); B.startNew();
-    B.state.day = 15; B.state.act = 2; B.state.hasKeys = true;
+    B.state.day = B.CONFIG.days.last; B.state.act = 2; B.state.hasKeys = true;
     B.grant('roads_flooded','anguish_dont_look','roadkill_window','spreadsheet_impacts','roadkill_adapt');
     const rec = e.endings.keys({ day: 15 });
     if (rec.outcome !== 'dead') withWindow++;
@@ -386,14 +394,14 @@ r = await page.evaluate(async () => {
     d9: rows[8].live, d15: rows[14].live,
   };
 });
-log('the bed is dense in Act 1 and empty by Day 15',
+log('the bed is dense in Act 1 and empty by the end',
     r.rows[0].n >= 7 && r.rows[14].n === 0,
     'layers by day: ' + r.rows.map(x => x.n).join(' '));
 log('kids go on Day 4', r.d3.includes('kids') && !r.d4.includes('kids'));
 log('dogs go on Day 5', r.d4.includes('dogs') && !r.d5.includes('dogs'));
 log('the birds go on Day 6 — the one nobody notices',
     r.d5.includes('birds') && !r.d6.includes('birds'));
-log('sirens arrive on Day 4 and go on Day 9',
+log('sirens arrive on Day 4 and are gone by Day 9',
     r.d4.includes('sirens') && !r.d9.includes('sirens'));
 log('the arc only ever subtracts',
     r.rows.every((x, i) => i === 0 || x.n <= r.rows[i - 1].n || x.day === 4),
@@ -470,13 +478,13 @@ r = await page.evaluate(async () => {
   F.on = true; F.out.gain.value = 1;
   const first = B.audio.forceFridgeOff();
   const second = B.audio.forceFridgeOff();
-  // and it dies for good on Day 14
-  w.applyDay(14);
+  // and it dies for good on the day the food runs out
+  w.applyDay(B.CONFIG.food.fridgeDiesDay);
   return { first, second, dead: w._fridge.dead, running: B.audio.fridgeRunning };
 });
 log('the compressor can be forced off for the collapse', r.first === true);
 log('and forcing it again while already off does nothing', r.second === false);
-log('the fridge dies for good on Day 14', r.dead && !r.running);
+log('the fridge dies for good when the food runs out', r.dead && !r.running);
 
 /* ---- 18. §5.1 — the EAS chain ---- */
 r = await page.evaluate(async () => {
@@ -484,7 +492,11 @@ r = await page.evaluate(async () => {
   const tv = await import('/src/ui/screens/tv.js');
   void tv;
   const out = {};
-  for (const d of [6, 10, 12, 14, 15]) {
+  const W = B.CONFIG.tv.wrongMessageFromDay;
+  const days = [B.CONFIG.tv.easFromDay, W, W + 2, B.CONFIG.tv.emptyToneDay,
+                B.CONFIG.days.last];
+  out._days = days;
+  for (const d of days) {
     B.state.day = d;
     B.ui.closeAll();
     B.ui.open('tv');
@@ -500,13 +512,17 @@ r = await page.evaluate(async () => {
   }
   return out;
 });
-log('EAS Day 6 is correct and boring', r[6].hasTone && /EMERGENCY MANAGEMENT/.test(r[6].agency),
-    r[6].agency);
-log('EAS Day 10 uses the same screen with a wrong agency',
-    r[10].hasTone && /COASTAL CONTINUITY/.test(r[10].agency), r[10].agency);
-log('EAS Day 12 repeats an instruction that does not parse', r[12].hasTone);
-log('EAS Day 14 is the tone with nothing behind it', r[14].noMessage || r[14].hasTone);
-log('EAS Day 15 still fires', r[15].hasTone);
+{
+  const [dFirst, dWrong, dRepeat, dEmpty, dLast] = r._days;
+  log(`EAS Day ${dFirst} is correct and boring`,
+      r[dFirst].hasTone && /EMERGENCY MANAGEMENT/.test(r[dFirst].agency), r[dFirst].agency);
+  log(`EAS Day ${dWrong} uses the same screen with a wrong agency`,
+      r[dWrong].hasTone && /COASTAL CONTINUITY/.test(r[dWrong].agency), r[dWrong].agency);
+  log(`EAS Day ${dRepeat} repeats an instruction that does not parse`, r[dRepeat].hasTone);
+  log(`EAS Day ${dEmpty} is the tone with nothing behind it`,
+      r[dEmpty].noMessage || r[dEmpty].hasTone);
+  log('the EAS still fires on the last day', r[dLast].hasTone);
+}
 
 /* ---- 19. §5.2 — the desync grows and is never acknowledged ---- */
 r = await page.evaluate(async () => {
@@ -604,7 +620,7 @@ r = await page.evaluate(async () => {
   }
 
   // Zero and negative concealment, and zero food, and exhaustion together.
-  B.reset(); B.startNew(); B.days(9);
+  B.reset(); B.startNew(); B.days(B.CONFIG.days.actTwo - 1);
   B.state.foodPortions = 0;
   B.state.condition = 1;
   B.state.concealment = 0.0001;
@@ -615,7 +631,7 @@ r = await page.evaluate(async () => {
 
   // Advancing a day with nothing left must still produce a reachable ending.
   B.reset(); B.startNew();
-  B.days(14);                       // day 15
+  B.days(B.CONFIG.days.last - 1);   // the last day
   B.state.foodPortions = 0; B.state.condition = 0; B.state.concealment = 1;
   const before = B.state.day;
   B.sleep('collapse');
@@ -662,7 +678,7 @@ log('minimal knowledge lands in the low band', r.min.tier === 'low',
 log('a middling run lands in partial', r.mid.tier === 'partial', `${r.mid.score}/100`);
 log('every flag is worth something', r.unreachable.length === 0);
 
-/* ---- 24. the Day 9→10 transition under every state combination ---- */
+/* ---- 24. the Act 1 → Act 2 transition under every state combination ---- */
 r = await page.evaluate(() => {
   const B = window.BROOD;
   const fails = [];
@@ -675,15 +691,15 @@ r = await page.evaluate(() => {
 
   for (const c of combos) {
     B.reset(); B.startNew();
-    B.days(8);                                  // now on day 9
+    B.days(B.CONFIG.days.handoff - 1);          // the handoff day
     B.state.hasShotgun = c.gun;
     B.state.curtainOpen = c.curtain;
     B.state.tvOn = c.tv;
     B.state.lights.main = c.lights;
     try {
-      B.sleep('good');                          // → day 10
+      B.sleep('good');                          // → the first day of Act 2
     } catch (e) { fails.push(JSON.stringify(c) + ': ' + e.message); continue; }
-    if (B.state.day !== 10) fails.push(JSON.stringify(c) + ': day ' + B.state.day);
+    if (B.state.day !== B.CONFIG.days.actTwo) fails.push(JSON.stringify(c) + ': day ' + B.state.day);
     if (B.state.act !== 2) fails.push(JSON.stringify(c) + ': act ' + B.state.act);
     if (!B.state.bedroomUnlocked) fails.push(JSON.stringify(c) + ': bedroom locked');
     if (!B.state.hasKeys) fails.push(JSON.stringify(c) + ': no keys');
@@ -691,7 +707,7 @@ r = await page.evaluate(() => {
   }
   return { fails, n: combos.length };
 });
-log('Day 9→10 survives every state combination', r.fails.length === 0,
+log('the Act 1 to Act 2 handoff survives every state combination', r.fails.length === 0,
     `${r.n} combinations` + (r.fails.length ? ' — ' + r.fails.slice(0, 2).join('; ') : ''));
 
 /* ---- 25. balance: careless fails, careful barely survives (§9.2) ---- */
@@ -701,8 +717,9 @@ r = await page.evaluate(() => {
   // A CARELESS player: lights and TV on all night, cooks, runs the tap,
   // leaves the curtain open, leaves the dishes.
   const careless = () => {
-    B.reset(); B.startNew(); B.days(9);            // into Act 2 at day 10
-    for (let d = 0; d < 6 && !B.state.ended; d++) {
+    B.reset(); B.startNew(); B.days(B.CONFIG.days.actTwo - 1);  // into Act 2
+    const nights = B.CONFIG.days.last - B.CONFIG.days.actTwo + 1;
+    for (let d = 0; d < nights && !B.state.ended; d++) {
       B.state.lights.main = true; B.state.tvOn = true;
       B.state.computerOn = true; B.state.curtainOpen = true;
       B.state.waterRunning = true; B.state.cooking = true;
@@ -719,8 +736,9 @@ r = await page.evaluate(() => {
   // A CAREFUL player: dark, cold food, silent, curtain shut at night,
   // screens in daylight only.
   const careful = () => {
-    B.reset(); B.startNew(); B.days(9);
-    for (let d = 0; d < 6 && !B.state.ended; d++) {
+    B.reset(); B.startNew(); B.days(B.CONFIG.days.actTwo - 1);
+    const nights = B.CONFIG.days.last - B.CONFIG.days.actTwo + 1;
+    for (let d = 0; d < nights && !B.state.ended; d++) {
       Object.keys(B.state.lights).forEach(k => B.state.lights[k] = false);
       B.state.tvOn = false; B.state.curtainOpen = false;
       B.state.waterRunning = false; B.state.cooking = false;
@@ -738,11 +756,11 @@ r = await page.evaluate(() => {
 
   return { careless: careless(), careful: careful() };
 });
-log('a careless player runs out of concealment before Day 15',
+log('a careless player runs out of concealment before the last day',
     r.careless.ended || r.careless.con < 12,
     `day ${r.careless.day}, ${r.careless.con}% left, ended: ${r.careless.ended}`);
-log('a careful player barely survives to Day 15',
-    !r.careful.ended && r.careful.con > 12 && r.careful.con < 70,
+log('a careful player barely survives to the last day',
+    !r.careful.ended && r.careful.con > 8 && r.careful.con < 42,
     `day ${r.careful.day}, ${r.careful.con}% left`);
 
 /* ---- 26. the Road Kill window is discoverable, not stumbled into ---- */
@@ -759,18 +777,21 @@ r = await page.evaluate(async () => {
     }
     return Math.round((out / 240) * 100);
   };
+  // The adaptation ramp runs across the whole of Act 2, so this has to be
+  // measured on the last day, when the car is worth least.
+  const LAST = B.CONFIG.days.last;
   return {
     // read the sheet carefully → identified a passable route
     read: run(['roadkill_window','spreadsheet_impacts','roadkill_adapt',
-               'roads_flooded','anguish_dont_look'], 15),
-    // did not read it → must not stumble into a passable route on Day 15
-    blind: run(['roads_flooded','anguish_dont_look'], 15),
+               'roads_flooded','anguish_dont_look'], LAST),
+    // did not read it → must not stumble into a passable route at the end
+    blind: run(['roads_flooded','anguish_dont_look'], LAST),
     // knows there IS a window but cannot date one
-    partial: run(['roadkill_adapt','roads_flooded','anguish_dont_look'], 15),
+    partial: run(['roadkill_adapt','roads_flooded','anguish_dont_look'], LAST),
   };
 });
 log('reading the impact log identifies a passable route', r.read >= 55, r.read + '% survive');
-log('not reading it cannot be survived by luck on Day 15', r.blind <= 12, r.blind + '% survive');
+log('not reading it cannot be survived by luck at the end', r.blind <= 12, r.blind + '% survive');
 log('knowing a window exists is not the same as dating one',
     r.partial < r.read - 25, `partial ${r.partial}% vs read ${r.read}%`);
 
@@ -900,6 +921,96 @@ log('drag-to-look turns the camera on both axes', r.yawTurned && r.pitchTurned,
 log('the drag stops on pointerup and goes inert', r.releasedAfterUp && r.inertAfterUp);
 log('arrow keys look, and do not scroll the host page', r.keyTurned && r.defaultPrevented);
 log('pitch stays clamped through an absurd drag', r.pitchClamped);
+
+/* ---- 30. §2 the survivor at the door ---- */
+r = await page.evaluate(async () => {
+  const B = window.BROOD;
+  const D = B.CONFIG.days;
+  const out = {};
+
+  // She knocks in the window, once, and the screen cannot be escaped.
+  B.reset(); B.startNew(); B.days(D.strangerFrom - 1);
+  B.script.strangerAtTheDoor();
+  await new Promise(res => setTimeout(res, 1800));
+  out.opened = B.ui.openName;
+  out.escapable = (() => {
+    window.dispatchEvent(new KeyboardEvent('keydown', { code: 'Escape', bubbles: true, cancelable: true }));
+    return B.ui.openName !== 'stranger';
+  })();
+
+  // Listening through to the end offers both choices and the look.
+  const step = () => {
+    const b = [...document.querySelectorAll('#overlay-body button')];
+    const listen = b.find(x => /listen/i.test(x.textContent));
+    if (listen) { listen.click(); return true; }
+    return false;
+  };
+  while (step()) { /* three beats */ }
+  const buttons = [...document.querySelectorAll('#overlay-body button')]
+    .map(b => b.textContent.trim().split('\n')[0]);
+  out.buttons = buttons;
+
+  // Looking costs nothing and settles nothing.
+  const look = [...document.querySelectorAll('#overlay-body button')]
+    .find(b => /look through/i.test(b.textContent));
+  const conBefore = B.state.concealment;
+  look.click();
+  out.lookFree = Math.abs(B.state.concealment - conBefore) < 0.001;
+  out.lookText = document.querySelector('#overlay-body .look')?.textContent || '';
+
+  // Admitting her: costs Concealment and food, grants Understanding.
+  const scoreBefore = B.score();
+  const foodBefore = B.state.foodPortions;
+  const conBefore2 = B.state.concealment;
+  [...document.querySelectorAll('#overlay-body button')]
+    .find(b => /take the board down/i.test(b.textContent)).click();
+  out.admitted = B.state.flags.stranger;
+  out.costConceal = conBefore2 - B.state.concealment;
+  out.costFood = foodBefore - B.state.foodPortions;
+  out.gained = B.score() - scoreBefore;
+  out.notTrapped = B.ui.openName === 'scene';
+  B.ui.closeAll();
+
+  // The tins arrive the following morning, so it is a net gain she made.
+  const foodAtNight = B.state.foodPortions;
+  B.sleep('good');
+  out.tins = B.state.foodPortions - foodAtNight;
+
+  // Refusing costs nothing at all, mechanically.
+  B.reset(); B.startNew(); B.days(D.strangerFrom - 1);
+  B.script.strangerAtTheDoor();
+  await new Promise(res => setTimeout(res, 1800));
+  while (step()) { /* beats */ }
+  const conBefore3 = B.state.concealment;
+  const scoreBefore3 = B.score();
+  [...document.querySelectorAll('#overlay-body button')]
+    .find(b => /say nothing/i.test(b.textContent)).click();
+  out.refused = B.state.flags.stranger;
+  out.refusedCost = Math.abs(B.state.concealment - conBefore3) + (B.score() - scoreBefore3);
+  B.ui.closeAll();
+
+  // She never knocks twice.
+  B.script.strangerAtTheDoor();
+  await new Promise(res => setTimeout(res, 600));
+  out.twice = B.ui.openName === 'stranger';
+
+  return out;
+});
+log('a human being knocks, and the door cannot be escaped',
+    r.opened === 'stranger' && !r.escapable);
+log('she is heard out before there is anything to decide',
+    r.buttons.some(b => /take the board down/i.test(b)) &&
+    r.buttons.some(b => /say nothing/i.test(b)), r.buttons.join(' / '));
+log('looking through the gap is free and settles nothing',
+    r.lookFree && /looks exactly like a person/.test(r.lookText));
+log('letting her in costs Concealment and food and gives Understanding',
+    r.admitted === 'admitted' && r.costConceal > 1 && r.costFood > 0 && r.gained > 0,
+    `-${r.costConceal.toFixed(1)}% concealment, -${r.costFood} portions, +${r.gained} understanding`);
+log('and she leaves more than she ate', r.tins >= 9, `+${r.tins} portions in the morning`);
+log('turning her away costs nothing mechanically',
+    r.refused === 'refused' && r.refusedCost < 0.001);
+log('neither choice traps the player behind an unclosable screen', r.notTrapped);
+log('she knocks once in a run, or never', !r.twice);
 
 /* ---- errors ---- */
 console.log('');

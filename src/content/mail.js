@@ -55,7 +55,7 @@ Do not gather in groups outdoors.
 This alert was sent to all devices registered in the affected area.`,
   u:1 },
 
-{ id:'m05', day:9, from:'mom', subject:'(no subject)',
+{ id:'m05', day:10, from:'mom', subject:'(no subject)',
   preview:'Your father has the truck packed...',
   body:`Your father has the truck packed. He packed it yesterday and he has not unpacked it.
 
@@ -76,19 +76,19 @@ Press 1 to speak with a representative.`, u:0, junk:true },
 { id:'m12', day:8, from:'Auto Warranty Services', subject:'FINAL NOTICE regarding your vehicle',
   preview:'Our records indicate your factory warranty...', body:`Our records indicate your factory warranty is expiring.`, u:0, junk:true },
 
-{ id:'m13', day:10, from:'Auto Warranty Services', subject:'FINAL NOTICE regarding your vehicle',
+{ id:'m13', day:11, from:'Auto Warranty Services', subject:'FINAL NOTICE regarding your vehicle',
   preview:'Our records indicate your factory warranty...', body:`Our records indicate your factory warranty is expiring.`, u:0, junk:true },
 
-{ id:'m14', day:11, from:'—', subject:'(no subject)',
+{ id:'m14', day:12, from:'—', subject:'(no subject)',
   preview:'', body:``, u:0, junk:true },
 
-{ id:'m15', day:12, from:'—', subject:'(no subject)',
+{ id:'m15', day:14, from:'—', subject:'(no subject)',
   preview:'', body:``, u:0, junk:true },
 
-{ id:'m16', day:13, from:'—', subject:'(no subject)',
+{ id:'m16', day:16, from:'—', subject:'(no subject)',
   preview:'', body:``, u:0, junk:true },
 
-{ id:'m17', day:14, from:'—', subject:'(no subject)',
+{ id:'m17', day:18, from:'—', subject:'(no subject)',
   preview:'', body:``, u:0, junk:true },
 
 /* ================================================================== */
@@ -118,7 +118,7 @@ Press 1 to speak with a representative.`, u:0, junk:true },
     ▸ CF-1996-0202 Appendix C`,
   u:0 },
 
-{ id:'p03', day:10, bait:true,
+{ id:'p03', day:11, bait:true,
   from:'no sender', subject:'do not open this',
   preview:`Norfolk's assessment was completed on the 7th. It was not published. It names what is in this district, by tier, with counts, and it names what is expected here within the week.`,
   warning:'do not open this link, you shall be forsaken',
@@ -128,7 +128,7 @@ Press 1 to speak with a representative.`, u:0, junk:true },
     ▸ VDEM/CF joint assessment — Norfolk, districts 9–19`,
   u:0 },
 
-{ id:'p04', day:11, bait:true,
+{ id:'p04', day:12, bait:true,
   from:'no sender', subject:'do not open this',
   preview:`The gap between impact and adaptation was measured. Once. In 2011. By an officer who could not get funding to measure it twice. The number is in the unfiled note's second page, which was never scanned.`,
   warning:'do not open this link, you shall be forsaken',
@@ -138,7 +138,7 @@ Press 1 to speak with a representative.`, u:0, junk:true },
     ▸ CF-2011-1180 p.2`,
   u:0 },
 
-{ id:'p05', day:12, bait:true,
+{ id:'p05', day:14, bait:true,
   from:'no sender', subject:'do not open this',
   preview:`Your friend's phone was last on a tower at 04:12 on the tenth. It has been on eleven towers since. The list of towers is a map of where it has been walking.`,
   warning:'do not open this link, you shall be forsaken',
@@ -152,7 +152,7 @@ Press 1 to speak with a representative.`, u:0, junk:true },
    It speaks the language of the region, not the victim. So either it is
    not local, or the network is routing from somewhere it should not be,
    or something has moved. Nobody can say which. */
-{ id:'p06', day:13, bait:true, chinese:true,
+{ id:'p06', day:16, bait:true, chinese:true,
   from:'no sender', subject:'不要打开',
   preview:`CF-1991-0067 附录 D。塔布勒石板的第四段。它站起来的那一次。`,
   warning:'不要打开这个链接，你将被抛弃',
@@ -162,7 +162,7 @@ Press 1 to speak with a representative.`, u:0, junk:true },
     ▸ CF-1991-0067 附录 D`,
   u:0 },
 
-{ id:'p07', day:14, bait:true,
+{ id:'p07', day:18, bait:true,
   from:'no sender', subject:'do not open this',
   preview:`I-64 westbound, milepost 238, 04:10. The box truck. The driver called back at 09:40 this morning and the sheet has not been updated because sheetmom has not logged in.`,
   warning:'do not open this link, you shall be forsaken',

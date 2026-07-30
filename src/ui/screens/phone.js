@@ -37,13 +37,19 @@ export function render(ctx, host, args, ui) {
 }
 
 function signal() {
-  if (state.day >= 14) return 'most things are not sending';
-  if (state.day >= 12) return 'one bar, sometimes';
+  const D = CONFIG.days;
+  if (state.day >= D.last - 1) return 'no service';
+  if (state.day >= D.callsFailFrom) return 'most things are not sending';
+  if (state.day >= D.textsBegin) return 'one bar, sometimes';
   return '';
 }
 
 function bars() {
-  const n = state.day >= 14 ? 1 : state.day >= 12 ? 2 : state.day >= 9 ? 3 : 4;
+  const D = CONFIG.days;
+  const n = state.day >= D.last - 1 ? 0
+    : state.day >= D.callsFailFrom ? 1
+    : state.day >= D.textsBegin ? 2
+    : state.day >= D.actTwo ? 3 : 4;
   return '▮'.repeat(n) + '▯'.repeat(4 - n);
 }
 
@@ -83,7 +89,7 @@ function renderFamily(ctx, shell, host, ui) {
     }, r.label));
   }
 
-  if (state.day >= 12) {
+  if (state.day >= CONFIG.days.textsBegin) {
     host.appendChild(h('div', { class: 'scr-sub', style: 'margin-top:18px' },
       'As you become less able to explain, they become more frantic. That is the whole shape of it and there is nothing to do about it.'));
   }
@@ -94,11 +100,16 @@ function sendReply(ctx, ui, r) {
   state.phone.usedReplies[r.id] = true;
   state.phone.sent = state.phone.sent || [];
 
-  const failed = state.day >= 14 || (state.day >= 12 && Math.random() < 0.4);
+  // §2. From callsFailFrom nothing sends at all — not busy, not ringing out,
+  // just a sound a telephone should not make. Before that it is a coin toss,
+  // which is worse, because he keeps thinking it is his fault.
+  const D = CONFIG.days;
+  const failed = state.day >= D.callsFailFrom
+    || (state.day >= D.textsBegin && Math.random() < 0.4);
   state.phone.sent.push({ day: state.day, text: r.label.replace(/^"|"$/g, ''), failed });
   audio.play(failed ? 'phone_dead' : 'phone_buzz');
   concealment.event('answerPhone');
-  if (failed && state.day >= 14) {
+  if (failed && state.day >= D.callsFailFrom) {
     note('It did not send. Your last message may not have sent either.');
   }
   ui.rerender();

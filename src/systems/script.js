@@ -16,6 +16,7 @@ import concealment from './concealment.js';
 import endings from './endings.js';
 import day, { registerSighting } from './day.js';
 import { OPENERS, EVENTS, HANDOFF, LAST_DAY } from '../content/events.js';
+import { ADMITTED_FLAGS as STRANGER_FLAGS, AFTER as STRANGER_AFTER } from '../content/stranger.js';
 import { writingFor } from '../content/notes.js';
 import { CHOIR_CALLS } from '../content/phone.js';
 
@@ -85,6 +86,20 @@ export class Script {
       state.ateToday = 'full';
       state.flags.litSomethingToday = true;
       state.flags.livedInDarkness = 0;
+    }
+
+    // The morning after she knocked. Two aftermaths, and neither of them
+    // closes it — that is the point, and it is enforced in stranger.js.
+    if (state.flags.stranger !== 'none' && state.flags.strangerDay === day - 1) {
+      const after = STRANGER_AFTER[state.flags.stranger];
+      if (after) {
+        setTimeout(() => this.ctx.ui.open('scene', { beats: [after] }), 3400);
+      }
+      if (state.flags.stranger === 'admitted') {
+        // Nine tins on the counter. A net gain she did not have to make.
+        state.foodPortions += 9;
+        note('Nine tins on the counter, and the bag folded flat next to them.');
+      }
     }
 
     // Whichever profile ran hot last night gets an answer this morning.
@@ -263,6 +278,10 @@ export class Script {
         ui.say('Your phone goes off on the desk.\n\nIt is his number.', 6000);
         break;
 
+      case 'stranger':
+        this.strangerAtTheDoor();
+        break;
+
       case 'handoff':
         this.handoff();
         break;
@@ -273,7 +292,7 @@ export class Script {
 
       case 'lastDay':
         setTimeout(() => this.ctx.ui.open('scene', {
-          title: 'DAY 15', beats: [LAST_DAY],
+          title: `DAY ${CONFIG.days.last}`, beats: [LAST_DAY],
         }), 2200);
         break;
 
@@ -288,6 +307,50 @@ export class Script {
   }
 
   /* ---------------------------------------------------------------- */
+
+  /* ---------------------------------------------------------------- */
+  /* §2. THE SURVIVOR AT THE DOOR — the moral centre of Act 2          */
+  /*                                                                   */
+  /* It fires once across a two-day window, or never. It is NOT        */
+  /* resolved: the game does not establish whether she was real, here  */
+  /* or anywhere else. Letting her in costs food and Concealment and   */
+  /* gives real Understanding, from a person, which is the only time   */
+  /* that happens. Turning her away costs nothing at all.             */
+  /* ---------------------------------------------------------------- */
+
+  strangerAtTheDoor() {
+    // Once per run. The second window is only there in case the player was
+    // inside a screen for the first one.
+    if (state.flags.stranger !== 'none') return;
+    if (state.eventsFired.strangerKnocked) return;
+    state.eventsFired.strangerKnocked = state.day;
+    state.flags.strangerDay = state.day;
+
+    const ui = this.ctx.ui;
+    audio.play('door_knock');
+    note('Somebody knocked on the door.');
+
+    setTimeout(() => ui.open('stranger', {}), 1400);
+  }
+
+  /** Called by the stranger screen once the player has chosen. */
+  resolveStranger(choice) {
+    state.flags.stranger = choice;
+    if (choice === 'admitted') {
+      concealment.event('strangerAdmitted');
+      // She eats. Two portions, and she leaves nine tins, so it is a net
+      // gain — which the player cannot know until the morning.
+      state.foodPortions = Math.max(0, state.foodPortions - 2);
+      for (const f of STRANGER_FLAGS) understanding.grant(f, 'Dana');
+      note('You let her in. Her name was Dana.');
+      // The tins arrive overnight, and the player finds them on waking.
+      state.eventsFired.strangerTins = state.day;
+    } else {
+      note('You did not open the door.');
+    }
+    bus.emit('stranger:resolved', choice);
+    save();
+  }
 
   /**
    * One window event, late. Survivable only by not looking.

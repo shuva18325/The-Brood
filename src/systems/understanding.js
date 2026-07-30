@@ -66,6 +66,16 @@ export const FLAGS = {
   city_no_evac:           { w: 3, desc: 'Nobody gave up on this neighbourhood. The evacuation points were worse.' },
   texts_are_bait:         { w: 7, critical: true,  desc: 'The texts from his number are not from him.' },
   friend_took_pistol:     { w: 4, desc: 'He left the shotgun and took the small one.' },
+
+  /**
+   * §2. What the survivor at the door knows. She was on Hampton Boulevard on
+   * the twelfth and under a car for ninety seconds of it, and she is right
+   * about which way the water came. Both of these are already somewhere in
+   * the record; hearing them from somebody who was there is what makes them
+   * usable. This is the only knowledge in the game that comes from a person.
+   */
+  tormentor_travels:      { w: 6, desc: 'It works a street. It does not hunt a building.' },
+  floodRoutes:            { w: 5, desc: 'Which way the water came, from somebody who watched it.' },
 };
 
 /**

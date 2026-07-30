@@ -11,6 +11,7 @@
  */
 
 import * as S from './synth.js';
+import { CONFIG } from '../config.js';
 import state from '../state.js';
 import bus from '../bus.js';
 
@@ -384,7 +385,7 @@ export class SoundWorld {
     }
     S.ramp(this.bleedG.gain, 0.05 * (1 - emptied * 0.85), 8, t);
 
-    if (day >= 14) this.killFridge();
+    if (day >= CONFIG.food.fridgeDiesDay) this.killFridge();
     else this._reviveFridge();
 
     // His music stops after Day 9 and never plays again.
@@ -524,8 +525,9 @@ export class SoundWorld {
     if (mode === 'bars') {
       off(T.speech); off(T.studio); off(T.snow);
       S.ramp(T.carrier.gain, 0.03, 0.5, t);
-      // Day 14 onward the bars come with the tone, and it does not stop.
-      if (day >= 14) this.easTone(Infinity);
+      // From the endless-tone day the bars come with the tone, and it does
+      // not stop.
+      if (day >= CONFIG.tv.endlessToneDay) this.easTone(Infinity);
       bus.emit('caption', { text: 'a test tone', dir: 'ahead' });
       return;
     }
@@ -561,14 +563,14 @@ export class SoundWorld {
 
   /**
    * §5.1 — the EAS chain. The tone is correct because the recognition is
-   * the weapon. What changes across the fifteen days is the message.
+   * the weapon. What changes across the twenty days is the message.
    */
   easChain(day) {
     if (!this.e.ready) return;
     const dest = this._tv ? this._tv.out : this.e.buses.effects;
     const t = this.ctx.currentTime;
 
-    if (day >= 15) {
+    if (day >= CONFIG.tv.endlessToneDay) {
       // The tone plays and does not stop. It runs over everything, and it
       // is not ducked.
       this.easTone(Infinity);
@@ -581,13 +583,13 @@ export class SoundWorld {
     this._eas = S.easAttention(this.ctx, dest, { when: toneAt, seconds: 8 });
     bus.emit('caption', { text: 'the Emergency Alert System tone', dir: 'ahead' });
 
-    if (day >= 14) {
+    if (day >= CONFIG.tv.emptyToneDay) {
       // The tone with no message following it.
       bus.emit('caption', { text: 'nothing follows it', dir: 'ahead' });
       return;
     }
-    // Days 5–13: a message follows. From Day 10 the message is wrong, and
-    // the audio has no way to tell you that, which is the point.
+    // Before that a message follows. From wrongMessageFromDay the message is
+    // wrong, and the audio has no way to tell you that, which is the point.
     setTimeout(() => {
       if (!this._tv) return;
       S.ramp(this._tv.speech.gain, 0.11, 0.4, this.ctx.currentTime);

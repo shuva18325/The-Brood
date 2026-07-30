@@ -270,10 +270,11 @@ export const CONFIG = {
    */
   grade: {
     bands: [
-      { untilDay: 5,  saturation: 0.94, greenPull: 0.00, temp:  0.055, lift: 0.008, gain: 1.02, crush: 0.010 },
-      { untilDay: 9,  saturation: 0.74, greenPull: 0.34, temp:  0.010, lift: 0.002, gain: 0.99, crush: 0.024 },
-      { untilDay: 12, saturation: 0.55, greenPull: 0.52, temp: -0.075, lift: -0.010, gain: 0.95, crush: 0.045 },
-      { untilDay: 99, saturation: 0.40, greenPull: 0.66, temp: -0.125, lift: -0.020, gain: 0.92, crush: 0.062 },
+      { untilDay: 6,  saturation: 0.94, greenPull: 0.00, temp:  0.055, lift: 0.008, gain: 1.02, crush: 0.010 },
+      { untilDay: 10, saturation: 0.78, greenPull: 0.28, temp:  0.020, lift: 0.004, gain: 1.00, crush: 0.020 },
+      { untilDay: 13, saturation: 0.62, greenPull: 0.44, temp: -0.040, lift: -0.004, gain: 0.97, crush: 0.034 },
+      { untilDay: 16, saturation: 0.50, greenPull: 0.56, temp: -0.090, lift: -0.012, gain: 0.95, crush: 0.048 },
+      { untilDay: 99, saturation: 0.38, greenPull: 0.68, temp: -0.130, lift: -0.022, gain: 0.92, crush: 0.064 },
     ],
     /** Sodium is protected from the desaturation. It is the last colour. */
     protectWarm: 0.72,
@@ -336,38 +337,50 @@ export const CONFIG = {
   /* ------------------------------------------------------------------ */
   concealment: {
     start: 100,
-    lockedUntilDay: 10,
-    baseDaily: 6.5,
+    lockedUntilDay: 11,
+    /**
+     * REBALANCED FOR TEN DAYS OF ACT 2 RATHER THAN SIX.
+     *
+     * The old numbers spent a hundred points across six nights. Ten nights on
+     * the same rates is not a harder game, it is a shorter one — the player
+     * would be dead on the sixteenth with four days of content unseen. So
+     * every rate here is roughly two-thirds of what it was, which keeps the
+     * shape (a careful player arrives at the last night with almost nothing
+     * left) while giving Act 2 the ten days it now has.
+     */
+    baseDaily: 5.9,
 
     rates: {
-      lightsOnNight:   { noiseLight: 2.10, habitation: 0.35 },
-      lightsOnDay:     { noiseLight: 0.10, habitation: 0.20 },
-      tvOnNight:       { noiseLight: 1.40, habitation: 0.30 },
-      tvOnDay:         { noiseLight: 0.30, habitation: 0.20 },
-      computerNight:   { noiseLight: 0.85, habitation: 0.25 },
-      computerDay:     { noiseLight: 0.10, habitation: 0.15 },
-      phoneNight:      { noiseLight: 0.25, habitation: 0.10 },
-      phoneDay:        { noiseLight: 0.02, habitation: 0.05 },
-      waterRunning:    { noiseLight: 2.40, habitation: 1.60 },
-      cooking:         { noiseLight: 1.10, habitation: 3.20 },
-      curtainOpenNight:{ noiseLight: 1.80, habitation: 0.90 },
-      curtainOpenDay:  { noiseLight: 0.00, habitation: 0.15 },
+      lightsOnNight:   { noiseLight: 1.40, habitation: 0.24 },
+      lightsOnDay:     { noiseLight: 0.07, habitation: 0.13 },
+      tvOnNight:       { noiseLight: 0.94, habitation: 0.20 },
+      tvOnDay:         { noiseLight: 0.20, habitation: 0.13 },
+      computerNight:   { noiseLight: 0.57, habitation: 0.17 },
+      computerDay:     { noiseLight: 0.07, habitation: 0.10 },
+      phoneNight:      { noiseLight: 0.17, habitation: 0.07 },
+      phoneDay:        { noiseLight: 0.01, habitation: 0.03 },
+      waterRunning:    { noiseLight: 1.60, habitation: 1.07 },
+      cooking:         { noiseLight: 0.74, habitation: 2.14 },
+      curtainOpenNight:{ noiseLight: 1.20, habitation: 0.60 },
+      curtainOpenDay:  { noiseLight: 0.00, habitation: 0.10 },
     },
 
     events: {
-      tvVolumeUp:     { noiseLight: 3.0,  habitation: 0.5 },
-      hotMeal:        { noiseLight: 1.5,  habitation: 4.0 },
-      coldMeal:       { noiseLight: 0.0,  habitation: 0.8 },
-      dishesLeft:     { noiseLight: 0.0,  habitation: 2.2 },
-      markTheWall:    { noiseLight: 0.0,  habitation: 0.6 },
-      answerPhone:    { noiseLight: 1.2,  habitation: 0.4 },
+      tvVolumeUp:     { noiseLight: 2.0,  habitation: 0.35 },
+      hotMeal:        { noiseLight: 1.0,  habitation: 2.7 },
+      coldMeal:       { noiseLight: 0.0,  habitation: 0.55 },
+      dishesLeft:     { noiseLight: 0.0,  habitation: 1.5 },
+      markTheWall:    { noiseLight: 0.0,  habitation: 0.4 },
+      answerPhone:    { noiseLight: 0.8,  habitation: 0.27 },
+      // The shotgun is NOT scaled. Firing it is meant to end runs.
       shotgunFired:   { noiseLight: 34.0, habitation: 6.0 },
-      frontDoorOpened:{ noiseLight: 6.0,  habitation: 12.0 },
+      frontDoorOpened:{ noiseLight: 4.0,  habitation: 8.0 },
       // A light left burning while he sleeps. Per bulb, charged at the day
       // advance. He does not choose this at the moment it costs him — he
       // chose it hours earlier and then forgot, which is the whole point.
-      lightLeftOn:    { noiseLight: 7.0,  habitation: 3.0 },
-      // Letting the survivor in. §2.
+      lightLeftOn:    { noiseLight: 4.6,  habitation: 2.0 },
+      // Letting the survivor in. §2. Not scaled either: it is a decision, and
+      // it should cost enough that the player feels it for days.
       strangerAdmitted:{ noiseLight: 5.0, habitation: 14.0 },
     },
 
@@ -379,7 +392,10 @@ export const CONFIG = {
   /* FOOD + CONDITION                                                    */
   /* ------------------------------------------------------------------ */
   food: {
-    startingPortions: 16,
+    /** Ten nights alone, two portions to a full meal. It is not enough. */
+    startingPortions: 26,
+    /** The compressor stops for good. The food and the white noise go together. */
+    fridgeDiesDay: 18,
     act1Portions: 9,
     meal: { full: 2, ration: 1, none: 0 },
     conditionFromMeal: { full: +4, ration: -2, none: -11 },
@@ -413,18 +429,46 @@ export const CONFIG = {
 
   shotgun: { shells: 6, braveDefenceSeconds: 150 },
 
-  days: { first: 1, handoff: 9, actTwo: 10, textsBegin: 12, last: 15 },
+  /**
+   * TWENTY DAYS, IN TWO ACTS OF TEN.
+   *
+   * Act 1 — days 1 to 10. Ray is alive. He handles the outside world and the
+   *   player is a guest with no agency, which is what makes Act 2 land. He
+   *   goes at the end of the tenth, having left the keys, the shotgun and
+   *   everything he owned.
+   *
+   * Act 2 — days 11 to 20. Ten days alone, in four movements:
+   *   11–13  denial. He might come back. The phone still rings.
+   *   14–16  the texts. The Incursion writes from his number and gets better
+   *          at it every day. His voicemail greeting is still cheerful.
+   *   15–16  the survivor at the door. The moral centre, and unresolved.
+   *   17–19  the squeeze. Concealment near zero, calls stop connecting.
+   *   20     the finale.
+   */
+  days: {
+    first: 1,
+    /** The last night Ray is in the flat. The handoff happens in it. */
+    handoff: 10,
+    actTwo: 11,
+    /** The Incursion starts writing from his number. */
+    textsBegin: 14,
+    /** The window in which a human being knocks. Once, or never. */
+    strangerFrom: 15, strangerTo: 16,
+    /** Family calls start failing to connect. */
+    callsFailFrom: 17,
+    last: 20,
+  },
 
   /* ------------------------------------------------------------------ */
   /* THE APARTMENT, ACROSS FIFTEEN DAYS                                  */
   /* ------------------------------------------------------------------ */
   decay: {
     /** Dishes pile up in the sink. Then they stop, which is worse. */
-    dishes: { startDay: 10, stopDay: 13, max: 7 },
+    dishes: { startDay: 11, stopDay: 16, max: 7 },
     /** Dust on flat surfaces. */
-    dust: { startDay: 6, perDay: 0.055, max: 0.62 },
+    dust: { startDay: 7, perDay: 0.040, max: 0.62 },
     /** He left them by the door and they are still by the door. */
-    shoesFromDay: 10,
+    shoesFromDay: 11,
     /** Rubbish on the street arrives and never leaves. */
     trashFromDay: 2,
     /** All of it, by this day. Stretched with the run, not compressed. */
@@ -448,18 +492,41 @@ export const CONFIG = {
   /* ------------------------------------------------------------------ */
   /* THE BROADCAST                                                       */
   /* ------------------------------------------------------------------ */
+  /**
+   * Twenty entries each. These arcs STRETCH across the longer run — they are
+   * not compressed into the first fifteen days and then held flat, because a
+   * broadcast that stopped degrading on the fifteenth would tell the player
+   * the game had stopped with it.
+   */
   tv: {
     /** How long the set holds a channel, in seconds, by day. */
-    holdSeconds: [99, 99, 99, 99, 99, 60, 40, 26, 14, 11, 9, 7, 6, 4, 2],
+    holdSeconds: [99, 99, 99, 99, 99, 99, 80, 60, 45, 34,
+                  26, 20, 16, 13, 11, 9, 7, 5, 4, 2],
     /** Broadcast decay 0..1, by day. Colour first, then sync, then snow. */
-    decayByDay:  [0, 0, 0, 0, 0.04, 0.10, 0.16, 0.24, 0.34, 0.44, 0.56, 0.68, 0.80, 0.92, 1.0],
+    decayByDay:  [0, 0, 0, 0, 0, 0.03, 0.07, 0.12, 0.18, 0.25,
+                  0.33, 0.42, 0.51, 0.60, 0.69, 0.77, 0.85, 0.92, 0.97, 1.0],
     /** Audio drifts out of step with the anchor's mouth. Never acknowledged. */
-    desyncMsByDay: [0, 0, 0, 0, 20, 60, 110, 180, 260, 340, 430, 520, 620, 720, 820],
+    desyncMsByDay: [0, 0, 0, 0, 0, 20, 50, 90, 140, 200,
+                    265, 335, 410, 490, 570, 650, 720, 780, 830, 870],
+    /** Off-air except for two short windows, from this day. */
+    reducedFromDay: 14,
+    /** Colour bars and nothing else. */
+    barsFromDay: 18,
+    /** Snow, and it never comes back. */
+    snowFromDay: 19,
+    /** The EAS starts taking the broadcast at the top of the hour. */
+    easFromDay: 6,
+    /** From here the tone is right and the message is wrong. */
+    wrongMessageFromDay: 13,
+    /** A tone with no message behind it at all. */
+    emptyToneDay: 18,
+    /** A tone that does not stop. */
+    endlessToneDay: 20,
     /** The one single-frame insert. Once, in the entire game. */
-    insertDay: 13,
+    insertDay: 17,
     insertFrameMs: 66,
     /** The station plays its sign-off in the middle of the afternoon. */
-    signOffDay: 13,
+    signOffDay: 17,
   },
 
   /* ------------------------------------------------------------------ */

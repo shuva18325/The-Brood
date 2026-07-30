@@ -41,7 +41,7 @@ export const CUES = [
 
   'switch_on', 'switch_off', 'curtain_open', 'curtain_close',
   'fridge_open', 'fridge_close', 'cabinet', 'tap_on', 'tap_off',
-  'door_open', 'door_close', 'door_locked', 'chain_rattle',
+  'door_open', 'door_close', 'door_locked', 'chain_rattle', 'door_knock',
   'tv_on', 'tv_off', 'tv_channel', 'pc_boot', 'pc_fan', 'keyclack',
   'phone_ring', 'phone_pickup', 'phone_hangup', 'phone_buzz', 'phone_dead',
   'marker_squeak', 'paper', 'shotgun_pickup', 'shell_load', 'shotgun_fire',
@@ -351,6 +351,20 @@ export const audio = {
       case 'door_locked':
         S.click(C, place('door', { refDistance: 1.6, wet: 0.5 }), { freq: 340, decay: 0.02, level: 0.2 });
         break;
+      /**
+       * A knuckle on a hollow-core door. Three knocks, spaced out, not hard —
+       * somebody being careful about how much noise they make. The only
+       * sound in the game made by a human being who is not him.
+       */
+      case 'door_knock': {
+        const g = place('door', { refDistance: 1.6, wet: 0.55 });
+        for (let i = 0; i < 3; i++) {
+          const t = C.currentTime + i * 0.34;
+          S.thud(C, g, { when: t, freq: 132, level: 0.20, decay: 0.055 });
+          S.click(C, g, { when: t, freq: 1750, decay: 0.014, level: 0.11 });
+        }
+        break;
+      }
       case 'chain_rattle': {
         const g = place('door', { refDistance: 1.6, wet: 0.5 });
         for (let i = 0; i < 7; i++) {

@@ -46,7 +46,7 @@ The apex tier was named from testimony.`,
   u:7 },
 
 /* ---------------------------------------------------------------- */
-{ id:'d03', day:9, kind:'file',
+{ id:'d03', day:10, kind:'file',
   title:'CF-1991-0067 — TYRE TABLET (photographic plate + transcription)',
   meta:'Plate 3 of 6. Scale reference blacked out. Two translations appended.',
   body:`RECOVERED: ████████, Lebanon, 1991. Provenance prior to 1974 not established.
@@ -90,7 +90,7 @@ after a mistake somebody made in 1897 and we are still using it.`,
   u:14, flags:['crippled_mistranslation','crippled_exists'] },
 
 /* ---------------------------------------------------------------- */
-{ id:'d04', day:10, kind:'file',
+{ id:'d04', day:11, kind:'file',
   title:'CF-1991-0067 — APPENDIX C: OBSERVED PROPERTIES',
   meta:'Half page. The other half is not in the scan.',
   body:`SUBJECT: CRIPPLED KING (designation retained; see fn. 4, primary file)
@@ -158,7 +158,7 @@ has a history. We have been assuming we are dealing with animals.`,
   u:12, flags:['king_taught','zanuwam_warmth_sign'], beliefs:['zanuwam_daylight'] },
 
 /* ---------------------------------------------------------------- */
-{ id:'d06', day:12, kind:'file',
+{ id:'d06', day:14, kind:'file',
   title:'CF-1992-0031 — APPENDIX F: CONTAINMENT (Sassanid successor period)',
   meta:'This is the page mudflat kept asking for.',
   body:`SUBJECT: ZĀNUWĀM — CONTAINMENT ACCOUNT
@@ -191,7 +191,7 @@ none of them are the ones with coastline.`,
   u:11, flags:['zanuwam_sealed'] },
 
 /* ---------------------------------------------------------------- */
-{ id:'d07', day:12, kind:'file',
+{ id:'d07', day:14, kind:'file',
   title:'CF-1992-0031 — APPENDIX G: THE INVERSION',
   meta:'Typed. Someone has underlined the last paragraph twice, by hand.',
   body:`SUBJECT: ZĀNUWĀM — POST-CONTAINMENT PHYSIOLOGY
@@ -229,7 +229,7 @@ error survived for 1,300 years.`,
   u:18, flags:['zanuwam_solar_obsolete','zanuwam_nocturnal','zanuwam_warmth_sign'] },
 
 /* ---------------------------------------------------------------- */
-{ id:'d08', day:13, kind:'file',
+{ id:'d08', day:16, kind:'file',
   title:'ACCESSION 1893.114 — ledger entry + 1989 incident report',
   meta:'Two documents on one sheet. The second is a photocopy of a photocopy.',
   body:`── MUSEUM ACCESSION LEDGER ──
@@ -311,7 +311,7 @@ are worse than the question.`,
   u:12, flags:['tormentor_noise_light','military_useless'] },
 
 /* ---------------------------------------------------------------- */
-{ id:'d10', day:9, kind:'file',
+{ id:'d10', day:10, kind:'file',
   title:'CF-1996-0202 — ANGUISH / TORMENTOR INTERACTION',
   meta:'Four pages. Pages 2 and 3 missing.',
   body:`SUBJECT: ANGUISH
@@ -400,7 +400,7 @@ so that it is not my fault.`,
   beliefs:['shoot_anguish'] },
 
 /* ---------------------------------------------------------------- */
-{ id:'d12', day:10, kind:'file',
+{ id:'d12', day:11, kind:'file',
   title:'CF-1999-0311 — INCURSION (behavioural summary)',
   meta:'Clean scan. Someone had a good copy of this one.',
   body:`SUBJECT: INCURSION
@@ -448,7 +448,7 @@ someone the occupant trusts.`,
   u:18, flags:['incursion_fragile','incursion_habitation','incursion_needs_opening','incursion_writes'] },
 
 /* ---------------------------------------------------------------- */
-{ id:'d13', day:11, kind:'file',
+{ id:'d13', day:12, kind:'file',
   title:'CF-2004-0790 — PATHOGEN (reconstructed; no primary observation)',
   meta:'Every page of this is secondhand. It says so at the top.',
   body:`SUBJECT: PATHOGEN
@@ -501,7 +501,7 @@ anything. It is working for something.`,
   u:16, flags:['pathogen_consent','pathogen_old_hardware'] },
 
 /* ---------------------------------------------------------------- */
-{ id:'d14', day:11, kind:'file',
+{ id:'d14', day:12, kind:'file',
   title:'CF-2011-1180 — ROAD KILL (field note, unfiled)',
   meta:'Handwritten. Photographed on a car bonnet.',
   body:`ROAD KILL — field note, ████████, unfiled, please someone type this up
@@ -549,7 +549,7 @@ need it to be about something.`,
   u:18, flags:['roadkill_adapt','roadkill_window','roadkill_never_leaves'] },
 
 /* ---------------------------------------------------------------- */
-{ id:'d15', day:13, kind:'file',
+{ id:'d15', day:16, kind:'file',
   title:'CF-2019-1533 — SECOND TIER (single sheet, three entries)',
   meta:'Photocopied so many times the letters have holes in them.',
   body:`THE CHOIR
@@ -582,7 +582,7 @@ A flooded road does not reopen.`,
   u:16, flags:['choir_bait','congregation_crowds','undertow_water','roads_flooded','city_no_evac'] },
 
 /* ---------------------------------------------------------------- */
-{ id:'d16', day:14, kind:'file',
+{ id:'d16', day:18, kind:'file',
   title:'CF-2019-1533 — APPENDIX: DISTRIBUTION (partial table)',
   meta:'The columns do not line up. Someone retyped this from memory.',
   body:`ENTITY DISTRIBUTION BY SITE — the point of this table is that no
@@ -707,7 +707,7 @@ At 1:52 something goes past the hallway gap. It is not fast. It does not look in
 
 The clip continues for another eleven seconds of the same empty hallway and then stops, and the stopping is the worst part, because it means they reached up and pressed it.`, u:7, flags:['incursion_habitation'] },
 
-{ id:'v07', day:9, title:'IMG_9002.MOV — Hampton Blvd, 12:50pm', by:'reposted by deadmall',
+{ id:'v07', day:10, title:'IMG_9002.MOV — Hampton Blvd, 12:50pm', by:'reposted by deadmall',
   body:`Vertical. 0:44. Broad daylight.
 
 Four blocks under about eight inches of water with no rain in eleven days. A man walks along the kerb filming it, keeping to the dry side, narrating about his car.
@@ -716,7 +716,7 @@ At 0:38 he steps down off the kerb to get a better angle on a floating bin.
 
 The clip does not end. The phone lands face up. It films the sky for another six minutes and somebody has left the whole six minutes in.`, u:9, flags:['undertow_water','roads_flooded'] },
 
-{ id:'v08', day:10, title:'nightvision test 3', by:'reposted by deadmall',
+{ id:'v08', day:11, title:'nightvision test 3', by:'reposted by deadmall',
   body:`Vertical. 1:00. Some kind of cheap IR camera pointed at a back yard.
 
 Grey noise. A fence. A washing line.
@@ -727,7 +727,7 @@ At 0:40 they all stop at once and go the other way.
 
 Nothing comes into frame after them. Whatever they went away from was never on camera.`, u:7, flags:['crawler_shotgun','gleaners_follow'] },
 
-{ id:'v09', day:11, title:'no title — unknown location, night', by:'reposted by deadmall',
+{ id:'v09', day:12, title:'no title — unknown location, night', by:'reposted by deadmall',
   body:`Vertical. 0:19. The shortest one.
 
 The camera is pointed at a road. There is a shape standing in the middle of it about forty metres away, in headlights, not moving.
@@ -738,7 +738,7 @@ The person filming says "who said that."
 
 Nineteen seconds.`, u:8, flags:['roadkill_never_leaves','choir_bait'] },
 
-{ id:'v10', day:12, title:'PLEASE WATCH — 22nd St, 4:02am', by:'reposted by deadmall',
+{ id:'v10', day:14, title:'PLEASE WATCH — 22nd St, 4:02am', by:'reposted by deadmall',
   body:`Vertical. 1:37. Filmed through a window with the curtain held aside by one hand.
 
 An empty street. A voice is calling a name from somewhere below and to the left, out of frame, for the entire clip.
@@ -749,7 +749,7 @@ At 1:30 a door opens somewhere on the street. You hear it. You do not see it.
 
 The voice stops.`, u:9, flags:['choir_bait'] },
 
-{ id:'v11', day:13, title:'the tone', by:'reposted by deadmall',
+{ id:'v11', day:16, title:'the tone', by:'reposted by deadmall',
   body:`Vertical. 0:50. Somebody filming a television.
 
 Colour bars and a tone. The person filming pans around their living room to show that the power is on, the lamp is on, everything is fine, and then back to the television.
@@ -758,7 +758,7 @@ At 0:44 the tone stops for about a second and a half and then resumes.
 
 Nine hundred people have watched this clip. Four hundred of them are arguing about whether the gap is on the broadcast or on the phone.`, u:3 },
 
-{ id:'v12', day:14, title:'[no file] — description only, source deleted', by:'deadmall',
+{ id:'v12', day:18, title:'[no file] — description only, source deleted', by:'deadmall',
   body:`I watched this one twice before it went and I want it written down.
 
 Vertical, about ninety seconds, filmed from a second-floor window at night with the lights off. Bars across the frame — one of the barred windows, like half this neighbourhood has.

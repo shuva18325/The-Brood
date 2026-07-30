@@ -6,6 +6,8 @@
  * just always the last to know, and it stops being allowed to say things.
  */
 
+import { CONFIG } from '../config.js';
+
 export const NEWS = [
 
 /* ================================================================== */
@@ -250,7 +252,7 @@ There is no weather segment now. There is a card with the tide table on it.`,
 Enforcement is described as advisory. There are not enough officers to enforce it and the states have said so.`,
   u:2 },
 
-{ id:'n26', day:9, movement:3, source:'VDEM Advisory', time:'5:00 AM',
+{ id:'n26', day:10, movement:3, source:'VDEM Advisory', time:'5:00 AM',
   headline:'ADVISORY 3: Shelter in place. Minimise light and sound after dark.',
   body:`Residents are advised to minimise exterior light and audible sound between dusk and dawn.
 
@@ -263,7 +265,7 @@ DO NOT approach any unidentified figure.
 This advisory supersedes Advisory 1.`,
   u:10, flags:['tormentor_noise_light'] },
 
-{ id:'n27', day:9, movement:3, source:'WKRV 9 Tidewater', time:'6:02 PM',
+{ id:'n27', day:10, movement:3, source:'WKRV 9 Tidewater', time:'6:02 PM',
   headline:'"Do not approach" replaces "do not look directly at" in updated advisory',
   body:`The fourth line of Advisory 1 asked residents not to look directly at unidentified figures. Advisory 3 asks residents not to approach them.
 
@@ -272,7 +274,7 @@ Asked about the change, a VDEM spokesperson said the advisories are "reviewed fo
 The station has been contacted by nineteen viewers about that line.`,
   u:6, flags:['anguish_dont_look'] },
 
-{ id:'n28', day:10, movement:3, source:'WKRV 9 Tidewater', time:'7:40 AM',
+{ id:'n28', day:11, movement:3, source:'WKRV 9 Tidewater', time:'7:40 AM',
   headline:'Ocean View, Willoughby, East Beach: no further updates',
   body:`The city has removed Ocean View, Willoughby and East Beach from its status page.
 
@@ -281,7 +283,7 @@ A note on the page says those areas are "not currently being assessed."
 The page has not been updated for eleven other neighbourhoods since Tuesday.`,
   u:4, flags:['city_composition'] },
 
-{ id:'n29', day:10, movement:3, source:'AP wire', time:'1:15 PM',
+{ id:'n29', day:11, movement:3, source:'AP wire', time:'1:15 PM',
   headline:'Wilmington: county emergency management "no longer operating"',
   body:`New Hanover County emergency management is no longer operating, according to the North Carolina Department of Public Safety.
 
@@ -290,7 +292,7 @@ The county's three shelters and the convention centre stopped reporting on the n
 Approximately 9,000 people were sheltered at those four locations.`,
   u:7, flags:['congregation_crowds'] },
 
-{ id:'n30', day:10, movement:3, source:'WKRV 9 Tidewater', time:'6:00 PM',
+{ id:'n30', day:11, movement:3, source:'WKRV 9 Tidewater', time:'6:00 PM',
   headline:'Norfolk status: eleven districts unassessed',
   body:`Eleven of the city's nineteen districts are listed as unassessed.
 
@@ -299,7 +301,7 @@ Park Place — where you are — has been listed as unassessed since the seventh
 Asked whether unassessed means unreachable, the city spokesperson said it means unassessed.`,
   u:5, flags:['city_composition','city_no_evac'] },
 
-{ id:'n31', day:11, movement:3, source:'VDEM Advisory', time:'5:00 AM',
+{ id:'n31', day:12, movement:3, source:'VDEM Advisory', time:'5:00 AM',
   headline:'ADVISORY 7: Remain indoors. Do not respond to voices from the street.',
   body:`Residents are advised to remain indoors at all times.
 
@@ -311,7 +313,7 @@ Minimise light and sound after dark.
 If you are able to travel inland, travel between 10 a.m. and 3 p.m. only, on interstate routes only, and do not stop.`,
   u:11, flags:['choir_bait','roadkill_never_leaves','tormentor_noise_light'] },
 
-{ id:'n32', day:11, movement:3, source:'WKRV 9 Tidewater', time:'12:00 PM',
+{ id:'n32', day:12, movement:3, source:'WKRV 9 Tidewater', time:'12:00 PM',
   headline:'Station reduces broadcast day to four hours',
   body:`WKRV will broadcast from 6 a.m. to 8 a.m. and 6 p.m. to 8 p.m. until further notice.
 
@@ -320,7 +322,7 @@ Outside those hours the station will carry emergency information on a loop.
 Six of the station's staff are working. The general manager has been anchoring the evening.`,
   u:2 },
 
-{ id:'n33', day:11, movement:3, source:'AP wire', time:'7:44 PM',
+{ id:'n33', day:12, movement:3, source:'AP wire', time:'7:44 PM',
   headline:'FEMA collection points relocated inland for the third time',
   body:`Federal collection points at Franklin, Emporia and Lawrenceville have been moved west after what a FEMA statement called "site viability reassessments."
 
@@ -333,7 +335,7 @@ FEMA has asked people arriving at the old sites not to wait there.`,
 /* MOVEMENT 4 — THE LOOP.                                              */
 /* ================================================================== */
 
-{ id:'n34', day:12, movement:4, source:'WKRV 9 Tidewater', time:'6:00 AM',
+{ id:'n34', day:14, movement:4, source:'WKRV 9 Tidewater', time:'6:00 AM',
   headline:'EMERGENCY INFORMATION — repeating',
   body:`Remain indoors.
 
@@ -347,7 +349,7 @@ If you require medical assistance, there is no number to call at this time.
 This message repeats.`,
   u:2, loop:true },
 
-{ id:'n35', day:12, movement:4, source:'WKRV 9 Tidewater', time:'6:00 PM',
+{ id:'n35', day:14, movement:4, source:'WKRV 9 Tidewater', time:'6:00 PM',
   headline:'EMERGENCY INFORMATION — repeating',
   body:`Remain indoors.
 
@@ -361,7 +363,7 @@ If you require medical assistance, there is no number to call at this time.
 This message repeats.`,
   u:0, loop:true },
 
-{ id:'n36', day:13, movement:4, source:'WKRV 9 Tidewater', time:'—',
+{ id:'n36', day:16, movement:4, source:'WKRV 9 Tidewater', time:'—',
   headline:'EMERGENCY INFORMATION — repeating',
   body:`Remain indoors.
 
@@ -374,7 +376,7 @@ If you require medical assistance, there is no number to call at this time.
 This message repeats.`,
   u:0, loop:true },
 
-{ id:'n37', day:13, movement:4, source:'WKRV 9 Tidewater', time:'—',
+{ id:'n37', day:16, movement:4, source:'WKRV 9 Tidewater', time:'—',
   headline:'The loop is ninety seconds and you have it memorised',
   body:`It is the same six lines and the same grey card and the same voice, which is not the anchor's voice and is not anybody's voice, and at the end of it there is a two-second gap before it starts again.
 
@@ -383,14 +385,14 @@ On the fourth run-through you notice the line about medical assistance has been 
 Nobody removed it. There is nobody at the station.`,
   u:3, inner:true },
 
-{ id:'n38', day:14, movement:4, source:'—', time:'—',
+{ id:'n38', day:18, movement:4, source:'—', time:'—',
   headline:'TEST PATTERN',
   body:`Colour bars. A tone.
 
 The tone is at 1 kHz and it does not stop, and after four minutes you understand that you are going to have to be the one who turns it off.`,
   u:1, pattern:true },
 
-{ id:'n39', day:15, movement:4, source:'—', time:'—',
+{ id:'n39', day:20, movement:4, source:'—', time:'—',
   headline:'SNOW',
   body:`Static.
 
@@ -399,7 +401,7 @@ It is the loudest thing in the apartment. It is louder than the fridge and loude
 You leave it on for eleven minutes because it is a sound a machine makes on purpose.`,
   u:1, snow:true },
 
-{ id:'n40', day:15, movement:4, source:'—', time:'—',
+{ id:'n40', day:20, movement:4, source:'—', time:'—',
   headline:'SNOW',
   body:`Static.`,
   u:0, snow:true },
@@ -414,9 +416,10 @@ export function newsFor(day) {
 
 /** What the set is doing right now — this drives how the TV screen renders. */
 export function tvState(day) {
-  if (day >= 15) return 'snow';
-  if (day >= 14) return 'pattern';
-  if (day >= 12) return 'loop';
+  const T = CONFIG.tv;
+  if (day >= T.snowFromDay) return 'snow';
+  if (day >= T.barsFromDay) return 'pattern';
+  if (day >= T.reducedFromDay) return 'loop';
   return 'live';
 }
 

@@ -99,6 +99,20 @@ export function freshState() {
       friendVoicemailStage: 0,
       incursionNotes: 0,
       guardReportSeen: false,
+
+      /**
+       * THE SURVIVOR AT THE DOOR. §2.
+       *
+       * 'none' until they knock. Then 'admitted' or 'refused', and that is
+       * the last word on it: the game never establishes whether they were
+       * real. Both outcomes leave evidence the player can partly read and
+       * never finish reading.
+       */
+      stranger: 'none',
+      /** Which day they knocked, so the aftermath can be dated. */
+      strangerDay: 0,
+      /** What they were carrying, if the player looked. Read afterwards. */
+      strangerSeen: false,
     },
 
     /* --- per-day event bookkeeping --- */

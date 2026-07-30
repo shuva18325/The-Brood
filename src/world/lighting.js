@@ -114,7 +114,7 @@ export class Lighting {
     const sdim = effects.screenDim();
     const tvOn = state.tvOn;
     // The snow on the last days is the brightest thing in the apartment.
-    const snow = tvOn && state.day >= 15 ? CONFIG.light.snowBoost : 1;
+    const snow = tvOn && state.day >= CONFIG.tv.snowFromDay ? CONFIG.light.snowBoost : 1;
     D.tvLight.intensity = lerp(D.tvLight.intensity,
       tvOn ? CONFIG.light.screen.tv.intensity * snow * sdim : 0, k * 3);
     D.tvScreen.material.emissiveIntensity = lerp(

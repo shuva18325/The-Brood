@@ -137,7 +137,10 @@ for (const mode of MODES) {
   const out = await frame.evaluate(async (m) => {
     const B = window.BROOD;
     // A day where the mode is plausible, so the audio chain matches.
-    const day = { ident: 2, news: 4, eas: 10, bars: 14, signoff: 13, snow: 15, lost: 12 }[m];
+    // Each mode on a day where it is what the set would actually be doing.
+    const T = B.CONFIG.tv;
+    const day = { ident: 2, news: 4, eas: T.wrongMessageFromDay, bars: T.barsFromDay,
+                  signoff: T.signOffDay, snow: T.snowFromDay, lost: 12 }[m];
     B.reset(); B.startNew();
     if (day > 1) B.days(day - 1);
     B.state.tvOn = true;
