@@ -72,6 +72,43 @@ export function freshState() {
     readIds: {},             // content id -> true, so nothing double-counts
     understandingRaw: 0,     // accumulated before comprehension weighting
 
+    /**
+     * §4.2. THE MACHINE REMEMBERS. Everything a real browser and a real
+     * desktop would keep between sessions, kept in the save.
+     *
+     * Read/unread state alone transforms the experience: eighty forum posts
+     * with no read tracking is a chore, and with it, it is a feed.
+     */
+    web: {
+      /** The back-stack. Entries are URLs; hIndex is where we are in it. */
+      history: [],
+      hIndex: -1,
+      /** [{ url, title }] — persisted, so a bookmark survives a reload. */
+      bookmarks: [],
+      /** url -> scrollTop, so a thread reopens where you left it. */
+      scroll: {},
+      /** threadId -> { opened: day, seenReplies: n } for the new-reply badges. */
+      threads: {},
+      /** The player's own posts. §5. */
+      posts: [],
+      /** postId -> true for replies the player has already seen. */
+      seenReplies: {},
+      /** Their forum identity, made on first post and never changed. */
+      handle: null,
+      joinedDay: 0,
+    },
+
+    /** §4.2 + §8. The desktop, as the player has arranged it. */
+    os: {
+      /** iconId -> [x, y], only for icons the player has actually moved. */
+      iconPos: {},
+      /** windowKind -> { x, y, w, h, max } */
+      win: {},
+      /** mailId -> true */
+      mailRead: {},
+      mailDeleted: {},
+    },
+
     /* --- the phone --- */
     phone: {
       missedCalls: 0,
@@ -155,6 +192,11 @@ export function load() {
     state.flags = Object.assign(freshState().flags, parsed.flags || {});
     state.phone = Object.assign(freshState().phone, parsed.phone || {});
     state.lights = Object.assign(freshState().lights, parsed.lights || {});
+    // §4.2. The browser and the desktop, so a save restores the machine the
+    // way the player left it: history, bookmarks, scroll positions, their own
+    // posts, and where they dragged the icons.
+    state.web = Object.assign(freshState().web, parsed.web || {});
+    state.os = Object.assign(freshState().os, parsed.os || {});
     bus.emit('state:loaded', state);
     return true;
   } catch (e) {

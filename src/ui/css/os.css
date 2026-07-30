@@ -6,11 +6,18 @@
  * so the messy desktop stays visible behind them.
  */
 
+/* §4.1. The DESKTOP itself does not select — dragging an icon must not paint
+   a text selection across the wallpaper. But that must not inherit into a
+   window: everything inside one is a document, and documents are selectable
+   and copyable. That inheritance was making every page in the game
+   uncopyable, which is the single worst thing a fake computer can do. */
 .desktop {
   position: absolute; inset: 0; overflow: hidden;
   font-family: Tahoma, "Segoe UI", Verdana, sans-serif; font-size: 11px;
   color: #fff; user-select: none;
 }
+.win, .win-body, .browser, .br-viewport { user-select: text; }
+.dt-icon .lb, .taskbar, .win-title { user-select: none; }
 .desktop-bg { position: absolute; inset: 0; background-size: cover;
   background-position: center; }
 .desktop-bg.dim { filter: brightness(0.72); }
@@ -54,6 +61,29 @@
 .win-btn { width: 21px; height: 17px; border: 1px solid #7fa4cd; background: #cfe0f2;
   color: #163a63; font-size: 10px; line-height: 15px; text-align: center; cursor: pointer; }
 .win-btn.close { background: #c9564f; border-color: #8c3630; color: #fff; }
+.win-btn { font-family: inherit; padding: 0; cursor: pointer; }
+.win-btn:hover { filter: brightness(1.12); }
+.win-btn:active { filter: brightness(0.9); }
+.win-title { cursor: default; }
+
+/* §4.2 + §8. A window that is not maximised can be dragged and resized, and
+   both are remembered in the save. */
+.win:not(.max) { position: absolute; box-shadow: 3px 3px 14px rgba(0,0,0,0.45); }
+.win:not(.max) .win-title { cursor: move; }
+.win-grip {
+  position: absolute; right: 0; bottom: 0; width: 16px; height: 16px;
+  cursor: nwse-resize;
+  background:
+    linear-gradient(135deg, transparent 45%, #8fa8c4 45%, #8fa8c4 55%, transparent 55%),
+    linear-gradient(135deg, transparent 70%, #8fa8c4 70%, #8fa8c4 80%, transparent 80%);
+}
+
+/* An icon being dragged, and the position that survives a reload. */
+.dt-icon.dragging { opacity: 0.72; outline: 1px dashed rgba(255,255,255,0.55); }
+.dt-icon:focus-visible { outline: 2px solid #ffd45a; outline-offset: 1px; }
+
+.tb-item { font-family: inherit; cursor: pointer; }
+.tb-item:hover { background: rgba(255,255,255,0.22); }
 .win-body { flex: 1; overflow: hidden; background: #fff; position: relative; }
 .win.max { inset: 0 0 30px 0; }
 

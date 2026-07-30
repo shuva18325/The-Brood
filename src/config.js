@@ -382,6 +382,18 @@ export const CONFIG = {
       // Letting the survivor in. §2. Not scaled either: it is a decision, and
       // it should cost enough that the player feels it for days.
       strangerAdmitted:{ noiseLight: 5.0, habitation: 14.0 },
+      /**
+       * §5.2. THE COST OF ASKING FOR HELP BY NAME.
+       *
+       * Posting your street, your floor, your window and what you are
+       * carrying, in a public thread. It is the most natural thing in the
+       * world to do and it is the worst thing the player can do. Charged
+       * silently, two days later, when the reply that used those details
+       * arrives — so the player cannot see it coming and can work backwards
+       * to it afterwards, which is the entire design of this game in one
+       * event name.
+       */
+      postedLocation:  { noiseLight: 2.0, habitation: 18.0 },
     },
 
     profileHotShare: 0.60,

@@ -62,7 +62,21 @@ const PLATES = {
     caption: 'Shelter interior, east concourse. Photographed 09:20. No further plates were taken.' } },
 };
 
-export function render(host, args, nav) {
+export function titleFor(loc) {
+  const d = loc.path.match(/^\/d\/([\w-]+)/);
+  const v = loc.path.match(/^\/v\/([\w-]+)/);
+  if (d) return d[1] + ' — mirrorbox';
+  if (v) return v[1] + ' — mirrorbox';
+  return 'mirrorbox — archivist_p';
+}
+
+export function render(host, loc, nav) {
+  // §4.1. Every document and every tape has its own address.
+  const dm = loc.path.match(/^\/d\/([\w-]+)/);
+  const vm = loc.path.match(/^\/v\/([\w-]+)/);
+  const args = { doc: dm ? dm[1] : null, video: vm ? vm[1] : null };
+  const D = (id) => nav.href('files', id ? '/d/' + id : '/u/archivist_p/');
+  const V = (id) => nav.href('files', id ? '/v/' + id : '/u/archivist_p/');
   const day = state.day;
 
   if (args.doc) return renderDoc(host, args, nav, day);
@@ -80,8 +94,8 @@ export function render(host, args, nav) {
   for (const d of docsFor(day)) {
     list.appendChild(h('div', {
       class: 'fh-row', tabindex: '0',
-      onclick: () => nav.go({ doc: d.id }),
-      onkeydown: (e) => { if (e.key === 'Enter') nav.go({ doc: d.id }); },
+      onclick: () => nav.go(D(d.id)),
+      onkeydown: (e) => { if (e.key === 'Enter') nav.go(D(d.id)); },
     },
       h('span', { class: 'n' }, d.title + '.pdf'),
       h('span', { class: 's' }, `${(240 + d.id.charCodeAt(1) * 7) % 900 + 100} KB`)));
@@ -94,8 +108,8 @@ export function render(host, args, nav) {
   for (const v of videosFor(day)) {
     vlist.appendChild(h('div', {
       class: 'fh-row', tabindex: '0',
-      onclick: () => nav.go({ video: v.id }),
-      onkeydown: (e) => { if (e.key === 'Enter') nav.go({ video: v.id }); },
+      onclick: () => nav.go(V(v.id)),
+      onkeydown: (e) => { if (e.key === 'Enter') nav.go(V(v.id)); },
     },
       h('span', { class: 'n' }, v.title),
       h('span', { class: 's' }, v.id === 'v12' ? 'SOURCE DELETED' : 'mirror')));
@@ -105,8 +119,9 @@ export function render(host, args, nav) {
 /* ------------------------------------------------------------------ */
 
 function renderDoc(host, args, nav, day) {
+  const D = (id) => nav.href('files', id ? '/d/' + id : '/u/archivist_p/');
   const d = docsFor(day).find(x => x.id === args.doc);
-  if (!d) { nav.go({ doc: null }); return; }
+  if (!d) { nav.go(D(null)); return; }
   const reread = !!state.readIds[d.id];
   understanding.read(d.id, d);
 
@@ -116,7 +131,7 @@ function renderDoc(host, args, nav, day) {
     style: 'width:min(760px,92%);margin:0 auto 10px;font-family:Arial,sans-serif;font-size:12px',
   }, h('a', {
     href: '#', style: 'color:#9fb6cc', tabindex: '0',
-    onclick: (e) => { e.preventDefault(); nav.go({ doc: null }); },
+    onclick: (e) => { e.preventDefault(); nav.go(D(null)); },
   }, '‹ back to files')));
 
   const gen = generation(d);
@@ -207,8 +222,9 @@ function redacted(text) {
 /* ------------------------------------------------------------------ */
 
 function renderVideo(host, args, nav, day) {
+  const V = (id) => nav.href('files', id ? '/v/' + id : '/u/archivist_p/');
   const v = videosFor(day).find(x => x.id === args.video);
-  if (!v) { nav.go({ video: null }); return; }
+  if (!v) { nav.go(V(null)); return; }
   understanding.read(v.id, v);
 
   const wrap = h('div', { class: 'scanwrap' });
@@ -217,7 +233,7 @@ function renderVideo(host, args, nav, day) {
     style: 'width:min(760px,92%);margin:0 auto 10px;font-family:Arial,sans-serif;font-size:12px',
   }, h('a', {
     href: '#', style: 'color:#9fb6cc', tabindex: '0',
-    onclick: (e) => { e.preventDefault(); nav.go({ video: null }); },
+    onclick: (e) => { e.preventDefault(); nav.go(V(null)); },
   }, '‹ back to files')));
 
   const box = h('div', {

@@ -17,7 +17,15 @@ import { sheetFor, TABS, hoursSince } from '../../content/sheet.js';
 
 export const url = 'https://docs.google.com/spreadsheets/d/1kQ7…/edit#gid=0';
 
-export function render(host, args, nav) {
+export function titleFor(loc) {
+  const t = loc.query.tab || 'rules';
+  return `CONFIRMED SIGHTINGS TRACKER — ${t} — Google Sheets`;
+}
+
+export function render(host, loc, nav) {
+  // §4.1. Each sheet tab is its own address, so back works between them.
+  const args = { tab: loc.query.tab || 'rules' };
+  const T = (id) => nav.href('sheet', '/spreadsheets/d/1kQ7/edit', { tab: id });
   const day = state.day;
   const data = sheetFor(day);
   const tab = args.tab || 'rules';
@@ -93,8 +101,8 @@ export function render(host, args, nav) {
   for (const t of TABS) {
     tabs.appendChild(h('div', {
       class: 'sheet-tab' + (t.id === tab ? ' on' : ''), tabindex: '0',
-      onclick: () => nav.go({ tab: t.id }),
-      onkeydown: (e) => { if (e.key === 'Enter') nav.go({ tab: t.id }); },
+      onclick: () => nav.go(T(t.id)),
+      onkeydown: (e) => { if (e.key === 'Enter') nav.go(T(t.id)); },
     }, t.label));
   }
   app.appendChild(tabs);

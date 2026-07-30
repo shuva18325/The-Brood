@@ -55,7 +55,19 @@ export function movement(day) {
   return 1;
 }
 
-export function render(host, args, nav) {
+/** The tab and bookmark title for an address on this site. */
+export function titleFor(loc) {
+  const m = loc.path.match(/^\/news\/([\w-]+)/);
+  if (!m) return 'WKRV 9 — Norfolk, Virginia news, weather and sports';
+  const a = newsFor(state.day).find(x => x.id === m[1]);
+  return a ? a.headline + ' — WKRV 9' : 'WKRV 9';
+}
+
+export function render(host, loc, nav) {
+  // §4.1. The URL is the state: /news/<id> is an article, / is the front page.
+  const m = loc.path.match(/^\/news\/([\w-]+)/);
+  const args = { article: m ? m[1] : null };
+  const A = (id) => nav.href('news', id ? '/news/' + id : '/');
   const day = state.day;
   const mv = movement(day);
 
@@ -124,7 +136,7 @@ export function render(host, args, nav) {
   const lead = ordered[0];
   if (lead) {
     main.appendChild(h('div', { class: 'wkrv-lead' },
-      h('h1', {}, h('a', { href: '#', onclick: (e) => { e.preventDefault(); if (lead.id) nav.go({ article: lead.id }); } },
+      h('h1', {}, h('a', { href: '#', onclick: (e) => { e.preventDefault(); if (lead.id) nav.go(A(lead.id)); } },
         effects.corruptText(lead.headline, { source: 'news', reread: !!state.readIds[lead.id] }))),
       h('div', { class: 'wkrv-byline' }, `${lead.source || 'WKRV 9 Staff'} · Updated ${agoLabel(lead, day)}`),
       lead.body ? h('div', { class: 'wkrv-dek' }, firstPara(lead.body)) : null,
@@ -137,7 +149,7 @@ export function render(host, args, nav) {
   main.appendChild(list);
   for (const s of ordered.slice(1)) {
     list.appendChild(h('li', {},
-      h('h2', {}, h('a', { href: '#', onclick: (e) => { e.preventDefault(); if (s.id) nav.go({ article: s.id }); } },
+      h('h2', {}, h('a', { href: '#', onclick: (e) => { e.preventDefault(); if (s.id) nav.go(A(s.id)); } },
         effects.corruptText(s.headline, { source: 'news', reread: !!state.readIds[s.id] }))),
       h('div', { class: 'meta' }, `${s.section || s.source} · ${agoLabel(s, day)}`),
       s.body ? h('div', { class: 'snip' }, firstPara(s.body).slice(0, 150) + '…') : null));
@@ -153,15 +165,16 @@ function asFiller(f) { return { headline: f.h, section: f.s, source: 'WKRV 9 Sta
 /* ------------------------------------------------------------------ */
 
 function renderArticle(main, side, args, nav, day, mv, page) {
+  const A = (id) => nav.href('news', id ? '/news/' + id : '/');
   const n = newsFor(day).find(a => a.id === args.article);
-  if (!n) { nav.go({ article: null }); return; }
+  if (!n) { nav.go(A(null)); return; }
   const reread = !!state.readIds[n.id];
   understanding.read(n.id, n);
 
   const art = h('div', { class: 'wkrv-article' });
   main.appendChild(art);
   art.appendChild(h('div', { style: 'font-size:11px;color:#777;margin-bottom:6px' },
-    h('a', { href: '#', style: 'color:#16406d', onclick: (e) => { e.preventDefault(); nav.go({ article: null }); } }, 'Home'),
+    h('a', { href: '#', style: 'color:#16406d', onclick: (e) => { e.preventDefault(); nav.go(A(null)); } }, 'Home'),
     ' › ' + (n.source || 'News')));
   art.appendChild(h('h1', {}, effects.corruptText(n.headline, { source: 'news', reread })));
   art.appendChild(h('div', { class: 'wkrv-byline' },
@@ -240,7 +253,7 @@ function renderUnstyled(host, args, nav, day) {
     const n = newsFor(day).find(a => a.id === args.article);
     if (n) {
       understanding.read(n.id, n);
-      page.appendChild(h('p', {}, h('a', { href: '#', onclick: (e) => { e.preventDefault(); nav.go({ article: null }); } }, 'Home')));
+      page.appendChild(h('p', {}, h('a', { href: '#', onclick: (e) => { e.preventDefault(); nav.go(A(null)); } }, 'Home')));
       page.appendChild(h('h1', {}, n.headline));
       page.appendChild(h('p', {}, h('i', {}, `${n.source} — ${n.time}`)));
       for (const p of n.body.split('\n\n')) page.appendChild(h('p', {}, p));
@@ -260,7 +273,7 @@ function renderUnstyled(host, args, nav, day) {
   const ul = h('ul', {});
   for (const n of newsFor(day).slice(0, 14)) {
     ul.appendChild(h('li', {}, h('a', {
-      href: '#', onclick: (e) => { e.preventDefault(); nav.go({ article: n.id }); },
+      href: '#', onclick: (e) => { e.preventDefault(); nav.go(A(n.id)); },
     }, n.headline)));
   }
   page.appendChild(ul);

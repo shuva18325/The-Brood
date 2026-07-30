@@ -30,13 +30,95 @@
   text-overflow: ellipsis; color: #333; cursor: pointer;
 }
 .br-tab.on { background: #ffffff; color: #000; }
+.br-tab:focus-visible { outline: 1px dotted #333; outline-offset: -3px; }
 .br-bar { display: flex; gap: 4px; align-items: center; padding: 4px 2px;
   border-top: 1px solid #fff; }
-.br-btn { width: 20px; height: 18px; border: 1px solid #a9a9a9; background: #ececec;
-  color: #555; font-size: 10px; line-height: 16px; text-align: center; cursor: pointer; }
-.br-url { flex: 1; border: 1px solid #7f9db9; background: #fff; padding: 2px 6px;
-  font-size: 11px; color: #222; overflow: hidden; white-space: nowrap; }
+.br-btn { width: 20px; height: 19px; border: 1px solid #a9a9a9; background: #ececec;
+  color: #444; font-size: 10px; line-height: 15px; text-align: center; cursor: pointer;
+  font-family: inherit; padding: 0; }
+.br-btn:hover:not(:disabled) { background: #f6f6f6; }
+.br-btn:active:not(:disabled) { border-color: #7a7a7a; background: #dcdcdc; }
+/* A disabled back button is how a browser tells you where you are in a
+   history, so it has to look disabled rather than merely do nothing. */
+.br-btn:disabled { color: #b4b4b4; background: #e4e4e4; cursor: default; }
+.br-btn.star { width: 22px; color: #8a7a2a; }
+.br-btn.star.on { color: #d8a72a; background: #fff8e2; }
+.br-url { flex: 1; border: 1px solid #7f9db9; background: #fff; padding: 3px 6px;
+  font-size: 11px; color: #222; font-family: inherit; min-width: 0; }
+.br-url:focus { outline: 1px solid #3c7fb1; outline-offset: -2px; }
+
+/* the bookmarks bar */
+.br-marks { display: flex; gap: 2px; align-items: center; padding: 1px 2px 3px;
+  border-top: 1px solid #cfcfcf; min-height: 20px; overflow-x: auto;
+  scrollbar-width: none; }
+.br-marks::-webkit-scrollbar { height: 0; }
+.br-mark { background: transparent; border: 1px solid transparent; padding: 2px 7px;
+  font: inherit; font-size: 11px; color: #1a3f6b; cursor: pointer;
+  white-space: nowrap; max-width: 190px; overflow: hidden; text-overflow: ellipsis; }
+.br-mark:hover { background: #e4eef8; border-color: #a9c4de; }
+.br-mark.on { background: #d8e6f4; border-color: #8fb2d4; }
+.br-mark-empty { font-size: 10px; color: #9a9a9a; padding: 2px 6px; }
+
 .br-viewport { flex: 1; overflow: auto; background: #fff; position: relative; }
+.br-viewport:focus-visible { outline: 1px dotted #7f9db9; outline-offset: -2px; }
+
+/* ---- the period-correct scrollbar (§4.1) ------------------------- */
+.br-viewport::-webkit-scrollbar { width: 16px; height: 16px; }
+.br-viewport::-webkit-scrollbar-track {
+  background: #f0f0f0;
+  border-left: 1px solid #d4d4d4;
+}
+.br-viewport::-webkit-scrollbar-thumb {
+  background: linear-gradient(90deg, #fbfbfb, #cdcdcd);
+  border: 1px solid #a3a3a3;
+  min-height: 28px;
+}
+.br-viewport::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(90deg, #ffffff, #d8d8d8);
+}
+.br-viewport::-webkit-scrollbar-button:single-button {
+  background: linear-gradient(#fbfbfb, #d8d8d8);
+  border: 1px solid #a3a3a3; display: block; height: 15px;
+}
+.br-viewport::-webkit-scrollbar-corner { background: #f0f0f0; }
+
+/* ---- find in page (§4.1) ---------------------------------------- */
+.br-find {
+  flex: 0 0 auto; display: flex; gap: 5px; align-items: center;
+  background: linear-gradient(#f4f4f4, #e2e2e2);
+  border-top: 1px solid #a9a9a9; padding: 4px 6px;
+  font-family: Tahoma, "Segoe UI", sans-serif; font-size: 11px; color: #333;
+}
+.br-find.hidden { display: none; }
+.br-find .f-lb { color: #555; }
+.br-find .f-q { width: 210px; border: 1px solid #7f9db9; background: #fff;
+  padding: 2px 5px; font: inherit; color: #111; }
+.br-find.none .f-q { background: #ffe8e8; border-color: #c46b6b; }
+.br-find .f-b, .br-find .f-x {
+  border: 1px solid #a9a9a9; background: #ececec; color: #444;
+  font: inherit; font-size: 10px; padding: 1px 6px; cursor: pointer;
+}
+.br-find .f-n { color: #666; min-width: 84px; font-variant-numeric: tabular-nums; }
+.br-find .f-x { margin-left: auto; }
+/* The highlight itself. Period-correct: Firefox 3 green, and the current
+   match in orange, because that is the pair everybody's eye knows. */
+.find-hit { background: #38d878; color: #000; }
+.find-hit.on { background: #ff9632; color: #000; outline: 1px solid #c96a10; }
+
+/* ---- the 404. A browser's own error page, not a site's. ---------- */
+.err404 {
+  font-family: Tahoma, "Segoe UI", sans-serif; color: #222;
+  padding: 42px 48px; max-width: 620px;
+}
+.err404 .e-mark { font-size: 44px; color: #d8a72a; line-height: 1; }
+.err404 h1 { font-size: 19px; font-weight: normal; margin: 14px 0 10px; color: #1a1a1a; }
+.err404 p { font-size: 12px; line-height: 1.7; margin: 0 0 12px; }
+.err404 ul { font-size: 12px; line-height: 1.9; color: #444; margin: 0 0 20px 18px; }
+.err404 .e-retry { font: inherit; font-size: 12px; padding: 4px 14px;
+  border: 1px solid #8a8a8a; background: linear-gradient(#fdfdfd, #e4e4e4);
+  cursor: pointer; }
+.err404 .e-code { margin-top: 26px; font-size: 10px; color: #999;
+  border-top: 1px solid #e0e0e0; padding-top: 8px; }
 
 /* ================================================================== */
 /* WKRV 9 — a local affiliate, last redesigned in 2017 by a vendor       */
@@ -219,7 +301,98 @@
 .vb-pages a, .vb-pages b { border: 1px solid #7C93A9; background: #fff; padding: 1px 5px;
   margin-right: 2px; text-decoration: none; color: #0000EE; display: inline-block; }
 .vb-pages b { background: #4A6A8A; color: #fff; }
+.vb-pages .off { border: 1px solid #D0D8DE; background: #F4F6F8; color: #AAB4BC;
+  padding: 1px 5px; margin-right: 2px; display: inline-block; }
 .vb-post.gone .vb-text { color: #777; }
+
+/* ================================================================== */
+/* THE FORUM, MADE FUNCTIONAL (§5)                                      */
+/* ================================================================== */
+
+.vb-logo { text-decoration: none; color: inherit; }
+.vb-tools { display: flex; gap: 6px; align-items: center; padding: 6px 8px;
+  background: #E6EBF0; border-bottom: 1px solid #C4CDD5; }
+.vb-q { flex: 0 1 260px; border: 1px solid #7C93A9; padding: 3px 6px;
+  font: inherit; font-size: 11px; }
+.vb-btn { border: 1px solid #7C93A9; background: linear-gradient(#fff, #DFE6EC);
+  color: #16406d; font: inherit; font-size: 11px; padding: 3px 11px; cursor: pointer; }
+.vb-btn:hover { background: linear-gradient(#fff, #EDF2F6); }
+.vb-btn.new { margin-left: auto; }
+.vb-btn.submit { font-weight: bold; }
+.vb-mini { border: 1px solid #A9B7C2; background: #F2F5F8; color: #16406d;
+  font: inherit; font-size: 9.5px; padding: 1px 7px; cursor: pointer; }
+
+/* read vs unread, which is the single biggest quality-of-life change */
+.vb-table a.unread { font-weight: bold; color: #0000EE; }
+.vb-table a.read { font-weight: normal; color: #5A5A8E; }
+.vb-table tr.has-new td { background: #FBFCFD; }
+.vb-new { color: #b3261e; font-size: 9px; }
+.vb-badge { background: #B3261E; color: #fff; font-size: 8.5px; padding: 1px 5px;
+  margin-left: 6px; text-transform: uppercase; letter-spacing: .04em; }
+.vb-newrep { margin-left: 12px; background: #FFF3C4; border: 1px solid #D8B93F;
+  padding: 1px 7px; color: #6B5410; text-decoration: none; font-size: 10px; }
+.vb-starter { color: #666; font-size: 9.5px; }
+.vb-starter b { color: #16406d; }
+.vb-last { font-size: 9.5px; color: #555; }
+.vb-sort { text-decoration: none; color: #16406d; }
+.vb-sort.on { color: #000; font-weight: bold; }
+.vb-sort .car { color: #7C93A9; }
+.vb-jumpwrap { margin-left: 10px; color: #666; }
+.vb-jump { width: 34px; border: 1px solid #7C93A9; font: inherit; font-size: 10px;
+  padding: 1px 3px; text-align: center; }
+
+.vb-permalink { color: #7C93A9; text-decoration: none; }
+.vb-postbtns { display: flex; gap: 5px; justify-content: flex-end; margin-top: 8px; }
+.vb-post.mine .vb-userbox { background: #EDF3EA; }
+.vb-post.mine { border-left: 3px solid #6E8B5A; }
+/* A reply that arrived today. It fades on the next read, because a forum
+   marks new things once and then stops. */
+.vb-post.fresh { box-shadow: inset 3px 0 0 #D8B93F; }
+
+.vb-notice { margin: 10px; padding: 8px 10px; background: #FFF9E0;
+  border: 1px solid #E0D08A; font-size: 11px; color: #4A4020; }
+.vb-nothing { margin: 8px 0; padding: 8px 10px; background: #F4F6F8;
+  border: 1px solid #D6DDE4; font-size: 11px; color: #666; }
+
+/* composing */
+.vb-compose { margin: 10px; border: 1px solid #7C93A9; background: #fff; }
+.vb-compose .ch { background: #4A6A8A; color: #fff; padding: 4px 9px;
+  font-size: 11px; font-weight: bold; }
+.vb-compose .vb-quote { margin: 9px; }
+.vb-topics { display: flex; flex-wrap: wrap; gap: 5px; padding: 9px 9px 0; }
+.vb-topic { border: 1px solid #A9B7C2; background: #F2F5F8; color: #16406d;
+  font: inherit; font-size: 10.5px; padding: 4px 9px; cursor: pointer;
+  text-align: left; max-width: 100%; }
+.vb-topic:hover { background: #E4EDF4; }
+.vb-topic.on { background: #4A6A8A; border-color: #35506B; color: #fff; }
+.vb-area { display: block; width: calc(100% - 18px); margin: 9px;
+  border: 1px solid #7C93A9; font-family: Verdana, Geneva, sans-serif;
+  font-size: 11px; line-height: 1.55; padding: 7px; color: #111; resize: vertical; }
+.vb-field { display: flex; gap: 8px; align-items: center; padding: 9px 9px 0; }
+.vb-field label { font-size: 11px; color: #444; width: 70px; }
+.vb-name { flex: 1; border: 1px solid #7C93A9; font: inherit; font-size: 11px;
+  padding: 3px 6px; }
+.vb-composebtns { display: flex; gap: 6px; padding: 0 9px 9px; }
+.vb-fineprint { padding: 0 9px 9px; font-size: 9.5px; color: #777; }
+.vb-replybar { margin: 10px; }
+
+/* search results */
+.vb-hit { margin: 0 10px 10px; padding: 8px 10px; border: 1px solid #D6DDE4;
+  background: #fff; }
+.vb-hit a { font-size: 11.5px; }
+.vb-hit .meta { font-size: 9.5px; color: #777; margin: 2px 0 5px; }
+.vb-hit .snip { font-size: 10.5px; color: #333; line-height: 1.6; }
+
+/* a member */
+.vb-profile { display: flex; gap: 14px; margin: 10px; padding: 12px;
+  border: 1px solid #D6DDE4; background: #fff; }
+.vb-profile img { border: 1px solid #888; }
+.vb-profile h2 { margin: 0; font-size: 16px; color: #16406d; }
+.vb-profile .p-title { font-size: 10px; color: #777; margin-bottom: 8px; }
+.vb-profile dl { display: grid; grid-template-columns: auto auto; gap: 2px 14px;
+  margin: 0; font-size: 10.5px; }
+.vb-profile dt { color: #777; }
+.vb-profile dd { margin: 0; color: #222; }
 
 /* ================================================================== */
 /* the shared spreadsheet                                              */

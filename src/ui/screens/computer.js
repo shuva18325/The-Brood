@@ -11,15 +11,13 @@
 
 import { h } from '../index.js';
 import { CONFIG } from '../../config.js';
-import state from '../../state.js';
+import state, { save } from '../../state.js';
 import audio from '../../audio.js';
 import clock from '../../systems/clock.js';
 import IMG from '../imagery.js';
+import { MAIL } from '../../content/mail.js';
 
-import * as siteNews from '../web/newssite.js';
-import * as siteForum from '../web/forum.js';
-import * as siteSheet from '../web/sheet.js';
-import * as siteFiles from '../web/files.js';
+import * as browser from '../web/browser.js';
 import * as appMail from '../apps/mail.js';
 
 /* The archaeology of a real life. None of it opens. */
@@ -41,12 +39,6 @@ const ICONS = [
   { id: 'bin',      label: 'Recycle Bin',         x: 118, y: 402, gl: 'bin' },
 ];
 
-const SITES = {
-  news:  { mod: siteNews,  title: 'WKRV 9 — Norfolk, Virginia news, weather and sports' },
-  forum: { mod: siteForum, title: 'Hampton Roads Tidewater Forums' },
-  sheet: { mod: siteSheet, title: 'CONFIRMED SIGHTINGS TRACKER — SOUTHEAST — Google Sheets' },
-  files: { mod: siteFiles, title: 'mirrorbox — archivist_p' },
-};
 
 export function render(ctx, host, args, ui) {
   if (!state.computerOn) state.computerOn = true;
@@ -71,32 +63,49 @@ export function render(ctx, host, args, ui) {
   desk.appendChild(bg);
 
   for (const ic of ICONS) {
-    const el = h('div', { class: 'dt-icon', style: `left:${ic.x}px; top:${ic.y}px`, tabindex: '0' },
+    // §4.2. Where the player put it, if they moved it.
+    const pos = state.os.iconPos[ic.id] || [ic.x, ic.y];
+    const el = h('div', {
+      class: 'dt-icon', style: `left:${pos[0]}px; top:${pos[1]}px`, tabindex: '0',
+      title: ic.label,
+    },
       h('img', { class: 'gl', src: glyph(ic.gl), alt: '' }),
       h('div', { class: 'lb' }, ic.label));
     const open = () => {
       if (ic.id === 'browser') openWin(ctx, ui, args, 'browser');
       else if (ic.id === 'mail') openWin(ctx, ui, args, 'mail');
-      else audio.play('menu_move');
+      else { audio.play('menu_move'); ui.say(NOTHING[ic.id] || NOTHING._, 4200); }
     };
     el.addEventListener('dblclick', open);
-    el.addEventListener('click', open);
     el.addEventListener('keydown', (e) => { if (e.key === 'Enter') open(); });
+    makeDraggable(el, ic.id, desk, open);
     desk.appendChild(el);
   }
 
   /* --- the open window, if any --- */
   args.wins = args.wins || [];
   for (const w of args.wins) {
+    if (w.min) continue;                      // it is on the taskbar instead
     desk.appendChild(windowEl(ctx, ui, args, w));
   }
 
-  /* --- taskbar --- */
+  // First run: seed the history so the browser has somewhere to be.
+  if (state.web.hIndex < 0) {
+    state.web.history = [browser.HOME];
+    state.web.hIndex = 0;
+  }
+
+  /* --- taskbar. It shows what is open, and clicking restores it. --- */
   const tb = h('div', { class: 'taskbar' });
   tb.appendChild(h('div', { class: 'tb-start' }, 'start'));
   for (const w of args.wins) {
-    tb.appendChild(h('div', { class: 'tb-item on', onclick: () => ui.rerender() },
-      w.kind === 'mail' ? 'Mail' : (SITES[w.site]?.title || 'Internet')));
+    const label = w.kind === 'mail'
+      ? `Inbox — Mail${unreadMail() ? ` (${unreadMail()})` : ''}`
+      : browser.pageTitle(browser.parse(browser.current()));
+    tb.appendChild(h('button', {
+      class: 'tb-item' + (w.min ? '' : ' on'), type: 'button',
+      onclick: () => { w.min = !w.min; audio.play('menu_move'); ui.rerender(); },
+    }, label));
   }
   tb.appendChild(h('div', { class: 'tb-tray' },
     ...['net', 'vol', 'shield', 'usb'].map(k => h('img', { class: 'ic', src: glyph(k), alt: '' })),
@@ -124,32 +133,82 @@ function bootScreen(slow, unclean) {
 
 function openWin(ctx, ui, args, kind) {
   args.wins = args.wins || [];
-  if (args.wins.some(w => w.kind === kind)) return;
+  const existing = args.wins.find(w => w.kind === kind);
+  if (existing) { existing.min = false; ui.rerender(); return; }
   args.wins.length = 0;                       // one window at a time, like he does
   args.wins.push(kind === 'mail'
     ? { kind: 'mail', state: { folder: 'inbox', mail: null } }
-    : { kind: 'browser', site: 'forum', tabs: ['news', 'forum', 'sheet', 'files'],
-        state: { news: {}, forum: {}, sheet: { tab: 'rules' }, files: {} } });
+    // The browser has no per-site state any more: the URL is the state, and
+    // it lives in the save so history and bookmarks survive a reload.
+    : { kind: 'browser', find: { open: false, q: '', index: 0, count: 0 } });
   audio.play(kind === 'mail' ? 'menu_select' : 'pc_fan');
   ui.rerender();
 }
 
+/**
+ * §4.1 + §8. A window with working chrome. Minimise sends it to the taskbar,
+ * maximise toggles between filling the desktop and a floating rectangle the
+ * player can drag, and close closes it. The geometry persists in the save.
+ */
 function windowEl(ctx, ui, args, w) {
-  const el = h('div', { class: 'win max' });
-  const title = w.kind === 'mail'
-    ? 'Inbox — Mail'
-    : (SITES[w.site]?.title || 'Internet');
+  const geom = state.os.win[w.kind] || (state.os.win[w.kind] =
+    { x: 60, y: 40, w: 900, h: 560, max: true });
 
-  el.appendChild(h('div', { class: 'win-title' },
+  const el = h('div', {
+    class: 'win' + (geom.max ? ' max' : ''),
+    style: geom.max ? '' :
+      `left:${geom.x}px; top:${geom.y}px; width:${geom.w}px; height:${geom.h}px`,
+  });
+
+  const title = w.kind === 'mail'
+    ? `Inbox — Mail${unreadMail() ? ` (${unreadMail()} unread)` : ''}`
+    : browser.pageTitle(browser.parse(browser.current()));
+
+  const close = () => {
+    const i = args.wins.indexOf(w);
+    if (i >= 0) args.wins.splice(i, 1);
+    audio.play('menu_move');
+    ui.rerender();
+  };
+  const btn = (cls, glyphText, label, act) => h('button', {
+    class: 'win-btn ' + cls, type: 'button', title: label, 'aria-label': label,
+    onclick: (e) => { e.stopPropagation(); act(); },
+  }, glyphText);
+
+  const bar = h('div', { class: 'win-title' },
     h('img', { src: glyph(w.kind === 'mail' ? 'mail' : 'globe'), width: 14, height: 14, alt: '' }),
     h('div', { class: 't' }, title),
-    h('div', { class: 'win-btn' }, '–'),
-    h('div', { class: 'win-btn' }, '□'),
-    h('div', {
-      class: 'win-btn close', tabindex: '0',
-      onclick: () => { args.wins.length = 0; ui.rerender(); },
-      onkeydown: (e) => { if (e.key === 'Enter') { args.wins.length = 0; ui.rerender(); } },
-    }, '✕')));
+    btn('', '–', 'Minimise', () => { w.min = true; ui.rerender(); }),
+    btn('', geom.max ? '❐' : '□', geom.max ? 'Restore' : 'Maximise', () => {
+      geom.max = !geom.max; save(); ui.rerender();
+    }),
+    btn('close', '✕', 'Close', close));
+  el.appendChild(bar);
+
+  // Dragging the title bar moves the window, and un-maximises it first,
+  // which is what every window manager since 1995 has done.
+  bar.addEventListener('pointerdown', (e) => {
+    if (e.target.closest('.win-btn')) return;
+    if (geom.max) return;
+    const sx = e.clientX - geom.x, sy = e.clientY - geom.y;
+    const move = (ev) => {
+      geom.x = Math.max(-geom.w + 120, Math.min(innerWidth - 80, ev.clientX - sx));
+      geom.y = Math.max(0, Math.min(innerHeight - 60, ev.clientY - sy));
+      el.style.left = geom.x + 'px';
+      el.style.top = geom.y + 'px';
+    };
+    const up = () => {
+      window.removeEventListener('pointermove', move);
+      window.removeEventListener('pointerup', up);
+      save();
+    };
+    window.addEventListener('pointermove', move);
+    window.addEventListener('pointerup', up);
+  });
+  bar.addEventListener('dblclick', (e) => {
+    if (e.target.closest('.win-btn')) return;
+    geom.max = !geom.max; save(); ui.rerender();
+  });
 
   const body = h('div', { class: 'win-body' });
   el.appendChild(body);
@@ -157,43 +216,95 @@ function windowEl(ctx, ui, args, w) {
   if (w.kind === 'mail') {
     const nav = { go: (patch) => { Object.assign(w.state, patch); ui.rerender(); } };
     appMail.render(body, w.state, nav, ui, ctx);
-    return el;
+  } else {
+    browser.render(body, w, ui, ctx);
   }
 
-  /* --- the browser --- */
-  const browser = h('div', { class: 'browser' });
-  body.appendChild(browser);
-
-  const chrome = h('div', { class: 'br-chrome' });
-  const tabs = h('div', { class: 'br-tabs' });
-  for (const t of w.tabs) {
-    tabs.appendChild(h('div', {
-      class: 'br-tab' + (t === w.site ? ' on' : ''), tabindex: '0',
-      onclick: () => { w.site = t; audio.play('keyclack'); ui.rerender(); },
-      onkeydown: (e) => { if (e.key === 'Enter') { w.site = t; ui.rerender(); } },
-    }, shortTitle(t)));
+  // A resize grip, bottom right, when it is not maximised.
+  if (!geom.max) {
+    const grip = h('div', { class: 'win-grip', title: 'Resize' });
+    grip.addEventListener('pointerdown', (e) => {
+      e.stopPropagation();
+      const sx = e.clientX, sy = e.clientY, sw = geom.w, sh = geom.h;
+      const move = (ev) => {
+        geom.w = Math.max(420, sw + (ev.clientX - sx));
+        geom.h = Math.max(260, sh + (ev.clientY - sy));
+        el.style.width = geom.w + 'px';
+        el.style.height = geom.h + 'px';
+      };
+      const up = () => {
+        window.removeEventListener('pointermove', move);
+        window.removeEventListener('pointerup', up);
+        save();
+        ui.rerender();
+      };
+      window.addEventListener('pointermove', move);
+      window.addEventListener('pointerup', up);
+    });
+    el.appendChild(grip);
   }
-  chrome.appendChild(tabs);
-  chrome.appendChild(h('div', { class: 'br-bar' },
-    h('div', { class: 'br-btn' }, '◀'), h('div', { class: 'br-btn' }, '▶'),
-    h('div', { class: 'br-btn' }, '⟳'),
-    h('div', { class: 'br-url' }, SITES[w.site].mod.url),
-    h('div', { class: 'br-btn' }, '☆')));
-  browser.appendChild(chrome);
-
-  const viewport = h('div', { class: 'br-viewport' });
-  browser.appendChild(viewport);
-
-  const nav = { go: (patch) => { Object.assign(w.state[w.site], patch); ui.rerender(); } };
-  SITES[w.site].mod.render(viewport, w.state[w.site], nav);
 
   return el;
 }
 
-function shortTitle(id) {
-  return { news: 'WKRV 9 — Norfolk news', forum: 'Tidewater Forums',
-    sheet: 'SIGHTINGS TRACKER', files: 'mirrorbox' }[id] || id;
+/** How many messages are unread, for the taskbar and the title bar (§7.3). */
+function unreadMail() {
+  return MAIL.filter(m => m.day <= state.day
+    && !state.os.mailRead[m.id] && !state.os.mailDeleted[m.id]).length;
 }
+
+/**
+ * §4.2. Dragging an icon moves it and the position is saved. A drag that
+ * covers less than a few pixels is a click, and a click opens.
+ */
+function makeDraggable(el, id, desk, open) {
+  el.addEventListener('pointerdown', (e) => {
+    if (e.button !== 0) return;
+    const rect = el.getBoundingClientRect();
+    const deskRect = desk.getBoundingClientRect();
+    const offX = e.clientX - rect.left, offY = e.clientY - rect.top;
+    let moved = 0;
+    const move = (ev) => {
+      moved += Math.abs(ev.movementX || 0) + Math.abs(ev.movementY || 0);
+      if (moved < 4) return;
+      el.classList.add('dragging');
+      const x = Math.max(4, Math.min(deskRect.width - 84, ev.clientX - deskRect.left - offX));
+      const y = Math.max(4, Math.min(deskRect.height - 96, ev.clientY - deskRect.top - offY));
+      el.style.left = x + 'px';
+      el.style.top = y + 'px';
+      state.os.iconPos[id] = [Math.round(x), Math.round(y)];
+    };
+    const up = () => {
+      window.removeEventListener('pointermove', move);
+      window.removeEventListener('pointerup', up);
+      el.classList.remove('dragging');
+      if (moved < 4) open();
+      else save();
+    };
+    window.addEventListener('pointermove', move);
+    window.addEventListener('pointerup', up);
+  });
+}
+
+/**
+ * What happens when you open something that is not a game mechanic. It has to
+ * do SOMETHING — a dead icon that silently ignores a double-click is worse
+ * than no icon. So it does what his computer would do.
+ */
+const NOTHING = {
+  x1: 'Adobe Reader is not installed. It has never been installed.',
+  x2: 'Adobe Reader is not installed. It has never been installed.',
+  x3: 'A resume, last modified in March. Two of the three jobs on it have closed since.',
+  x4: 'A folder called "stuff". Inside it is a folder called "stuff 2".',
+  x5: 'An installer for a program that is already installed.',
+  x6: 'An installer for a program nobody has needed since 2015.',
+  x7: 'An installer for a program that will ask him to buy it for the rest of his life.',
+  x8: 'It wants to update. There is nothing to update from.',
+  x9: 'The fourth of July, four years ago. It is the wallpaper, uncropped.',
+  media: 'It opens, finds nothing to play, and sits there.',
+  bin: 'Forty-one items. He has never emptied it. You are not going to be the one who does.',
+  _: 'Nothing happens.',
+};
 
 /* ------------------------------------------------------------------ */
 /* icon glyphs — drawn, cached, never loaded                            */
