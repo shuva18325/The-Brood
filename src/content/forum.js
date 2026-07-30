@@ -19,7 +19,7 @@ export const THREADS = [
   /* Crossposted in from an academic list by somebody who thought it would
    * settle the argument. It does not settle the argument. */
   { id:'histor',  title:'x-post: ANE list thread on the "Ctesiphon roll" (long, and they are not gentle)', day:9 },
-  { id:'mirror',  title:'the photos are all on some chinese mirror now. links inside, be careful.', day:11 },
+  { id:'mirror',  title:'every photo we deleted is on some overseas mirror. links inside, be careful.', day:11 },
 ];
 
 export const POSTS = [
@@ -1025,7 +1025,7 @@ Four words, no signature, no subject line.
 { id:'f220', thread:'mirror', day:11, author:'deadmall', time:'02:20', op:true,
   body:`Every photo that has been pulled off this board in the last week is up on a Chinese site. All of them. Including the two the mods took down within about ninety seconds.
 
-http://www.wlaq-jiance.com.cn/
+http://www.safety-inspect.com.cn/
 
 Captions are machine-translated back out of English so they read like nonsense, but the images are the originals, not re-uploads. Same file sizes.
 

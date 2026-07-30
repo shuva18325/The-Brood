@@ -542,6 +542,42 @@ export const CONFIG = {
   },
 
   /* ------------------------------------------------------------------ */
+  /* THE NEWS SITE                                                       */
+  /*                                                                     */
+  /* §6. WKRV 9 decays in four movements, and the thresholds were still  */
+  /* on the fifteen-day scale after §2 stretched the run to twenty —     */
+  /* which put the fourth movement, the raw-HTML one, on the screen for  */
+  /* EIGHT DAYS. That is the worst frame in the game and it was being    */
+  /* used as wallpaper. The whole point of it is that it arrives.        */
+  /*                                                                     */
+  /*   1  clean       days 1-7    indistinguishable from a real          */
+  /*                              affiliate. §5A requires this: the      */
+  /*                              corruption needs a clean baseline.     */
+  /*   2  corroded    days 8-12   a red breaking banner appears and      */
+  /*                              never leaves. Straddles the day-10     */
+  /*                              handoff, so the site changes in the    */
+  /*                              same week the narrator does.           */
+  /*   3  wrong       days 13-17  an alert bar over the masthead, the    */
+  /*                              most-read list freezes, and the ads    */
+  /*                              keep rendering, which is the horrible  */
+  /*                              part — somebody is still being paid.   */
+  /*   4  unstyled    days 18-20  the stylesheet stops loading. Times    */
+  /*                              New Roman on white, blue underlined    */
+  /*                              links. Three days, at the squeeze,     */
+  /*                              not eight.                             */
+  /* ------------------------------------------------------------------ */
+  news: {
+    movementFrom: { two: 8, three: 13, four: 18 },
+    /** The ticker under the masthead, by the first day it says this. */
+    tickerFrom: [
+      [17, 'Districts 9 through 19 unassessed · Do not travel · This is the last update'],
+      [14, 'Eleven districts unassessed · Curfew in effect · Do not travel after dark'],
+      [11, 'Shelter in place order remains in effect for all coastal localities'],
+      [8,  'Bridge-Tunnel closed indefinitely · Water pressure reduced citywide'],
+    ],
+  },
+
+  /* ------------------------------------------------------------------ */
   /* THE PATHOGEN'S SCHEDULE                                             */
   /*                                                                     */
   /* It used to appear exactly once, on the bad ending, which meant the  */

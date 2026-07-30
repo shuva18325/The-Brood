@@ -176,7 +176,7 @@ Press 1 to speak with a representative.`, u:0, junk:true },
 /* THE REPLY                                                           */
 /*                                                                     */
 /* This one is not on the schedule. It arrives the day after the player */
-/* clicks the red link on wlaq-jiance.com.cn — the link that does       */
+/* clicks the red link on safety-inspect.com.cn — the link that does       */
 /* nothing except reveal an address.                                    */
 /*                                                                     */
 /* It is not bait in the sense that p01–p07 are bait. There is no       */
@@ -190,11 +190,11 @@ Press 1 to speak with a representative.`, u:0, junk:true },
 /* ================================================================== */
 
 { id:'r01', day:1, needs:'redLink', after:1, redReply:true,
-  from:'zw@wlaq-jiance.com.cn', subject:'回复：（无主题）',
-  preview:'本站不回复任何来信。',
-  body:`本站不回复任何来信。
+  from:'zw@safety-inspect.com.cn', subject:'Re: (no subject)',
+  preview:'This station does not reply to any letter.',
+  body:`This station does not reply to any letter.
 
-The station does not reply to any incoming letter.`,
+Your message has been received and will not be answered.`,
   u:0 },
 
 ];

@@ -16,7 +16,39 @@
  * glance, it is wrong.
  */
 
+import { renderEntity as sdfRender, FRAMING as SDF_FRAMING } from './entitySDF.js';
+import BAKED from '../generated/entityAssets.js';
+
 const cache = new Map();
+
+/**
+ * §3, third pass. The four entities the player actually looks at are no
+ * longer drawn — they are raymarched signed distance fields, lit with a real
+ * normal (see entitySDF.js), and baked to PNG at build time (see
+ * tools/bake.mjs and §4.3).
+ *
+ * The order of preference is:
+ *
+ *   1. the baked PNG, which is what ships and what the player sees;
+ *   2. a live raymarch, if the bake is missing and WebGL is available;
+ *   3. the 2D drawing below, which is the floor and always works.
+ *
+ * Everything else in this file — the crawlers, the gleaners, the two
+ * archive plates, the person — stays 2D, because none of them is ever seen
+ * larger than a thumbnail and the 2D versions hold up at that size.
+ */
+const SDF_KINDS = new Set(['tormentor', 'incursion', 'anguish', 'pathogen']);
+
+/** The baked image for a kind, as an HTMLImageElement, or null. */
+const bakedImgs = new Map();
+function bakedFor(kind) {
+  if (!BAKED || !BAKED[kind]) return null;
+  if (bakedImgs.has(kind)) return bakedImgs.get(kind);
+  const img = new Image();
+  img.src = BAKED[kind];
+  bakedImgs.set(kind, img);
+  return img;
+}
 
 function surface(w, h) {
   const c = document.createElement('canvas');
@@ -2030,7 +2062,38 @@ const ENTITIES = {
   person:    { sil: personSilhouette,    detail: null,             aspect: 0.55, haze: 0.35 },
 };
 
-export function entityAspect(kind) { return (ENTITIES[kind] || ENTITIES.crawler).aspect; }
+export function entityAspect(kind) {
+  if (SDF_KINDS.has(kind) && SDF_FRAMING[kind]) return SDF_FRAMING[kind].aspect;
+  return (ENTITIES[kind] || ENTITIES.crawler).aspect;
+}
+
+/**
+ * The rendered form, if there is one. Returns a canvas or an image that can
+ * go straight into drawImage, or null to fall through to the drawn version.
+ */
+function rendered(kind) {
+  if (!SDF_KINDS.has(kind)) return null;
+  const img = bakedFor(kind);
+  if (img && img.complete && img.naturalWidth) return img;
+  /* A LIVE raymarch is off by default and should stay off. Soft shadows
+   * and five-tap ambient occlusion at 900 x 760 is not something to do on
+   * an unknown GPU in the middle of a scene — it is a build-time job, and
+   * tools/bake.mjs is where it belongs. This path exists so the art can be
+   * iterated on without re-baking, and so a build with a missing bake
+   * still shows something better than the 2D fallback on a machine that
+   * can afford it. */
+  if (BAKE_LIVE) {
+    try {
+      const c = sdfRender(kind, 1);
+      if (c) return c;
+    } catch { /* no WebGL, or the context was lost — fall through */ }
+  }
+  return img && img.complete && img.naturalWidth ? img : null;
+}
+
+/** Set true (or `?livesdf` in the URL) to raymarch at runtime instead. */
+const BAKE_LIVE = typeof location !== 'undefined'
+  && /(\?|&)livesdf\b/.test(location.search || '');
 
 /**
  * @param {string} kind
@@ -2043,8 +2106,26 @@ export function entityLayer(kind, layer, size = 512) {
   if (cache.has(key)) return cache.get(key);
 
   const def = ENTITIES[kind] || ENTITIES.crawler;
-  const W = size, H = Math.round(size / def.aspect);
+  // entityAspect, not def.aspect: a rendered entity's frame is set by the
+  // render, and the two must not disagree or the billboard is stretched.
+  const W = size, H = Math.round(size / entityAspect(kind));
   const { c, g } = surface(W, H);
+
+  /* If there is a rendered form, the three-layer stack collapses: the render
+   * already carries its own silhouette, shading and occlusion, so it goes on
+   * the DETAIL plane and the silhouette plane stays empty. The atmosphere
+   * plane is still built, because the haze in front is about the air between
+   * the player and the thing rather than about the thing. */
+  const r = SDF_KINDS.has(kind) ? rendered(kind) : null;
+  if (r && layer === 'detail') {
+    g.drawImage(r, 0, 0, W, H);
+    cache.set(key, c);
+    return c;
+  }
+  if (r && layer === 'silhouette') {
+    cache.set(key, c);
+    return c;
+  }
 
   if (layer === 'silhouette' && def.sil) {
     def.sil(g, W, H);
@@ -2072,6 +2153,12 @@ export function entityLayer(kind, layer, size = 512) {
 
 /** Draw an entity flat onto an existing context — used by the photo layer. */
 export function drawEntity(g, kind, x, y, w) {
+  const r = rendered(kind);
+  if (r) {
+    const h = w / entityAspect(kind);
+    g.drawImage(r, x, y, w, h);
+    return h;
+  }
   const def = ENTITIES[kind] || ENTITIES.crawler;
   const h = w / def.aspect;
   if (def.sil) {

@@ -102,7 +102,7 @@ await frame.waitForSelector('.br-viewport', { timeout: 15000 });
 let r = await frame.evaluate(() => [...document.querySelectorAll('.vb-table td a')]
   .map(a => a.textContent));
 log('the mirror thread is on the board by day 13',
-    r.some(t => /chinese mirror/i.test(t)), 'day ' + day);
+    r.some(t => /overseas mirror/i.test(t)), 'day ' + day);
 log('the historians thread is on the board by day 13',
     r.some(t => /ANE list/i.test(t)),
     r.find(t => /ANE list/i.test(t)) || r.join(' | ').slice(0, 90));
@@ -135,7 +135,7 @@ r = await frame.evaluate(() => {
   return { n: a.length, first: a[0] ? a[0].textContent : '' };
 });
 log('the address pasted in the thread renders as a link',
-    r.n >= 1 && /wlaq-jiance/.test(r.first), r.first);
+    r.n >= 1 && /safety-inspect/.test(r.first), r.first);
 
 /* ---- 4. clicking it navigates to the mirror ---- */
 await frame.evaluate(() => document.querySelector('.vb-url').click());
@@ -147,8 +147,8 @@ r = await frame.evaluate(() => ({
   counter: document.querySelectorAll('.sk-count i').length,
   tabs: document.querySelectorAll('.br-tab').length,
 }));
-log('it navigates to the mirror site', /wlaq-jiance\.com\.cn/.test(r.addr), r.addr);
-log('the mirror has its own page title', /检测/.test(r.title), r.title);
+log('it navigates to the mirror site', /safety-inspect\.com\.cn/.test(r.addr), r.addr);
+log('the mirror has its own page title', /Safety Inspection/.test(r.title), r.title);
 log('the page furniture is there', r.ads >= 1 && r.counter === 7,
     `${r.ads} ads, ${r.counter}-digit counter`);
 log('and it gets a tab only while you are on it', r.tabs === 5, r.tabs + ' tabs');
@@ -174,7 +174,7 @@ r = await frame.evaluate(() => ({
   day: window.BROOD.state.flags.redLinkDay,
 }));
 log('clicking it reveals an address and nothing else happens',
-    /zw@wlaq-jiance\.com\.cn/.test(r.mailto) && r.flag === true, r.mailto.trim());
+    /zw@safety-inspect\.com\.cn/.test(r.mailto) && r.flag === true, r.mailto.trim());
 log('the day it was clicked is recorded', r.day === 13, 'day ' + r.day);
 
 /* ---- 6. the reply is not there the same day, and is the next ---- */
@@ -192,7 +192,7 @@ async function inboxSenders() {
 }
 let froms = await inboxSenders();
 log('the reply has not arrived on the day the link was clicked',
-    !froms.some(f => /wlaq-jiance/.test(f)), froms.length + ' messages');
+    !froms.some(f => /safety-inspect/.test(f)), froms.length + ' messages');
 
 /* Sleeping wakes the day script, which closes overlays on a timer of its
  * own — so let that settle before reopening anything, or the test ends up
@@ -207,8 +207,8 @@ await frame.evaluate(async () => {
 });
 froms = await inboxSenders();
 log('it arrives the following day',
-    froms.some(f => /zw@wlaq-jiance\.com\.cn/.test(f)),
-    froms.filter(f => /wlaq/.test(f)).join('') || '(absent)');
+    froms.some(f => /zw@safety-inspect\.com\.cn/.test(f)),
+    froms.filter(f => /safety-inspect/.test(f)).join('') || '(absent)');
 
 /* ---- 7. the red link in the mail, and the sentence behind it ---- */
 
@@ -250,7 +250,7 @@ const withMail = (body) => inApp('mail', /^Mail/, body);
 
 r = await withMail(() => {
   const row = [...document.querySelectorAll('.mail-item')]
-    .find(e => /wlaq-jiance/.test(e.textContent));
+    .find(e => /safety-inspect/.test(e.textContent));
   if (row) row.click();
   const a = document.querySelector('.mail-body a.red');
   return { has: !!a, colour: a ? getComputedStyle(a).color : '',
@@ -263,7 +263,7 @@ log('the message carries a red link', r.has && r.colour === 'rgb(204, 0, 0)',
 const before = await frame.evaluate(() => window.BROOD.state.concealment);
 r = await withMail(() => {
   const row = [...document.querySelectorAll('.mail-item')]
-    .find(e => /wlaq-jiance/.test(e.textContent));
+    .find(e => /safety-inspect/.test(e.textContent));
   if (row) row.click();
   const a = document.querySelector('.mail-body a.red');
   if (a) a.click();
@@ -297,8 +297,6 @@ async function tr(text) {
 r = await tr('你对此无能为力。你们都将终生受苦。');
 log('the translator is on the desktop and translates the sentence',
     /nothing you can do/i.test(r) && /suffer/i.test(r), r);
-r = await tr('本站不回复任何来信。');
-log('and the boilerplate above it', /does not reply/i.test(r), r);
 r = await tr('我们已经看过了。你们那边比较晚。');
 log('and the one line on the mirror a person wrote', /already watched/i.test(r), r);
 r = await tr('蛞蝓在墙上');

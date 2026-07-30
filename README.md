@@ -1,27 +1,79 @@
-# THE BROOD
+<div align="center">
 
-A first-person horror survival game set entirely inside one apartment.
+# 🕯️ THE BROOD
 
-You are visiting a friend in a coastal Virginia city when a mass emergence of
-unknown entities begins along the Gulf and Atlantic seaboards. You have no car,
-no supplies, and no knowledge of the city. For nine days your friend keeps you
-alive. On the tenth morning he is gone — and he has left you his car keys, his
-shotgun, and everything he owned.
+### ᴀ ꜰɪʀꜱᴛ-ᴘᴇʀꜱᴏɴ ʜᴏʀʀᴏʀ ꜱᴜʀᴠɪᴠᴀʟ ɢᴀᴍᴇ ꜱᴇᴛ ɪɴꜱɪᴅᴇ ᴏɴᴇ ᴀᴘᴀʀᴛᴍᴇɴᴛ
 
-**Fifteen days. One room. Two ways out.**
+**𝗧𝘄𝗲𝗻𝘁𝘆 𝗱𝗮𝘆𝘀. 𝗢𝗻𝗲 𝗿𝗼𝗼𝗺. 𝗧𝘄𝗼 𝘄𝗮𝘆𝘀 𝗼𝘂𝘁.**
+
+</div>
+
+```
+        ╔═══════════════════════════════════════════════════════════════╗
+        ║                                                               ║
+        ║   NORFOLK, VIRGINIA.  SEPTEMBER.  THE SECOND WEEK.            ║
+        ║                                                               ║
+        ║   Something is coming out of the water along the whole        ║
+        ║   Atlantic seaboard, and nobody has agreed on a word          ║
+        ║   for it yet.                                                 ║
+        ║                                                               ║
+        ╚═══════════════════════════════════════════════════════════════╝
+```
+
+## 🩸 What the game is
+
+You came to visit a friend. You do not live here. You have **no car, no
+supplies, and no knowledge of the city** — you could not name three streets
+if someone made you.
+
+For nine days Ray keeps you alive. He knows which noises matter. He knows
+which advice on the forums is going to get people killed. He goes out and
+comes back.
+
+On the tenth morning he is gone. The door is locked from the inside. He has
+left you his car keys, his shotgun, and everything he owned.
+
+> **You are now the one who decides.**
+> And you are ten days behind on everything he knew.
+
+### 🚪 The only two things you can do
+
+|   | |
+|---|---|
+| 🛡️ | **Stay.** Ration the food. Keep the light off. Keep the noise down. Read everything, and work out which of it is true before it matters. |
+| 🚗 | **Leave.** Take the keys. Drive out of a city you cannot navigate, through a night nobody drives in. |
+
+Both are survivable. Both are survivable **only if you understood what you
+read** — and the internet you are reading it on is fast, specific,
+actionable, unverified, panicked, and sometimes lethally wrong.
+
+Nobody in this game is a narrator. Everybody in it is writing badly, at
+speed, in the worst week of their lives.
+
+### 👁️ What it will not do
+
+- It will **never tell you** whether you got it right until the last day.
+- It will **never confirm** what the things outside are. Historians argue
+  about the documents and take them apart, correctly, and it changes nothing.
+- It will **never explain** the woman at the door on day fifteen. Not in the
+  epilogue, not in a file, not anywhere.
+- It has **no jump scares**. Not one. The horror is a website that has
+  stopped updating and a hallway you have walked down.
 
 ---
 
-## Status: PROMPT 3 (AUDIO & RELEASE) — complete
+## 🧾 Status: PROMPT 4 (POLISH, REMEDIATION & USABILITY)
 
-All fifteen days are playable, all three endings resolve, the game looks like
-something, and it can be heard. **Headphones. The mix is quiet on purpose.**
+Twenty days playable, three endings, four entities rendered rather than
+drawn, and a computer that behaves like a computer.
+**Headphones. The mix is quiet on purpose.**
 
 | Prompt | Owns | State |
 |---|---|---|
-| 1 | Systems, content, structure. Everything runnable. | **done** |
-| 2 | `effects.js` + tuning `config.js`. Lighting, grade, horror effects. | **done** |
-| 3 | `audio.js` + `snd/`. The absence arc, room tone, cues, release testing. | **done** |
+| 1 | Systems, content, structure. Everything runnable. | ✅ done |
+| 2 | `effects.js` + tuning `config.js`. Lighting, grade, horror effects. | ✅ done |
+| 3 | `audio.js` + `snd/`. The absence arc, room tone, cues, release testing. | ✅ done |
+| 4 | Blocking bugs, twenty days, entity art, a usable web, a live forum. | 🔨 in progress |
 
 ### The thesis
 
@@ -37,7 +89,7 @@ no horror fonts, no grunge over an interface, nothing that looks designed or
 looks like a game UI. A station CMS renders eleven people missing in the same
 layout it uses for high school football scores, and that is the horror.
 
-## Running it
+## ⚙️ Running it
 
 No build step. It needs a static server because it uses ES modules and an
 import map.

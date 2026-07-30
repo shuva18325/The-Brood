@@ -268,3 +268,49 @@ hr.rule { border: 0; border-top: 1px solid #1c1f23; margin: 20px 0; }
   color: #cbc4b6; padding: 10px 22px; font: inherit; font-size: 13px; cursor: pointer;
   letter-spacing: 0.08em; }
 #warn-ok:hover { border-color: #6a6f78; color: #ece5d6; }
+
+/* ================================================================== */
+/* §7. THE LIST ON THE FRIDGE DOOR                                     */
+/*                                                                     */
+/* The game's objective system and its tutorial, and it is a takeaway  */
+/* menu under a magnet with pencil on the back. Nothing here may look  */
+/* like UI: no boxes, no ticks, no progress bar. A done line is struck */
+/* through in the same pencil, which is what a person does.            */
+/* ================================================================== */
+.fridge-list {
+  position: relative;
+  width: min(430px, 90%); margin: 4px 0 20px;
+  background: #e8e2d2; color: #2a2620;
+  padding: 26px 22px 14px;
+  /* Held on by one magnet, so it hangs slightly off true. */
+  transform: rotate(-0.8deg);
+  box-shadow: 0 1px 0 rgba(0,0,0,0.4), 2px 4px 10px rgba(0,0,0,0.45);
+  font-family: "Segoe Script", "Bradley Hand", "Comic Sans MS", cursive;
+  font-size: 15px; line-height: 1.85;
+}
+.fl-magnet {
+  position: absolute; left: 50%; top: -9px; transform: translateX(-50%);
+  width: 22px; height: 22px; border-radius: 50%;
+  background: radial-gradient(circle at 34% 30%, #d8534a, #7d211c 70%, #4d1310);
+  box-shadow: 0 2px 3px rgba(0,0,0,0.5);
+}
+.fl-head {
+  font-size: 13px; letter-spacing: .12em; text-transform: lowercase;
+  color: #6b6154; border-bottom: 1px solid #c4bba6;
+  padding-bottom: 4px; margin-bottom: 8px;
+}
+.fl-line { position: relative; padding-left: 16px; color: #2a2620; }
+.fl-line::before { content: '—'; position: absolute; left: 0; color: #8a806f; }
+/* Struck through, in pencil, slightly off horizontal. Not greyed out and
+ * not removed: the player should be able to see what they have done. */
+.fl-line.out { color: #8a806f; }
+.fl-line.out::after {
+  content: ''; position: absolute; left: 14px; right: 4px; top: 52%;
+  height: 1.5px; background: #4a4238; transform: rotate(-0.6deg);
+  opacity: .75;
+}
+.fl-foot {
+  margin-top: 10px; padding-top: 6px; border-top: 1px dashed #c4bba6;
+  font-family: Arial, Helvetica, sans-serif; font-size: 10px;
+  letter-spacing: .06em; color: #9a907e; text-align: center;
+}

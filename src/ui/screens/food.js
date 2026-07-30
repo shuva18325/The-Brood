@@ -11,10 +11,44 @@ import { CONFIG } from '../../config.js';
 import state, { note } from '../../state.js';
 import audio from '../../audio.js';
 import concealment from '../../systems/concealment.js';
+import { linesFor, heading } from '../../content/objectives.js';
+
+/**
+ * §7. THE LIST ON THE DOOR.
+ *
+ * This is the game's entire objective system and its entire tutorial, and
+ * it is a piece of paper under a magnet. Ray kept a list; after the handoff
+ * the player keeps it, in different handwriting, and nothing says so.
+ *
+ * Rules, from objectives.js and worth repeating where the rendering lives:
+ * no checkboxes, no "complete", no arrows, nothing opens on its own, and
+ * every line has to be something a person would actually write on a fridge.
+ * A player who never reads it can still finish the game.
+ */
+function fridgeList(day) {
+  const lines = linesFor(day);
+  if (!lines.length) return null;
+  const wrap = h('div', { class: 'fridge-list' });
+  wrap.appendChild(h('div', { class: 'fl-magnet' }));
+  wrap.appendChild(h('div', { class: 'fl-head' },
+    heading(day, CONFIG.days.handoff)));
+  for (const l of lines) {
+    let done = false;
+    try { done = !!l.done(state); } catch { done = false; }
+    wrap.appendChild(h('div', { class: 'fl-line' + (done ? ' out' : '') }, l.text));
+  }
+  // The paper is a takeaway menu. It has always been a takeaway menu.
+  wrap.appendChild(h('div', { class: 'fl-foot' },
+    'GOLDEN WOK · 757‑555‑0170 · free delivery over $15'));
+  return wrap;
+}
 
 export function render(ctx, host, args, ui) {
   const p = state.foodPortions;
   host.appendChild(head('the fridge', `${p} portion${p === 1 ? '' : 's'} · ${state.cooking ? 'the hotplate is on' : 'the hotplate is off'}`));
+
+  const list = fridgeList(state.day);
+  if (list) host.appendChild(list);
 
   host.appendChild(bodyText(describe(p), 'inner'));
   host.appendChild(h('hr', { class: 'rule' }));

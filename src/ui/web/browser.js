@@ -52,9 +52,9 @@ export const SITES = {
   // They are reachable from the forum and from the file host; nothing in
   // the game ever recommends them.
   jiance: { mod: siteSketchy, host: siteSketchy.HOSTS.jiance,
-            tab: '网络安全检测中心', scheme: 'http', transient: true },
+            tab: 'Safety Inspection Centre', scheme: 'http', transient: true },
   pan:    { mod: siteSketchy, host: siteSketchy.HOSTS.pan,
-            tab: '七月潭网盘', scheme: 'http', transient: true },
+            tab: 'July Pond', scheme: 'http', transient: true },
 };
 
 /** The four addresses in the bookmarks bar from the start. His bookmarks. */

@@ -12,6 +12,7 @@
  */
 
 import { h } from '../index.js';
+import { CONFIG } from '../../config.js';
 import state from '../../state.js';
 import effects from '../../effects.js';
 import understanding from '../../systems/understanding.js';
@@ -48,10 +49,17 @@ const NAV = ['News', 'Weather', 'Sports', 'Traffic', 'Investigates', 'Community'
 
 export const url = 'http://www.wkrv9.com/';
 
+/**
+ * §6. Which of the four movements the site is in. The thresholds live in
+ * CONFIG.news because they have to be stretched whenever the length of the
+ * run changes — they were still on the fifteen-day scale after §2 doubled
+ * Act 2, which left the raw-HTML movement on screen for eight days.
+ */
 export function movement(day) {
-  if (day >= 13) return 4;
-  if (day >= 9) return 3;
-  if (day >= 5) return 2;
+  const M = CONFIG.news.movementFrom;
+  if (day >= M.four) return 4;
+  if (day >= M.three) return 3;
+  if (day >= M.two) return 2;
   return 1;
 }
 
@@ -298,9 +306,7 @@ function dateLabel(day) {
 }
 
 function breakingLine(day) {
-  if (day >= 11) return 'Eleven districts unassessed · Curfew in effect · Do not travel after dark';
-  if (day >= 9) return 'Shelter in place order remains in effect for all coastal localities';
-  if (day >= 7) return 'Bridge-Tunnel closed indefinitely · Water pressure reduced citywide';
+  for (const [from, line] of CONFIG.news.tickerFrom) if (day >= from) return line;
   return 'State of emergency declared for all coastal localities';
 }
 
