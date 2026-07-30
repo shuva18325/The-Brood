@@ -251,9 +251,9 @@ if (CONFIG.debug.exposeApi) {
      * §3 / §9.8. Every found photograph, as data URIs, so the contact sheet
      * tool can render them all together and the legibility rule can be judged.
      */
-    snapshots(kinds) {
+    snapshots(kinds, opts) {
       const out = {};
-      for (const k of kinds) out[k] = IMG.phoneSnap(k);
+      for (const k of kinds) out[k] = IMG.phoneSnap(k, opts || {});
       return out;
     },
 

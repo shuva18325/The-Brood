@@ -241,33 +241,48 @@ const SCENES = {
    * took it could not look away. Everything about the exposure is wrong and
    * the thing in the middle of it is perfectly resolved. */
   anguish: {
-    // Close. The officer was close, and he did not step back, and the whole
-    // frame is the upper body — which is also the only way the four eyes are
-    // large enough to be looked at, and being looked at is the point.
-    ground: 'street-night', stops: -0.10, focus: null, flare: [0.12, 0.16, 0.30],
-    x: 0.10, y: -0.14, scale: 1.05, sharp: true, quality: 0.88,
-    limb: null, cast: [1.04, 1.00, 0.96, 0.18], vignette: 0.30,
+    /* §3.5. Not a street photograph — a PLATE. Pale seamless sweep, two
+     * lights at 45°, shot square, dead centre, scale bar underneath. It is
+     * the only image in the game taken by somebody who had time.
+     *
+     * Which means there is nothing to blame for how clearly you can see it.
+     * No flare, no missed focus, no motion, barely any grain and barely any
+     * vignette, because a plate does not have those. The player gets to
+     * look at it for as long as they want, and the horns go out past both
+     * edges of the frame, and the four eyes are large enough to count. */
+    ground: 'specimen', stops: 0.06, focus: null, flare: null,
+    x: 0.11, y: 0.015, scale: 0.78, sharp: true, sharpen: 0.40, quality: 0.94,
+    limb: null, cast: [1.00, 1.00, 1.00, 0], vignette: 0.14,
   },
   /* From below, on a phone held at chest height, with a car for scale. In
    * frame from mid-torso DOWN — the top of it is not obscured, it is outside
    * the photograph. That is a framing decision, which is legitimate. */
   tormentor: {
-    ground: 'street-night', stops: -0.35, focus: { y0: 0.35, y1: 1.0, px: 2 },
-    flare: [0.80, 0.10, 0.26],
-    // In frame from mid-torso DOWN. The head and horns are outside the
-    // photograph, which is a framing decision and therefore legitimate — but
-    // the underside of the mass has to be inside it, because that is where
-    // the bright wrong detail is.
-    x: 0.40, y: -0.44, scale: 1.02, quality: 0.78,
-    limb: { x: 0.20, y: 0.45, w: 0.26, h: 0.30, angle: 62, px: 10 },
-    cast: [1.10, 0.99, 0.88, 0.30], vignette: 0.42, scaleRef: 'car',
+    /* ALL OF IT IS IN FRAME NOW. It used to be cropped at mid-torso, with a
+     * note saying the head and horns were outside the photograph and that
+     * this was a legitimate framing decision — and it was, and it was also
+     * the reason nobody could tell what the thing was. §3.1 says the player
+     * should be able to see it perfectly and still not understand it, and
+     * cropping the head off is not "perfectly".
+     *
+     * So: whole animal, off-centre, under the lamp, with a car for scale.
+     * One tentacle is still smeared, because one of eleven moving limbs
+     * being blurred at 1/15s is what a real photograph of this would do. */
+    ground: 'street-night', stops: -0.12, focus: null,
+    flare: [0.13, 0.15, 0.26],
+    // Whole animal, head to feet, inside the frame with room around it —
+    // which on a 4:3 phone frame and a 0.62 aspect means it can only be
+    // about 45% of the width. It is across the street. It is supposed to be.
+    x: 0.26, y: 0.030, scale: 0.44, quality: 0.86,
+    limb: { x: 0.30, y: 0.80, w: 0.12, h: 0.18, angle: 76, px: 8 },
+    cast: [1.08, 0.99, 0.90, 0.26], vignette: 0.34, scaleRef: 'car',
   },
-  /* Indoors, in a hallway, with flash. The flash worked. */
+  /* Indoors, in a green hallway, with flash. The flash worked, and the hand
+   * is nearer the lens than the person holding the phone had realised. */
   incursion: {
-    ground: 'hallway-flash', stops: 0.05, focus: { y0: 0.20, y1: 0.78, px: 3 },
-    flare: null, x: 0.55, y: 0.06, scale: 0.62, quality: 0.84,
-    limb: { x: 0.62, y: 0.30, w: 0.30, h: 0.26, angle: 8, px: 8 },
-    cast: [1.02, 1.00, 1.03, 0.14], vignette: 0.46,
+    ground: 'hallway-flash', stops: 0.04, focus: null,
+    flare: null, x: 0.40, y: 0.02, scale: 0.74, sharp: true, quality: 0.88,
+    limb: null, cast: [0.98, 1.03, 0.99, 0.16], vignette: 0.34,
   },
   /* The most-photographed entity, because it is the most survivable. Several,
    * low, clear, and almost mundane, which is its own horror. */
@@ -283,11 +298,19 @@ const SCENES = {
     limb: null, cast: [1.02, 1.00, 0.98, 0.12], vignette: 0.28,
     extras: [[0.66, 0.34, 0.34], [0.86, 0.38, 0.28]],
   },
-  /* Rendered BY A DISPLAY, so it has no photographic excuse to be soft. */
+  /* Rendered BY A DISPLAY, so it has no photographic excuse to be soft.
+   *
+   * The caption is part of the transmission, not part of the photograph. It
+   * is in Simplified Chinese and it is not translated anywhere in the game
+   * unless the player finds the translator on the desktop and types it in
+   * themselves — at which point they learn that it says the same thing the
+   * red-link mail says, which is the first evidence that the mail and the
+   * thing on the screen are the same sender. */
   pathogen: {
     ground: 'monitor', stops: 0.0, focus: null, flare: null,
-    x: 0.5, y: 0.10, scale: 0.66, sharp: true, quality: 0.90,
+    x: 0.30, y: 0.02, scale: 0.42, sharp: true, quality: 0.90,
     limb: null, cast: [0.96, 1.00, 1.08, 0.20], vignette: 0.34,
+    caption: '你对此无能为力。你们都将终生受苦。',
   },
   /* Through a windscreen at night with the headlights on it. Perfectly lit
    * and perfectly clear, because a car's beam is aimed exactly at it. This
@@ -330,31 +353,175 @@ function groundStreetNight(g, W, H) {
   g.fillRect(W * 0.80, H * 0.70, W * 0.16, H * 0.07);
 }
 
+/**
+ * The hallway the Incursion is photographed in. It is GREEN, and the green
+ * is not a filter — it is a failing fluorescent tube in a 1970s apartment
+ * block, which goes cyan-green as the phosphor dies, and every hallway like
+ * it in the world looks exactly like this at three in the morning.
+ *
+ * That matters because it means the colour is the building's, not the
+ * thing's. Nothing in the photograph has been graded. The player is looking
+ * at a corridor they have walked down.
+ */
 function groundHallwayFlash(g, W, H) {
-  // Institutional hallway. On-camera flash: hot near, black at the far end.
-  g.fillStyle = '#0a0a0c'; g.fillRect(0, 0, W, H);
-  g.fillStyle = '#6f6a5f';
+  g.fillStyle = '#060a09'; g.fillRect(0, 0, W, H);
+
+  // The corridor, in one-point perspective, vanishing slightly left of
+  // centre because the person holding the phone was not standing straight.
+  const VX = W * 0.46, VY = H * 0.50;
+  const walls = [
+    // [near x, far x, base colour]
+    [0, VX - W * 0.13, '#4f6b5c'],
+    [W, VX + W * 0.13, '#3f5a4d'],
+  ];
+  for (const [nx, fx, col] of walls) {
+    g.fillStyle = col;
+    g.beginPath();
+    g.moveTo(nx, 0); g.lineTo(fx, VY - H * 0.30);
+    g.lineTo(fx, VY + H * 0.32); g.lineTo(nx, H);
+    g.closePath(); g.fill();
+  }
+  // The end wall, further away and therefore darker and greener.
+  g.fillStyle = '#25382f';
+  g.fillRect(VX - W * 0.13, VY - H * 0.30, W * 0.26, H * 0.62);
+
+  // Doors down the left side, receding. Two of them, and one is ajar.
+  for (const [t, ajar] of [[0.18, false], [0.52, true]]) {
+    const x0 = W * 0.02 + (VX - W * 0.13 - W * 0.02) * t;
+    const x1 = W * 0.02 + (VX - W * 0.13 - W * 0.02) * (t + 0.30);
+    const yTop = VY - H * 0.30 - (VY - H * 0.30) * (1 - t) * 0.92;
+    const yBot = H - (H - (VY + H * 0.32)) * t * 0.92;
+    g.fillStyle = '#2c4038';
+    g.beginPath();
+    g.moveTo(x0, yTop); g.lineTo(x1, yTop + (yBot - yTop) * 0.06);
+    g.lineTo(x1, yBot - (yBot - yTop) * 0.04); g.lineTo(x0, yBot);
+    g.closePath(); g.fill();
+    g.strokeStyle = 'rgba(126,158,140,0.34)'; g.lineWidth = 2;
+    g.stroke();
+    if (ajar) {
+      // The gap. Black, and the black goes further back than the wall does.
+      g.fillStyle = '#000000';
+      g.beginPath();
+      g.moveTo(x1 - W * 0.030, yTop + (yBot - yTop) * 0.05);
+      g.lineTo(x1, yTop + (yBot - yTop) * 0.06);
+      g.lineTo(x1, yBot - (yBot - yTop) * 0.04);
+      g.lineTo(x1 - W * 0.030, yBot - (yBot - yTop) * 0.02);
+      g.closePath(); g.fill();
+    }
+  }
+
+  // The carpet. Patterned, worn down the middle, and the pattern is the
+  // most legible thing in the photograph.
+  g.fillStyle = '#2a3a2e';
   g.beginPath();
-  g.moveTo(0, 0); g.lineTo(W * 0.30, H * 0.20);
-  g.lineTo(W * 0.30, H * 0.82); g.lineTo(0, H); g.closePath(); g.fill();
-  g.fillStyle = '#635e55';
+  g.moveTo(0, H); g.lineTo(VX - W * 0.13, VY + H * 0.32);
+  g.lineTo(VX + W * 0.13, VY + H * 0.32); g.lineTo(W, H);
+  g.closePath(); g.fill();
+  g.save();
   g.beginPath();
-  g.moveTo(W, 0); g.lineTo(W * 0.70, H * 0.20);
-  g.lineTo(W * 0.70, H * 0.82); g.lineTo(W, H); g.closePath(); g.fill();
-  g.fillStyle = '#4a463f';
-  g.fillRect(W * 0.30, H * 0.20, W * 0.40, H * 0.62);
-  // Skirting, a door frame, and the floor. Ordinary things, in focus.
-  g.fillStyle = '#3a352f';
-  g.fillRect(0, H * 0.80, W, H * 0.20);
-  g.strokeStyle = 'rgba(24,22,19,0.8)'; g.lineWidth = 2;
-  g.beginPath(); g.moveTo(W * 0.30, H * 0.20); g.lineTo(W * 0.30, H * 0.86); g.stroke();
-  g.beginPath(); g.moveTo(W * 0.70, H * 0.20); g.lineTo(W * 0.70, H * 0.86); g.stroke();
-  // The flash falloff.
-  const fl = g.createRadialGradient(W * 0.5, H * 0.52, 0, W * 0.5, H * 0.52, W * 0.66);
-  fl.addColorStop(0, 'rgba(255,250,236,0.30)');
-  fl.addColorStop(0.55, 'rgba(255,250,236,0.05)');
-  fl.addColorStop(1, 'rgba(0,0,0,0.62)');
+  g.moveTo(0, H); g.lineTo(VX - W * 0.13, VY + H * 0.32);
+  g.lineTo(VX + W * 0.13, VY + H * 0.32); g.lineTo(W, H);
+  g.closePath(); g.clip();
+  for (let i = 0; i < 16; i++) {
+    const t = i / 16;
+    const y = VY + H * 0.32 + (H - VY - H * 0.32) * (t * t);
+    g.strokeStyle = `rgba(150,132,96,${0.05 + t * 0.10})`;
+    g.lineWidth = Math.max(1, 1 + t * 3);
+    g.beginPath(); g.moveTo(0, y); g.lineTo(W, y); g.stroke();
+  }
+  g.restore();
+
+  // Skirting boards, running to the vanishing point.
+  g.strokeStyle = 'rgba(18,26,22,0.85)'; g.lineWidth = Math.max(2, W * 0.006);
+  g.beginPath(); g.moveTo(0, H * 0.99); g.lineTo(VX - W * 0.13, VY + H * 0.32); g.stroke();
+  g.beginPath(); g.moveTo(W, H * 0.99); g.lineTo(VX + W * 0.13, VY + H * 0.32); g.stroke();
+
+  /* The tube. It is the light source, so it is drawn as an actual fixture
+   * with an actual position, and it is the reason for the colour. One end of
+   * it has gone — that end is pink-white and the rest is green, which is
+   * exactly what a tube does in the last week of its life. */
+  const tw = W * 0.30, ty = H * 0.09;
+  const tube = g.createLinearGradient(VX - tw / 2, 0, VX + tw / 2, 0);
+  tube.addColorStop(0, 'rgba(244,222,220,0.95)');
+  tube.addColorStop(0.22, 'rgba(206,238,214,0.92)');
+  tube.addColorStop(1, 'rgba(150,206,168,0.70)');
+  g.fillStyle = tube;
+  g.fillRect(VX - tw / 2, ty, tw, H * 0.020);
+  const halo = g.createRadialGradient(VX, ty + H * 0.01, 0, VX, ty + H * 0.01, W * 0.55);
+  halo.addColorStop(0, 'rgba(178,236,196,0.34)');
+  halo.addColorStop(0.4, 'rgba(120,190,150,0.12)');
+  halo.addColorStop(1, 'rgba(0,0,0,0)');
+  g.fillStyle = halo; g.fillRect(0, 0, W, H);
+
+  // And the flash, which fired, and which is the only white light in the
+  // frame. It falls off fast, so the far end of the corridor stays green.
+  const fl = g.createRadialGradient(W * 0.5, H * 0.62, 0, W * 0.5, H * 0.62, W * 0.72);
+  fl.addColorStop(0, 'rgba(255,252,242,0.26)');
+  fl.addColorStop(0.42, 'rgba(240,252,244,0.06)');
+  fl.addColorStop(1, 'rgba(0,4,2,0.66)');
   g.fillStyle = fl; g.fillRect(0, 0, W, H);
+}
+
+/**
+ * §3.5. The Anguish plate. A pale seamless sweep, flat frontal light, a
+ * scale bar, and an accession number — the way a museum photographs a
+ * specimen, and the way nothing else in this game is photographed.
+ *
+ * The sweep is the whole horror of it. Somebody had it on a table. Somebody
+ * set up two lights and a grey card. The game never says who.
+ */
+function groundSpecimen(g, W, H) {
+  // The sweep: a paper roll coming down the back wall and curving onto the
+  // table, so there is no corner anywhere and no way to tell how deep it is.
+  const sw = g.createLinearGradient(0, 0, 0, H);
+  sw.addColorStop(0, '#d9d6cd');
+  sw.addColorStop(0.52, '#cfccc2');
+  sw.addColorStop(0.72, '#bdbab0');
+  sw.addColorStop(1, '#a9a69c');
+  g.fillStyle = sw; g.fillRect(0, 0, W, H);
+  // A soft floor shadow, from two lights at 45°, so it is doubled and neither
+  // copy is dark. This is what says "table", with no table in frame.
+  for (const [ox, a] of [[-0.045, 0.16], [0.052, 0.13]]) {
+    const sh = g.createRadialGradient(W * (0.5 + ox), H * 0.90, 0, W * (0.5 + ox), H * 0.90, W * 0.34);
+    sh.addColorStop(0, `rgba(84,80,74,${a})`);
+    sh.addColorStop(1, 'rgba(84,80,74,0)');
+    g.fillStyle = sh; g.fillRect(0, H * 0.66, W, H * 0.34);
+  }
+  // A crease in the paper, bottom left, because the roll had been used before.
+  g.strokeStyle = 'rgba(150,146,138,0.40)';
+  g.lineWidth = Math.max(1, W * 0.0025);
+  g.beginPath();
+  g.moveTo(0, H * 0.80);
+  g.bezierCurveTo(W * 0.14, H * 0.775, W * 0.20, H * 0.815, W * 0.34, H * 0.79);
+  g.stroke();
+
+  // The scale bar. Millimetres, and it is long enough to say the thing is
+  // about fifty centimetres tall, which is not what anybody expects.
+  const bx = W * 0.06, by = H * 0.945, bw = W * 0.24;
+  g.fillStyle = '#16171a';
+  for (let i = 0; i < 10; i++) {
+    if (i % 2 === 0) g.fillRect(bx + (bw / 10) * i, by, bw / 10, H * 0.014);
+  }
+  g.strokeStyle = '#16171a'; g.lineWidth = 1;
+  g.strokeRect(bx, by, bw, H * 0.014);
+  g.fillStyle = '#16171a';
+  g.font = `${Math.round(H * 0.026)}px "Courier New", monospace`;
+  g.textBaseline = 'middle';
+  g.fillText('100 mm', bx + bw + W * 0.016, by + H * 0.007);
+  g.textBaseline = 'alphabetic';
+
+  // The accession strip, top right, in the hand of somebody who wrote a lot
+  // of these. No agency name anywhere on it.
+  g.fillStyle = 'rgba(255,255,255,0.72)';
+  g.fillRect(W * 0.66, H * 0.030, W * 0.29, H * 0.072);
+  g.strokeStyle = 'rgba(70,68,64,0.5)'; g.lineWidth = 1;
+  g.strokeRect(W * 0.66, H * 0.030, W * 0.29, H * 0.072);
+  g.fillStyle = '#24252a';
+  g.font = `${Math.round(H * 0.030)}px "Courier New", monospace`;
+  g.fillText('SPEC. 4 / PL. 11', W * 0.675, H * 0.062);
+  g.font = `${Math.round(H * 0.024)}px "Courier New", monospace`;
+  g.fillStyle = '#4a4b50';
+  g.fillText('RECOVERED — INTACT', W * 0.675, H * 0.090);
 }
 
 function groundKerbDaylight(g, W, H) {
@@ -417,6 +584,7 @@ const GROUNDS = {
   'street-night': groundStreetNight,
   'hallway-flash': groundHallwayFlash,
   'kerb-daylight': groundKerbDaylight,
+  specimen: groundSpecimen,
   monitor: groundMonitor,
   headlights: groundHeadlights,
 };
@@ -444,6 +612,32 @@ export function phoneSnap(kind, opts = {}) {
     drawEntity(g, kind, W * S.x, H * S.y, W * S.scale);
 
     if (S.ground === 'monitor') {
+      /* The caption. Drawn BEFORE the scanlines, because it is coming down
+       * the same signal the face is — if it sat on top of them it would read
+       * as an overlay somebody added, and nobody added it. Red on black, in
+       * whatever CJK face the machine has, at the size a broadcast subtitle
+       * is, with a chroma bloom around it because red on a CRT bleeds. */
+      if (S.caption) {
+        const size = Math.round(H * 0.062);
+        g.font = `${size}px "Noto Sans CJK SC","Microsoft YaHei","PingFang SC",` +
+                 `"Hiragino Sans GB","Heiti SC",sans-serif`;
+        g.textAlign = 'center';
+        g.textBaseline = 'alphabetic';
+        const cy = H * 0.885;
+        // The bleed first, wide and dim.
+        g.shadowColor = 'rgba(210,26,20,0.85)';
+        g.shadowBlur = size * 0.9;
+        g.fillStyle = 'rgba(196,24,18,0.55)';
+        g.fillText(S.caption, W * 0.5, cy);
+        g.shadowBlur = 0;
+        // Then the glyphs, and the red channel is a pixel to the right of
+        // where the luminance is, the same way it is on the face.
+        g.fillStyle = 'rgba(120,10,8,0.95)';
+        g.fillText(S.caption, W * 0.5 + 2, cy);
+        g.fillStyle = 'rgba(236,58,48,0.98)';
+        g.fillText(S.caption, W * 0.5, cy);
+        g.textAlign = 'left';
+      }
       // The display's own scanlines, over the subject, because they are part
       // of the picture rather than damage to it.
       g.fillStyle = 'rgba(0,0,0,0.30)';
