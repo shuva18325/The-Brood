@@ -219,40 +219,268 @@ export function avatar(seed, size = 60) {
 /* CONTENT — this is where the horror is allowed to live.               */
 /* ================================================================== */
 
+/* ================================================================== */
+/* THE FOUND PHOTOGRAPHS (§3)                                          */
+/*                                                                     */
+/* PROMPT 4 OVERRIDES PROMPT 2 HERE. The old version destroyed these   */
+/* to sell "bad phone photo" and what it produced was noise. The rule  */
+/* now is: the player should be able to see it perfectly and still not */
+/* understand it. Detail high, meaning zero.                           */
+/*                                                                     */
+/* Each entity gets its own photographic CIRCUMSTANCE, because the      */
+/* circumstance is the characterisation. What is wrong with the picture */
+/* is composition and luck, not resolution.                            */
+/* ================================================================== */
+
 /**
- * A bad phone photograph of an entity. §3.4: someone's phone, held badly,
- * in a hurry. Never a good photograph.
+ * Per-entity scene: where it was photographed, by whom, with what, and what
+ * went wrong. `sharp` means the subject is not degraded at all.
+ */
+const SCENES = {
+  /* The one image where the subject is fully sharp, because the officer who
+   * took it could not look away. Everything about the exposure is wrong and
+   * the thing in the middle of it is perfectly resolved. */
+  anguish: {
+    // Close. The officer was close, and he did not step back, and the whole
+    // frame is the upper body — which is also the only way the four eyes are
+    // large enough to be looked at, and being looked at is the point.
+    ground: 'street-night', stops: -0.10, focus: null, flare: [0.12, 0.16, 0.30],
+    x: 0.10, y: -0.14, scale: 1.05, sharp: true, quality: 0.88,
+    limb: null, cast: [1.04, 1.00, 0.96, 0.18], vignette: 0.30,
+  },
+  /* From below, on a phone held at chest height, with a car for scale. In
+   * frame from mid-torso DOWN — the top of it is not obscured, it is outside
+   * the photograph. That is a framing decision, which is legitimate. */
+  tormentor: {
+    ground: 'street-night', stops: -0.35, focus: { y0: 0.35, y1: 1.0, px: 2 },
+    flare: [0.80, 0.10, 0.26],
+    // In frame from mid-torso DOWN. The head and horns are outside the
+    // photograph, which is a framing decision and therefore legitimate — but
+    // the underside of the mass has to be inside it, because that is where
+    // the bright wrong detail is.
+    x: 0.40, y: -0.44, scale: 1.02, quality: 0.78,
+    limb: { x: 0.20, y: 0.45, w: 0.26, h: 0.30, angle: 62, px: 10 },
+    cast: [1.10, 0.99, 0.88, 0.30], vignette: 0.42, scaleRef: 'car',
+  },
+  /* Indoors, in a hallway, with flash. The flash worked. */
+  incursion: {
+    ground: 'hallway-flash', stops: 0.05, focus: { y0: 0.20, y1: 0.78, px: 3 },
+    flare: null, x: 0.55, y: 0.06, scale: 0.62, quality: 0.84,
+    limb: { x: 0.62, y: 0.30, w: 0.30, h: 0.26, angle: 8, px: 8 },
+    cast: [1.02, 1.00, 1.03, 0.14], vignette: 0.46,
+  },
+  /* The most-photographed entity, because it is the most survivable. Several,
+   * low, clear, and almost mundane, which is its own horror. */
+  crawler: {
+    ground: 'kerb-daylight', stops: -0.05, focus: { y0: 0.55, y1: 1.0, px: 3 },
+    flare: null, x: 0.30, y: 0.60, scale: 0.26, quality: 0.88,
+    limb: null, cast: [1.00, 1.01, 1.02, 0.10], vignette: 0.22,
+    extras: [[0.58, 0.66, 0.20], [0.80, 0.62, 0.16]],
+  },
+  gleaner: {
+    ground: 'kerb-daylight', stops: -0.12, focus: { y0: 0.42, y1: 1.0, px: 3 },
+    flare: null, x: 0.34, y: 0.30, scale: 0.40, quality: 0.86,
+    limb: null, cast: [1.02, 1.00, 0.98, 0.12], vignette: 0.28,
+    extras: [[0.66, 0.34, 0.34], [0.86, 0.38, 0.28]],
+  },
+  /* Rendered BY A DISPLAY, so it has no photographic excuse to be soft. */
+  pathogen: {
+    ground: 'monitor', stops: 0.0, focus: null, flare: null,
+    x: 0.5, y: 0.10, scale: 0.66, sharp: true, quality: 0.90,
+    limb: null, cast: [0.96, 1.00, 1.08, 0.20], vignette: 0.34,
+  },
+  /* Through a windscreen at night with the headlights on it. Perfectly lit
+   * and perfectly clear, because a car's beam is aimed exactly at it. This
+   * is the sharpest image in the game. */
+  roadkill: {
+    ground: 'headlights', stops: 0.15, focus: null, flare: null,
+    x: 0.48, y: 0.30, scale: 0.52, sharp: true, sharpen: 0.55, quality: 0.92,
+    limb: null, cast: [1.00, 1.00, 1.00, 0], vignette: 0.36, glass: 0.07,
+  },
+  person: {
+    ground: 'street-night', stops: -0.45, focus: { y0: 0.3, y1: 0.9, px: 3 },
+    flare: [0.20, 0.16, 0.30], x: 0.5, y: 0.20, scale: 0.38, quality: 0.80,
+    limb: null, cast: [1.12, 0.99, 0.86, 0.32], vignette: 0.44,
+  },
+};
+
+/* --- the grounds. Four places, and each one lights differently. ---- */
+
+function groundStreetNight(g, W, H) {
+  g.fillStyle = '#12141a'; g.fillRect(0, 0, W, H);
+  const lamp = g.createRadialGradient(W * 0.14, H * 0.20, 0, W * 0.14, H * 0.20, W * 0.62);
+  lamp.addColorStop(0, 'rgba(240,180,104,0.78)');
+  lamp.addColorStop(0.28, 'rgba(168,112,52,0.30)');
+  lamp.addColorStop(1, 'rgba(0,0,0,0)');
+  g.fillStyle = lamp; g.fillRect(0, 0, W, H);
+  // Wet asphalt, and the lamp lying along it.
+  g.fillStyle = '#1b1e25'; g.fillRect(0, H * 0.70, W, H * 0.30);
+  const wet = g.createLinearGradient(0, H * 0.70, 0, H);
+  wet.addColorStop(0, 'rgba(214,158,88,0.16)');
+  wet.addColorStop(1, 'rgba(214,158,88,0.02)');
+  g.fillStyle = wet; g.fillRect(W * 0.04, H * 0.70, W * 0.30, H * 0.30);
+  // A parked car, cropped by the frame edge. Scale, and something to be
+  // partly behind.
+  g.fillStyle = '#171a1f';
+  g.beginPath();
+  g.moveTo(W * 0.72, H * 0.86); g.lineTo(W * 0.78, H * 0.68);
+  g.lineTo(W * 1.02, H * 0.66); g.lineTo(W * 1.02, H * 0.92);
+  g.closePath(); g.fill();
+  g.fillStyle = 'rgba(226,188,130,0.10)';
+  g.fillRect(W * 0.80, H * 0.70, W * 0.16, H * 0.07);
+}
+
+function groundHallwayFlash(g, W, H) {
+  // Institutional hallway. On-camera flash: hot near, black at the far end.
+  g.fillStyle = '#0a0a0c'; g.fillRect(0, 0, W, H);
+  g.fillStyle = '#6f6a5f';
+  g.beginPath();
+  g.moveTo(0, 0); g.lineTo(W * 0.30, H * 0.20);
+  g.lineTo(W * 0.30, H * 0.82); g.lineTo(0, H); g.closePath(); g.fill();
+  g.fillStyle = '#635e55';
+  g.beginPath();
+  g.moveTo(W, 0); g.lineTo(W * 0.70, H * 0.20);
+  g.lineTo(W * 0.70, H * 0.82); g.lineTo(W, H); g.closePath(); g.fill();
+  g.fillStyle = '#4a463f';
+  g.fillRect(W * 0.30, H * 0.20, W * 0.40, H * 0.62);
+  // Skirting, a door frame, and the floor. Ordinary things, in focus.
+  g.fillStyle = '#3a352f';
+  g.fillRect(0, H * 0.80, W, H * 0.20);
+  g.strokeStyle = 'rgba(24,22,19,0.8)'; g.lineWidth = 2;
+  g.beginPath(); g.moveTo(W * 0.30, H * 0.20); g.lineTo(W * 0.30, H * 0.86); g.stroke();
+  g.beginPath(); g.moveTo(W * 0.70, H * 0.20); g.lineTo(W * 0.70, H * 0.86); g.stroke();
+  // The flash falloff.
+  const fl = g.createRadialGradient(W * 0.5, H * 0.52, 0, W * 0.5, H * 0.52, W * 0.66);
+  fl.addColorStop(0, 'rgba(255,250,236,0.30)');
+  fl.addColorStop(0.55, 'rgba(255,250,236,0.05)');
+  fl.addColorStop(1, 'rgba(0,0,0,0.62)');
+  g.fillStyle = fl; g.fillRect(0, 0, W, H);
+}
+
+function groundKerbDaylight(g, W, H) {
+  // Flat overcast. No drama at all, which is the point: these images are
+  // almost mundane, and being almost mundane is what makes them bad.
+  g.fillStyle = '#8d949a'; g.fillRect(0, 0, W, H * 0.42);
+  g.fillStyle = '#5f635f'; g.fillRect(0, H * 0.42, W, H * 0.14);
+  g.fillStyle = '#8e8b81'; g.fillRect(0, H * 0.56, W, H * 0.10);   // pavement
+  g.fillStyle = '#6a6862'; g.fillRect(0, H * 0.64, W, H * 0.04);   // kerb
+  g.fillStyle = '#3f4247'; g.fillRect(0, H * 0.68, W, H * 0.32);   // road
+  // Grit, a drain, a flattened box. The set dressing of a real street.
+  g.fillStyle = 'rgba(30,32,36,0.5)';
+  g.fillRect(W * 0.06, H * 0.78, W * 0.10, H * 0.035);
+  for (let i = 0; i < 400; i++) {
+    g.fillStyle = `rgba(${60 + Math.random() * 40 | 0},${62 + Math.random() * 36 | 0},${64 + Math.random() * 34 | 0},0.4)`;
+    g.fillRect(Math.random() * W, H * 0.68 + Math.random() * H * 0.32, 2, 2);
+  }
+  g.fillStyle = 'rgba(150,144,132,0.55)';
+  g.fillRect(W * 0.72, H * 0.72, W * 0.13, H * 0.05);
+}
+
+function groundMonitor(g, W, H) {
+  // A CRT, photographed off the glass. Scanlines belong to the display, not
+  // to the photograph — so they are drawn, not applied as damage.
+  g.fillStyle = '#04060a'; g.fillRect(0, 0, W, H);
+  const glow = g.createRadialGradient(W * 0.5, H * 0.45, 0, W * 0.5, H * 0.45, W * 0.7);
+  glow.addColorStop(0, 'rgba(74,108,140,0.30)');
+  glow.addColorStop(1, 'rgba(0,0,0,0)');
+  g.fillStyle = glow; g.fillRect(0, 0, W, H);
+}
+
+function groundHeadlights(g, W, H) {
+  // Night, from inside a car. The beam is a hard-edged cone on the tarmac
+  // and everything outside it is gone.
+  g.fillStyle = '#05070a'; g.fillRect(0, 0, W, H);
+  g.save();
+  g.beginPath();
+  g.moveTo(W * 0.16, H); g.lineTo(W * 0.40, H * 0.44);
+  g.lineTo(W * 0.62, H * 0.44); g.lineTo(W * 0.88, H);
+  g.closePath();
+  g.clip();
+  const beam = g.createLinearGradient(0, H, 0, H * 0.44);
+  beam.addColorStop(0, 'rgba(236,232,214,0.60)');
+  beam.addColorStop(0.6, 'rgba(226,222,204,0.34)');
+  beam.addColorStop(1, 'rgba(210,208,192,0.10)');
+  g.fillStyle = '#3a3a36'; g.fillRect(0, H * 0.40, W, H * 0.60);
+  g.fillStyle = beam; g.fillRect(0, H * 0.40, W, H * 0.60);
+  // Lane markings running away under it.
+  g.fillStyle = 'rgba(232,228,206,0.55)';
+  for (let i = 0; i < 5; i++) {
+    const t = i / 5;
+    const y = H * (0.98 - t * 0.52);
+    const wdt = W * (0.055 - t * 0.040);
+    g.fillRect(W * 0.5 - wdt / 2, y, wdt, H * (0.030 - t * 0.021));
+  }
+  g.restore();
+}
+
+const GROUNDS = {
+  'street-night': groundStreetNight,
+  'hallway-flash': groundHallwayFlash,
+  'kerb-daylight': groundKerbDaylight,
+  monitor: groundMonitor,
+  headlights: groundHeadlights,
+};
+
+/**
+ * A found photograph of an entity.
+ *
+ * §3.1: the player should be able to see it perfectly and still not
+ * understand it. Everything that made these unreadable is gone. What is left
+ * is bad photography — wrong exposure, a missed focus plane, a limb that
+ * moved, a flare, and framing by somebody who was not thinking about framing.
  */
 export function phoneSnap(kind, opts = {}) {
-  const w = opts.w || 480, h = opts.h || 360;
+  const w = opts.w || 560, h = opts.h || 420;
+  const S = { ...(SCENES[kind] || SCENES.person), ...opts };
   return make('snap.' + kind + (opts.variant || ''), w, h, (g, W, H, c) => {
-    // a street at night, which is 90% of the frame and all of the exposure
-    g.fillStyle = '#0d0f14'; g.fillRect(0, 0, W, H);
-    const lamp = g.createRadialGradient(W * 0.22, H * 0.18, 0, W * 0.22, H * 0.18, W * 0.5);
-    lamp.addColorStop(0, 'rgba(232,168,92,0.95)');
-    lamp.addColorStop(0.25, 'rgba(160,104,48,0.35)');
-    lamp.addColorStop(1, 'rgba(0,0,0,0)');
-    g.fillStyle = lamp; g.fillRect(0, 0, W, H);
-    g.fillStyle = '#191c22'; g.fillRect(0, H * 0.72, W, H * 0.28);
-    g.fillStyle = 'rgba(210,150,80,0.10)';
-    g.beginPath(); g.moveTo(W * 0.1, H); g.lineTo(W * 0.3, H * 0.72);
-    g.lineTo(W * 0.44, H * 0.72); g.lineTo(W * 0.35, H); g.fill();
+    (GROUNDS[S.ground] || groundStreetNight)(g, W, H);
 
-    // the thing, off-centre, partly out of frame, at the wrong moment
-    const scale = opts.scale || 0.42;
-    const x = W * (opts.x ?? 0.52), y = H * (opts.y ?? 0.10);
-    drawEntity(g, kind, x, y, W * scale);
+    // Other individuals first, so the nearest one is in front.
+    for (const [ex, ey, es] of S.extras || []) {
+      drawEntity(g, kind, W * ex, H * ey, W * es);
+    }
 
-    // and now ruin it
-    P.exposure(c, opts.stops ?? -0.55);
-    P.motionBlur(c, opts.blurAngle ?? 14, opts.blurPx ?? 7, 0.62);
-    if (opts.throughGlass !== false) P.glass(c, 0.13);
-    P.resample(c, 0.34);
-    P.chromaBleed(c, 0.28);
-    P.noise(c, 26);
-    P.cast(c, 1.12, 0.98, 0.86, 0.4);
-    P.vignette(c, 0.5);
-  }, (c) => P.jpeg(c, opts.quality ?? 0.14));
+    // The subject. Off-centre, and sometimes not all of it is in the frame.
+    drawEntity(g, kind, W * S.x, H * S.y, W * S.scale);
+
+    if (S.ground === 'monitor') {
+      // The display's own scanlines, over the subject, because they are part
+      // of the picture rather than damage to it.
+      g.fillStyle = 'rgba(0,0,0,0.30)';
+      for (let y = 0; y < H; y += 3) g.fillRect(0, y, W, 1);
+    }
+
+    /* ---- and now, gently ---- */
+
+    // Slightly wrong exposure. Slightly.
+    if (S.stops) P.exposure(c, S.stops);
+
+    // A focus plane that is nearly right. Never applied to a sharp subject.
+    if (S.focus && !S.sharp) P.focusPlane(c, S.focus);
+
+    // One limb smeared while the body stays sharp.
+    if (S.limb && !S.sharp) {
+      P.limbBlur(c, W * S.limb.x, H * S.limb.y, W * S.limb.w, H * S.limb.h,
+                 S.limb.angle, S.limb.px, 0.85);
+    }
+
+    // A flare off whatever was bright and in frame.
+    if (S.flare) P.lensFlare(c, W * S.flare[0], H * S.flare[1], W * S.flare[2]);
+
+    // A faint reflection, if it was shot through glass.
+    if (S.glass) P.glass(c, S.glass);
+
+    // Colour: the white balance guessed, and it guessed under sodium.
+    if (S.cast && S.cast[3]) P.cast(c, S.cast[0], S.cast[1], S.cast[2], S.cast[3]);
+
+    // Sensor grain. A tenth of what it was, and monochrome, because that is
+    // what luminance noise actually looks like.
+    P.noise(c, S.sharp ? 4 : 7, true);
+    P.vignette(c, S.vignette ?? 0.34);
+
+    // The one image the headlights were aimed at gets bite put back in.
+    if (S.sharpen) P.sharpen(c, S.sharpen);
+  }, (c) => P.jpeg(c, S.quality ?? 0.84));
 }
 
 /**

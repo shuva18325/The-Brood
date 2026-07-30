@@ -26,6 +26,7 @@ import Script from './systems/script.js';
 import World from './world/index.js';
 import UI from './ui/index.js';
 import { scheduleFor as tvScheduleFor } from './ui/screens/tv.js';
+import IMG from './ui/imagery.js';
 
 /* ------------------------------------------------------------------ */
 
@@ -245,6 +246,16 @@ if (CONFIG.debug.exposeApi) {
     },
 
     setHour(h) { clock.advanceTo(h); },
+
+    /**
+     * §3 / §9.8. Every found photograph, as data URIs, so the contact sheet
+     * tool can render them all together and the legibility rule can be judged.
+     */
+    snapshots(kinds) {
+      const out = {};
+      for (const k of kinds) out[k] = IMG.phoneSnap(k);
+      return out;
+    },
 
     /** What the set would be doing at a given day and hour. */
     tvSchedule(d, h) { return tvScheduleFor(d, h); },

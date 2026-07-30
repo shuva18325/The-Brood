@@ -1,16 +1,35 @@
 /**
  * photo.js — making procedural drawings read as photographs.
  *
- * §3.4: the photos that appear on the forum and in Foundation documents
- * should look like REAL BAD PHOTOGRAPHS. Wrong exposure, motion blur,
- * camera shake, JPEG artefacts, taken through glass, at the wrong moment.
+ * PROMPT 4 §3 OVERRIDES PROMPT 2 HERE, AND THE OVERRIDE IS THE WHOLE POINT
+ * OF THIS FILE NOW.
  *
- * Someone's phone, held badly, in a hurry. Never a good photograph. A
- * well-composed monster photo is a monster poster.
+ * The old rule was "destroy the image and the brain fills it in". That was
+ * wrong, and it produced noise. Illegible is not ambiguous, and only one of
+ * those is frightening.
  *
- * The degradation is not decoration — it is what hides the fact that the
- * subject was drawn with bezier curves ten milliseconds ago. Same
- * principle as the lighting: destroy the image and the brain fills it in.
+ *      THE PLAYER SHOULD BE ABLE TO SEE IT PERFECTLY
+ *      AND STILL NOT UNDERSTAND IT.
+ *
+ * The horror is not "I couldn't make it out." The horror is "I saw every
+ * detail and none of it explains anything." The best real cryptid photographs
+ * are terrifying because they are clear. Detail high, meaning zero.
+ *
+ * So: the destruction pass is roughly a fifth of what it was.
+ *
+ *   GONE     heavy JPEG artefacting, chroma destruction, aggressive blur,
+ *            noise overlays, resolution reduction — anything that makes the
+ *            subject unreadable. The helpers still exist because tape and
+ *            photocopies legitimately need them; they are not for subjects.
+ *
+ *   KEPT     at low intensity: slightly wrong exposure, a shallow or missed
+ *            focus plane, motion blur ON EXTREMITIES ONLY (a limb smeared
+ *            while the body stays sharp is far worse than a smeared whole),
+ *            a flare off the streetlight, a faint reflection through glass.
+ *
+ *   KEPT     the framing problems — off-centre, cropped, half a second too
+ *            late, the top of it outside the frame. The photographer was bad.
+ *            The camera was fine. Framing is a decision; blur is not.
  */
 
 export function surface(w, h) {
@@ -86,8 +105,153 @@ export function motionBlur(c, angleDeg = 8, px = 6, opacity = 0.5) {
 }
 
 /**
- * Resolution loss. Downsample hard, then blow it back up. This is what
- * actually sells "phone, at night, digitally zoomed".
+ * §3.2. Motion blur confined to a rectangle, so a hand smears while the body
+ * stays sharp. This is the only motion blur that touches a subject now: a
+ * whole-frame smear says "bad photograph", and an arm that moved during the
+ * exposure while the ribs are pin-sharp says something much worse.
+ */
+export function limbBlur(c, x, y, w, h, angleDeg = 20, px = 9, opacity = 0.8) {
+  const W = c.width, H = c.height;
+  x = Math.max(0, Math.min(W - 2, Math.round(x)));
+  y = Math.max(0, Math.min(H - 2, Math.round(y)));
+  w = Math.max(2, Math.min(W - x, Math.round(w)));
+  h = Math.max(2, Math.min(H - y, Math.round(h)));
+
+  // Cut the region out, smear it on its own, and feather it back in so the
+  // boundary is not a visible seam.
+  const cut = surface(w, h);
+  cut.getContext('2d').drawImage(c, x, y, w, h, 0, 0, w, h);
+  motionBlur(cut, angleDeg, px, opacity);
+
+  const g = c.getContext('2d');
+  const mask = surface(w, h);
+  const mg = mask.getContext('2d');
+  mg.drawImage(cut, 0, 0);
+  mg.globalCompositeOperation = 'destination-in';
+  const grad = mg.createRadialGradient(w / 2, h / 2, 0, w / 2, h / 2, Math.max(w, h) * 0.62);
+  grad.addColorStop(0, 'rgba(0,0,0,1)');
+  grad.addColorStop(0.68, 'rgba(0,0,0,1)');
+  grad.addColorStop(1, 'rgba(0,0,0,0)');
+  mg.fillStyle = grad;
+  mg.fillRect(0, 0, w, h);
+  g.drawImage(mask, x, y);
+  return c;
+}
+
+/**
+ * §3.2. A focus plane. Everything outside a band of depth is soft; the band
+ * itself is untouched. A missed focus plane is a real photographic failure and
+ * it does not cost the subject any legibility, because the subject is what the
+ * band is on — or, when `missBy` is set, very nearly is.
+ */
+export function focusPlane(c, { y0 = 0.3, y1 = 0.7, px = 3, missBy = 0 } = {}) {
+  const H = c.height, W = c.width;
+  const a = Math.max(0, Math.round((y0 + missBy) * H));
+  const b = Math.min(H, Math.round((y1 + missBy) * H));
+
+  const soft = surface(W, H);
+  const sg = soft.getContext('2d');
+  sg.filter = `blur(${px}px)`;
+  sg.drawImage(c, 0, 0);
+  sg.filter = 'none';
+
+  // Cut the sharp band out of the soft copy, feathered top and bottom.
+  const g2 = soft.getContext('2d');
+  const keep = surface(W, H);
+  const kg = keep.getContext('2d');
+  kg.drawImage(c, 0, 0);
+  kg.globalCompositeOperation = 'destination-in';
+  const grad = kg.createLinearGradient(0, a - H * 0.10, 0, b + H * 0.10);
+  grad.addColorStop(0, 'rgba(0,0,0,0)');
+  grad.addColorStop(0.22, 'rgba(0,0,0,1)');
+  grad.addColorStop(0.78, 'rgba(0,0,0,1)');
+  grad.addColorStop(1, 'rgba(0,0,0,0)');
+  kg.fillStyle = grad;
+  kg.fillRect(0, 0, W, H);
+  g2.drawImage(keep, 0, 0);
+
+  const g = c.getContext('2d');
+  g.clearRect(0, 0, W, H);
+  g.drawImage(soft, 0, 0);
+  return c;
+}
+
+/**
+ * §3.2. A flare off a bright source in frame — the streetlight, a headlight.
+ * Streaks and two ghosts, drawn additively. It is the one thing in these
+ * photographs that says "a lens was here" without costing any detail.
+ */
+export function lensFlare(c, x, y, r, tint = [255, 214, 150]) {
+  const g = c.getContext('2d');
+  const [R, G, B] = tint;
+  g.save();
+  g.globalCompositeOperation = 'lighter';
+
+  // The bloom around the source.
+  const halo = g.createRadialGradient(x, y, 0, x, y, r);
+  halo.addColorStop(0, `rgba(${R},${G},${B},0.55)`);
+  halo.addColorStop(0.3, `rgba(${R},${G},${B},0.16)`);
+  halo.addColorStop(1, 'rgba(0,0,0,0)');
+  g.fillStyle = halo;
+  g.beginPath(); g.arc(x, y, r, 0, 7); g.fill();
+
+  // Anamorphic streak: horizontal, and much longer than it is tall.
+  const streak = g.createLinearGradient(x - r * 2.6, y, x + r * 2.6, y);
+  streak.addColorStop(0, 'rgba(0,0,0,0)');
+  streak.addColorStop(0.5, `rgba(${R},${G},${B},0.30)`);
+  streak.addColorStop(1, 'rgba(0,0,0,0)');
+  g.fillStyle = streak;
+  g.fillRect(x - r * 2.6, y - r * 0.055, r * 5.2, r * 0.11);
+
+  // Two ghosts on the axis through the frame centre.
+  const cx = c.width / 2, cy = c.height / 2;
+  for (const [t, rr, a] of [[1.45, 0.30, 0.13], [1.95, 0.17, 0.09]]) {
+    const gx = cx + (x - cx) * -t, gy = cy + (y - cy) * -t;
+    const gh = g.createRadialGradient(gx, gy, 0, gx, gy, r * rr);
+    gh.addColorStop(0, `rgba(${R},${G},${B},${a})`);
+    gh.addColorStop(1, 'rgba(0,0,0,0)');
+    g.fillStyle = gh;
+    g.beginPath(); g.arc(gx, gy, r * rr, 0, 7); g.fill();
+  }
+  g.restore();
+  return c;
+}
+
+/**
+ * §3.4. Unsharp mask. Used on exactly one subject in the game — the thing in
+ * the headlights — because a car's beam is aimed at it, the shutter was short,
+ * and there is no photographic reason for that image to be soft.
+ */
+export function sharpen(c, amount = 0.6) {
+  const g = c.getContext('2d');
+  const W = c.width, H = c.height;
+  const src = g.getImageData(0, 0, W, H);
+  const d = src.data;
+  const out = g.createImageData(W, H);
+  const o = out.data;
+  const at = (x, y, k) =>
+    d[((Math.min(H - 1, Math.max(0, y)) * W) + Math.min(W - 1, Math.max(0, x))) * 4 + k];
+  for (let y = 0; y < H; y++) {
+    for (let x = 0; x < W; x++) {
+      const i = (y * W + x) * 4;
+      for (let k = 0; k < 3; k++) {
+        const c0 = at(x, y, k);
+        const blur = (at(x - 1, y, k) + at(x + 1, y, k) + at(x, y - 1, k) + at(x, y + 1, k)) / 4;
+        o[i + k] = Math.max(0, Math.min(255, c0 + (c0 - blur) * amount));
+      }
+      o[i + 3] = d[i + 3];
+    }
+  }
+  g.putImageData(out, 0, 0);
+  return c;
+}
+
+/**
+ * Resolution loss. Downsample hard, then blow it back up.
+ *
+ * §3.2: DO NOT USE THIS ON A SUBJECT. It is what made the entities
+ * illegible. It is still here for tape, photocopies and CRT captures, where
+ * the resolution genuinely was not there.
  */
 export function resample(c, factor = 0.25) {
   const w = Math.max(2, Math.floor(c.width * factor));
@@ -298,4 +462,6 @@ export function photocopy(c, gens = 1) {
 }
 
 export default { surface, exposure, cast, noise, motionBlur, resample, chromaBleed,
-  glass, vignette, jpeg, headSwitch, tracking, burnIn, autoGain, generations, photocopy };
+  glass, vignette, jpeg, headSwitch, tracking, burnIn, autoGain, generations, photocopy,
+  // §3.2 — the ones a subject is allowed to be touched by.
+  limbBlur, focusPlane, lensFlare, sharpen };
