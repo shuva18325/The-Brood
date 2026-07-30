@@ -13,6 +13,7 @@ import bus from '../bus.js';
 import audio from '../audio.js';
 import effects from '../effects.js';
 import clock from '../systems/clock.js';
+import { initCaptions, apply as applyCaptions } from './captions.js';
 
 import * as scrTv from './screens/tv.js';
 import * as scrComputer from './screens/computer.js';
@@ -58,11 +59,13 @@ export class UI {
       menu: document.getElementById('menu'),
       menuButtons: document.getElementById('menu-buttons'),
       menuFoot: document.getElementById('menu-foot'),
+      lookHint: document.getElementById('look-hint'),
     };
     this.open_ = null;
     this.stack = [];
     this._subtitleTimer = null;
     this._closable = true;
+    this._lookHintShown = false;
 
     window.addEventListener('keydown', (e) => {
       if (e.code === 'Escape') {
@@ -102,6 +105,23 @@ export class UI {
   }
 
   showHud(on) { this.el.hud.classList.toggle('hidden', !on); }
+
+  /**
+   * The browser refused pointer lock — an embedded frame always will. Say so
+   * once, plainly, and get out of the way. This is chrome, so it is allowed
+   * to be a clear instruction; nothing else in the game is.
+   */
+  lookHint() {
+    const el = this.el.lookHint;
+    if (!el || this._lookHintShown) return;
+    this._lookHintShown = true;
+    el.textContent = 'drag to look  ·  or arrow keys  ·  WASD move  ·  E interact';
+    el.classList.remove('hidden', 'fading');
+    setTimeout(() => {
+      el.classList.add('fading');
+      setTimeout(() => el.classList.add('hidden'), 900);
+    }, 8000);
+  }
 
   /* ---------------- the cut ---------------- */
 
@@ -246,8 +266,9 @@ export class UI {
   }
 
   /**
-   * §10. Photosensitivity and volume, reachable without leaving the game.
-   * prefers-reduced-motion is honoured whether or not the toggle is set.
+   * §7 + §8 + §10. Separate sliders, captions, the compass, the flashing
+   * cap and the loud-event limiter. All of it reachable without leaving
+   * the game, from the title screen and from the pause menu.
    */
   settings() {
     this.el.menuButtons.innerHTML = '';
@@ -255,66 +276,103 @@ export class UI {
     this.el.menuButtons.appendChild(box);
 
     const osReduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const A = CONFIG.a11y;
 
-    const flashRow = document.createElement('div');
-    flashRow.className = 'opt-row';
-    const flashLabel = document.createElement('label');
-    flashLabel.setAttribute('for', 'opt-flash');
-    flashLabel.textContent = 'Reduced flashing';
-    const flashInput = document.createElement('input');
-    flashInput.type = 'checkbox';
-    flashInput.id = 'opt-flash';
-    flashInput.checked = CONFIG.a11y.reducedFlashing || osReduced;
-    flashInput.disabled = osReduced;
-    flashInput.onchange = () => {
-      CONFIG.a11y.reducedFlashing = flashInput.checked;
-      try { localStorage.setItem('thebrood.a11y.flash', flashInput.checked ? '1' : '0'); } catch { /* ignore */ }
+    const row = (labelText) => {
+      const r = document.createElement('div');
+      r.className = 'opt-row';
+      const l = document.createElement('label');
+      l.textContent = labelText;
+      r.appendChild(l);
+      box.appendChild(r);
+      return { row: r, label: l };
     };
-    flashRow.appendChild(flashLabel); flashRow.appendChild(flashInput);
-    box.appendChild(flashRow);
+    const note = (t) => {
+      const n = document.createElement('div');
+      n.className = 'opt-note';
+      n.textContent = t;
+      box.appendChild(n);
+    };
+    const toggle = (labelText, key, onChange, disabled) => {
+      const { row: r, label: l } = row(labelText);
+      const i = document.createElement('input');
+      i.type = 'checkbox';
+      i.id = 'opt-' + key;
+      i.checked = !!A[key];
+      i.disabled = !!disabled;
+      l.setAttribute('for', i.id);
+      i.onchange = () => { A[key] = i.checked; onChange?.(i.checked); this.saveSettings(); };
+      r.appendChild(i);
+      return i;
+    };
+    const slider = (labelText, key, onChange) => {
+      const { row: r, label: l } = row(labelText);
+      const i = document.createElement('input');
+      i.type = 'range'; i.min = '0'; i.max = '100';
+      i.id = 'opt-' + key;
+      i.value = String(Math.round((A[key] ?? 1) * 100));
+      l.setAttribute('for', i.id);
+      i.oninput = () => { A[key] = Number(i.value) / 100; onChange?.(A[key]); this.saveSettings(); };
+      r.appendChild(i);
+      return i;
+    };
 
-    const note = document.createElement('div');
-    note.className = 'opt-note';
-    note.textContent = osReduced
+    /* --- the mix. Quiet by default, on purpose. --- */
+    slider('Master', 'masterVolume', (v) => audio.master(v));
+    slider('Ambient', 'ambientVolume', (v) => audio.level('ambient', v));
+    slider('Effects', 'effectsVolume', (v) => audio.level('effects', v));
+    slider('Interface', 'interfaceVolume', (v) => audio.level('interface', v));
+    note('Mixed quiet deliberately. Turning it up puts you at the mercy of the loud events.');
+
+    toggle('Limit loud events', 'limiter', (on) => audio.limiter(on));
+    note('A hard limiter for anyone who cannot risk peaks. Off by default, because the gap between room tone and a collapse is the point.');
+
+    /* --- captions. Correctness, not decoration. --- */
+    toggle('Sound captions', 'captions', () => applyCaptions());
+    note('Directional captions for every sound. This game hides survival-critical information in audio.');
+    toggle('Direction indicator', 'audioCompass', () => applyCaptions());
+
+    /* --- photosensitivity --- */
+    const flash = toggle('Reduced flashing', 'reducedFlashing', null, osReduced);
+    if (osReduced) flash.checked = true;
+    note(osReduced
       ? 'Your system asks for reduced motion, so this is already on and cannot be turned off here.'
-      : 'Caps every luminance flash to a low, short pulse. Nothing in the game requires you to see one.';
-    box.appendChild(note);
-
-    const volRow = document.createElement('div');
-    volRow.className = 'opt-row';
-    const volLabel = document.createElement('label');
-    volLabel.setAttribute('for', 'opt-vol');
-    volLabel.textContent = 'Volume';
-    const vol = document.createElement('input');
-    vol.type = 'range'; vol.id = 'opt-vol'; vol.min = '0'; vol.max = '100';
-    vol.value = String(Math.round(CONFIG.a11y.masterVolume * 100));
-    vol.oninput = () => {
-      CONFIG.a11y.masterVolume = Number(vol.value) / 100;
-      audio.master(CONFIG.a11y.masterVolume);
-      try { localStorage.setItem('thebrood.a11y.vol', vol.value); } catch { /* ignore */ }
-    };
-    volRow.appendChild(volLabel); volRow.appendChild(vol);
-    box.appendChild(volRow);
+      : 'Caps every luminance flash to a low, short pulse. Nothing in the game requires you to see one.');
 
     const back = document.createElement('button');
     back.className = 'choice';
     back.textContent = 'back';
-    back.onclick = () => this.pause();
+    back.onclick = () => { if (state.started) this.pause(); else bus.emit('ui:title'); };
     box.appendChild(back);
 
-    this.el.menuFoot.textContent = 'WASD move · mouse look · E interact · C crouch · ESC back';
-    flashInput.focus();
+    this.el.menuFoot.innerHTML =
+      'WASD move · mouse, drag or arrow keys look · E interact · C crouch · ESC back<br>' +
+      '<b>Headphones recommended.</b> The audio is positional.';
   }
 
-  /** Restore the accessibility choices this machine has already made. */
+  saveSettings() {
+    try {
+      localStorage.setItem('thebrood.a11y', JSON.stringify(CONFIG.a11y));
+    } catch { /* ignore */ }
+  }
+
+  /** Restore the accessibility and mix choices this machine has made. */
   loadSettings() {
     try {
-      const f = localStorage.getItem('thebrood.a11y.flash');
-      if (f !== null) CONFIG.a11y.reducedFlashing = f === '1';
-      const v = localStorage.getItem('thebrood.a11y.vol');
-      if (v !== null) CONFIG.a11y.masterVolume = Number(v) / 100;
+      const raw = localStorage.getItem('thebrood.a11y');
+      if (raw) Object.assign(CONFIG.a11y, JSON.parse(raw));
     } catch { /* ignore */ }
-    audio.master(CONFIG.a11y.masterVolume);
+    initCaptions();
+  }
+
+  /** Push the stored mix into the engine once audio actually exists. */
+  applyMix() {
+    const A = CONFIG.a11y;
+    audio.master(A.masterVolume);
+    audio.level('ambient', A.ambientVolume);
+    audio.level('effects', A.effectsVolume);
+    audio.level('interface', A.interfaceVolume);
+    audio.limiter(A.limiter);
   }
 }
 

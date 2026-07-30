@@ -355,6 +355,217 @@ function pathogenFace(g, W, H) {
 }
 
 /* ================================================================== */
+/* ZĀNUWĀM                                                             */
+/*                                                                     */
+/* NEVER RENDERED IN THE WORLD. §8.2 — it exists only in the Ctesiphon */
+/* material and in a 19th-century plate. This asset is drawn ONLY for  */
+/* those documents.                                                    */
+/*                                                                     */
+/* The head is the whole thing: a white radiating crown of branching   */
+/* filaments around a small, calm, almost polite face. The body is a   */
+/* black armature with too many legs and hands held up and open. It is */
+/* the only entity that took a human cultural form — everything else   */
+/* is a shape; this one is a costume, and the costume does not fit.    */
+/* ================================================================== */
+
+function zanuwamSilhouette(g, W, H) {
+  g.fillStyle = '#000000';
+  const cx = W * 0.50;
+
+  // Torso: narrow, angular, and held.
+  g.beginPath();
+  g.moveTo(cx - W * 0.055, H * 0.30);
+  g.lineTo(cx + W * 0.065, H * 0.28);
+  g.lineTo(cx + W * 0.085, H * 0.56);
+  g.lineTo(cx - W * 0.070, H * 0.58);
+  g.closePath();
+  g.fill();
+
+  // Arms, up and out, ending in splayed twig-fingers. Not reaching for
+  // anything — presenting.
+  for (const s of [-1, 1]) {
+    const wristX = cx + s * W * 0.30;
+    const wristY = H * 0.175;
+    limb(g, arc(cx + s * W * 0.055, H * 0.31, wristX, wristY, s * 0.14, 14), W * 0.017, W * 0.008);
+    for (let i = 0; i < 5; i++) {
+      const a = -1.45 + i * 0.19;
+      limb(g, arc(wristX, wristY,
+        wristX + Math.sin(a) * W * 0.055, wristY - Math.cos(a) * H * 0.105, 0.05, 8),
+        W * 0.0065, W * 0.0014);
+    }
+  }
+
+  // Legs: six, splayed, jointed in the wrong places.
+  const legs = [-0.40, -0.26, -0.12, 0.10, 0.24, 0.40];
+  for (const dx of legs) {
+    const kneeX = cx + dx * W * 0.72, kneeY = H * (0.74 + Math.abs(dx) * 0.10);
+    limb(g, arc(cx + dx * W * 0.16, H * 0.56, kneeX, kneeY, dx * 0.16, 12), W * 0.014, W * 0.007);
+    limb(g, arc(kneeX, kneeY, cx + dx * W * 1.02, H * 1.0, -dx * 0.10, 12), W * 0.007, W * 0.002);
+  }
+}
+
+function zanuwamDetail(g, W, H) {
+  const cx = W * 0.50, cy = H * 0.185;
+  const R = W * 0.135;
+
+  // The radiating crown. Filaments branching twice, like something grown
+  // rather than worn.
+  g.strokeStyle = '#f2efe6';
+  g.lineCap = 'round';
+  const branch = (x, y, ang, len, wid, depth) => {
+    g.lineWidth = wid;
+    const x2 = x + Math.cos(ang) * len, y2 = y + Math.sin(ang) * len;
+    g.beginPath(); g.moveTo(x, y); g.lineTo(x2, y2); g.stroke();
+    if (depth <= 0) return;
+    branch(x2, y2, ang - 0.34 - Math.random() * 0.2, len * 0.62, wid * 0.6, depth - 1);
+    branch(x2, y2, ang + 0.34 + Math.random() * 0.2, len * 0.62, wid * 0.6, depth - 1);
+  };
+  for (let i = 0; i < 22; i++) {
+    const a = (i / 22) * Math.PI * 2;
+    branch(cx + Math.cos(a) * R * 0.82, cy + Math.sin(a) * R * 0.82, a,
+      R * (0.55 + Math.random() * 0.55), Math.max(1, W * 0.008), 2);
+  }
+
+  // The face. Small, centred, symmetrical, and almost polite — which is
+  // the part nobody who has written about it can account for.
+  const grad = g.createRadialGradient(cx, cy, 0, cx, cy, R);
+  grad.addColorStop(0, '#ffffff');
+  grad.addColorStop(0.72, '#f4f1e8');
+  grad.addColorStop(1, '#d8d3c4');
+  g.fillStyle = grad;
+  g.beginPath(); g.arc(cx, cy, R, 0, 7); g.fill();
+
+  g.fillStyle = '#14130f';
+  for (const s of [-1, 1]) {
+    g.beginPath();
+    g.ellipse(cx + s * R * 0.30, cy - R * 0.14, R * 0.075, R * 0.10, 0, 0, 7);
+    g.fill();
+  }
+  g.strokeStyle = '#14130f';
+  g.lineWidth = Math.max(1, W * 0.005);
+  g.beginPath(); g.moveTo(cx, cy - R * 0.10); g.lineTo(cx - R * 0.06, cy + R * 0.20); g.stroke();
+  g.beginPath();
+  g.moveTo(cx - R * 0.16, cy + R * 0.44); g.lineTo(cx + R * 0.16, cy + R * 0.44);
+  g.stroke();
+
+  // A thin rim of the same white down one edge of the body: whatever the
+  // head is made of, the rest of it is made of that too.
+  g.strokeStyle = 'rgba(230,226,214,0.22)';
+  g.lineWidth = Math.max(1, W * 0.006);
+  g.beginPath(); g.moveTo(cx + W * 0.065, H * 0.29); g.lineTo(cx + W * 0.085, H * 0.56); g.stroke();
+}
+
+/* ================================================================== */
+/* THE CRIPPLED KING                                                   */
+/*                                                                     */
+/* NEVER RENDERED IN THE WORLD. §8.1 — no sighting, no photograph, no  */
+/* window event. It exists in a clay tablet, a disputed translation,   */
+/* and one 1897 engraving.                                             */
+/*                                                                     */
+/* A manifested crown and a manifested throne, which is the only       */
+/* symbolic act in the whole ecology. It does not rise.                */
+/* ================================================================== */
+
+function kingSilhouette(g, W, H) {
+  g.fillStyle = '#000000';
+  const cx = W * 0.50;
+
+  // The seat. Not a chair — a block, and it is not made of anything.
+  g.fillRect(cx - W * 0.34, H * 0.70, W * 0.68, H * 0.10);
+  g.fillRect(cx - W * 0.30, H * 0.80, W * 0.60, H * 0.20);
+
+  // Seated. The proportions are wrong: too long in the spine, too long in
+  // the arms, and everything folded rather than resting.
+  g.beginPath();
+  g.moveTo(cx - W * 0.075, H * 0.26);
+  g.lineTo(cx + W * 0.075, H * 0.26);
+  g.lineTo(cx + W * 0.105, H * 0.68);
+  g.lineTo(cx - W * 0.105, H * 0.68);
+  g.closePath();
+  g.fill();
+
+  // Skull, long and narrow.
+  g.beginPath();
+  g.ellipse(cx, H * 0.185, W * 0.070, H * 0.078, 0, 0, 7);
+  g.fill();
+
+  // Arms along the arms of the seat, hands over the ends.
+  for (const s of [-1, 1]) {
+    limb(g, arc(cx + s * W * 0.070, H * 0.30, cx + s * W * 0.285, H * 0.66, s * 0.10, 12), W * 0.020, W * 0.010);
+    for (let i = 0; i < 4; i++) {
+      limb(g, arc(cx + s * W * 0.285, H * 0.66,
+        cx + s * W * (0.30 + i * 0.012), H * 0.74, 0, 6), W * 0.006, W * 0.002);
+    }
+  }
+  // Legs, folded, feet flat. It has not moved.
+  for (const s of [-1, 1]) {
+    limb(g, arc(cx + s * W * 0.055, H * 0.68, cx + s * W * 0.145, H * 0.90, s * 0.06, 10), W * 0.022, W * 0.012);
+  }
+}
+
+function kingDetail(g, W, H) {
+  const cx = W * 0.50;
+
+  // THE CROWN. Manifested, not made. It has no survival function at all,
+  // and it is the first evidence that any of this has intent behind it.
+  g.strokeStyle = '#d8b45a';
+  g.lineWidth = Math.max(1, W * 0.011);
+  g.lineCap = 'round';
+  for (let i = 0; i < 26; i++) {
+    const a = (i / 26) * Math.PI * 2;
+    const r0 = W * 0.100, r1 = W * (0.150 + (i % 3) * 0.030);
+    g.beginPath();
+    g.moveTo(cx + Math.cos(a) * r0, H * 0.185 + Math.sin(a) * r0 * 1.1);
+    g.lineTo(cx + Math.cos(a) * r1, H * 0.185 + Math.sin(a) * r1 * 1.1);
+    g.stroke();
+  }
+  g.lineWidth = Math.max(1, W * 0.016);
+  g.beginPath();
+  g.ellipse(cx, H * 0.150, W * 0.086, H * 0.030, 0, 0, 7);
+  g.stroke();
+
+  // The ribcage, drawn the way an engraver draws bone: hatched, not solid.
+  g.strokeStyle = '#b9b3a4';
+  g.lineWidth = Math.max(1, W * 0.007);
+  for (let i = 0; i < 7; i++) {
+    const y = H * (0.320 + i * 0.042);
+    g.beginPath();
+    g.moveTo(cx - W * 0.062, y);
+    g.quadraticCurveTo(cx, y + H * 0.020, cx + W * 0.062, y);
+    g.stroke();
+  }
+  g.beginPath();
+  g.moveTo(cx, H * 0.300); g.lineTo(cx, H * 0.610);
+  g.stroke();
+
+  // The face. Two sockets and a fixed grin, and the grin is the reason the
+  // 1897 plate is the one everybody reproduces.
+  g.fillStyle = '#0d0c0a';
+  for (const s of [-1, 1]) {
+    g.beginPath();
+    g.ellipse(cx + s * W * 0.028, H * 0.170, W * 0.020, H * 0.024, 0, 0, 7);
+    g.fill();
+  }
+  g.strokeStyle = '#d8d2c2';
+  g.lineWidth = Math.max(1, W * 0.005);
+  g.beginPath();
+  g.moveTo(cx - W * 0.040, H * 0.215);
+  g.quadraticCurveTo(cx, H * 0.238, cx + W * 0.040, H * 0.215);
+  g.stroke();
+  for (let i = -3; i <= 3; i++) {
+    const x = cx + i * W * 0.012;
+    g.beginPath(); g.moveTo(x, H * 0.212); g.lineTo(x, H * 0.230); g.stroke();
+  }
+
+  // The seat, picked out in the one colour the plate's colourist used.
+  g.fillStyle = 'rgba(96,168,164,0.62)';
+  g.fillRect(cx - W * 0.30, H * 0.700, W * 0.60, H * 0.086);
+  g.strokeStyle = 'rgba(150,208,204,0.5)';
+  g.lineWidth = Math.max(1, W * 0.006);
+  g.strokeRect(cx - W * 0.30, H * 0.700, W * 0.60, H * 0.086);
+}
+
+/* ================================================================== */
 /* COMMONS                                                             */
 /* ================================================================== */
 
@@ -408,6 +619,10 @@ const ENTITIES = {
   incursion: { sil: incursionSilhouette, detail: incursionDetail,  aspect: 0.70, haze: 0.30 },
   anguish:   { sil: anguishSilhouette,   detail: anguishDetail,    aspect: 0.60, haze: 0.22 },
   pathogen:  { sil: null,                detail: pathogenFace,     aspect: 0.80, haze: 0.10 },
+  // Neither of these is ever placed in the world. They exist for the
+  // documents, and the documents are the only place they have ever existed.
+  zanuwam:   { sil: zanuwamSilhouette,   detail: zanuwamDetail,    aspect: 0.78, haze: 0.10 },
+  king:      { sil: kingSilhouette,      detail: kingDetail,       aspect: 0.72, haze: 0.10 },
   crawler:   { sil: crawlerSilhouette,   detail: null,             aspect: 1.30, haze: 0.45 },
   gleaner:   { sil: gleanerSilhouette,   detail: null,             aspect: 0.80, haze: 0.45 },
   person:    { sil: personSilhouette,    detail: null,             aspect: 0.55, haze: 0.35 },

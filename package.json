@@ -6,9 +6,15 @@
   "description": "First-person horror survival in one apartment. Fifteen days. Two ways out.",
   "scripts": {
     "start": "python3 -m http.server 8080",
-    "verify": "node tools/verify.mjs"
+    "verify": "node tools/verify.mjs",
+    "verify:artifact": "node tools/verify-artifact.mjs",
+    "build": "node tools/build.mjs",
+    "build:artifact": "node tools/build.mjs --artifact",
+    "shot": "node tools/shot.mjs"
   },
   "devDependencies": {
+    "esbuild": "^0.28.1",
+    "playwright": "^1.55.1",
     "three": "0.185.1"
   }
 }

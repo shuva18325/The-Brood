@@ -3,6 +3,10 @@
  *
  * Deliberately heavy and slow. He has been sleeping on a mat for nine days
  * and his back hurts more every morning; prompt 2 adds the sway that says so.
+ *
+ * Three ways to look, in order of preference: pointer lock, drag, arrow keys.
+ * Pointer lock is refused inside a sandboxed frame, and the game has to be
+ * playable there too, so the fallbacks are not optional.
  */
 
 import * as THREE from 'three';
@@ -21,6 +25,12 @@ export class Controls {
 
     this.enabled = false;
     this.locked = false;
+    /** Set once a lock request has actually been refused. */
+    this.lockDenied = false;
+    this.dragging = false;
+    this._dragId = null;
+    this._dragX = 0;
+    this._dragY = 0;
     this.yaw = 0;
     this.pitch = 0;
     this.velocity = new THREE.Vector3();
@@ -34,11 +44,23 @@ export class Controls {
     this._onKeyDown = this._onKeyDown.bind(this);
     this._onKeyUp = this._onKeyUp.bind(this);
     this._onLockChange = this._onLockChange.bind(this);
+    this._onLockError = this._onLockError.bind(this);
+    this._onDragStart = this._onDragStart.bind(this);
+    this._onDragMove = this._onDragMove.bind(this);
+    this._onDragEnd = this._onDragEnd.bind(this);
 
     document.addEventListener('pointerlockchange', this._onLockChange);
+    document.addEventListener('pointerlockerror', this._onLockError);
     document.addEventListener('mousemove', this._onMouseMove);
     window.addEventListener('keydown', this._onKeyDown);
     window.addEventListener('keyup', this._onKeyUp);
+
+    this.canvas.addEventListener('pointerdown', this._onDragStart);
+    window.addEventListener('pointermove', this._onDragMove);
+    window.addEventListener('pointerup', this._onDragEnd);
+    window.addEventListener('pointercancel', this._onDragEnd);
+    // A drag on a touch screen must not scroll the page under the canvas.
+    this.canvas.style.touchAction = 'none';
   }
 
   spawn(x, z, yaw = 0) {
@@ -50,31 +72,80 @@ export class Controls {
   }
 
   requestLock() {
-    if (!this.canvas.requestPointerLock) return;
-    const r = this.canvas.requestPointerLock();
-    if (r && typeof r.catch === 'function') r.catch(() => {});
+    if (this.lockDenied || !this.canvas.requestPointerLock) return;
+    let r;
+    try { r = this.canvas.requestPointerLock(); }
+    catch { this._denyLock(); return; }
+    if (r && typeof r.catch === 'function') r.catch(() => this._denyLock());
   }
 
   releaseLock() {
     if (document.pointerLockElement) document.exitPointerLock();
   }
 
+  _denyLock() {
+    if (this.lockDenied) return;
+    this.lockDenied = true;
+    this.locked = false;
+    // Nothing is broken. The player just looks a different way from now on.
+    bus.emit('controls:lockDenied');
+  }
+
+  _onLockError() { this._denyLock(); }
+
   _onLockChange() {
     this.locked = document.pointerLockElement === this.canvas;
+    if (this.locked) this.lockDenied = false;
     bus.emit('controls:lock', this.locked);
   }
 
   _onMouseMove(e) {
     if (!this.locked || !this.enabled) return;
-    this.yaw -= e.movementX * P.lookSensitivity;
-    this.pitch -= e.movementY * P.lookSensitivity;
+    this._look(e.movementX * P.lookSensitivity, e.movementY * P.lookSensitivity);
+  }
+
+  /* ---------------------------------------------------------------- */
+  /* drag to look — the fallback that makes an embedded frame playable */
+  /* ---------------------------------------------------------------- */
+
+  _onDragStart(e) {
+    if (!this.enabled || this.locked || this._dragId !== null) return;
+    if (e.pointerType === 'mouse' && e.button !== 0) return;
+    this._dragId = e.pointerId;
+    this.dragging = true;
+    this._dragX = e.clientX;
+    this._dragY = e.clientY;
+    if (this.canvas.setPointerCapture) {
+      try { this.canvas.setPointerCapture(e.pointerId); } catch { /* not fatal */ }
+    }
+  }
+
+  _onDragMove(e) {
+    if (!this.dragging || e.pointerId !== this._dragId || !this.enabled) return;
+    const dx = e.clientX - this._dragX;
+    const dy = e.clientY - this._dragY;
+    this._dragX = e.clientX;
+    this._dragY = e.clientY;
+    this._look(dx * P.dragSensitivity, dy * P.dragSensitivity);
+  }
+
+  _onDragEnd(e) {
+    if (this._dragId === null || (e && e.pointerId !== this._dragId)) return;
+    this._dragId = null;
+    this.dragging = false;
+  }
+
+  _look(dYaw, dPitch) {
+    this.yaw -= dYaw;
+    this.pitch -= dPitch;
     this.pitch = Math.max(-P.maxPitch, Math.min(P.maxPitch, this.pitch));
   }
 
   _onKeyDown(e) {
     this.keys[e.code] = true;
     if (e.code === 'ControlLeft' || e.code === 'KeyC') this.crouching = true;
-    if (['KeyW','KeyA','KeyS','KeyD','Space'].includes(e.code)) e.preventDefault();
+    if (['KeyW','KeyA','KeyS','KeyD','Space',
+         'ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.code)) e.preventDefault();
   }
 
   _onKeyUp(e) {
@@ -82,10 +153,19 @@ export class Controls {
     if (e.code === 'ControlLeft' || e.code === 'KeyC') this.crouching = false;
   }
 
-  clearKeys() { this.keys = Object.create(null); this.crouching = false; }
+  clearKeys() {
+    this.keys = Object.create(null);
+    this.crouching = false;
+    this._onDragEnd(null);
+  }
 
   update(dt) {
     if (!this.enabled) { this.velocity.set(0, 0, 0); return; }
+
+    // Arrow keys look, always, whether or not the mouse is captured.
+    const lookX = (this.keys.ArrowRight ? 1 : 0) - (this.keys.ArrowLeft ? 1 : 0);
+    const lookY = (this.keys.ArrowDown ? 1 : 0) - (this.keys.ArrowUp ? 1 : 0);
+    if (lookX || lookY) this._look(lookX * P.keyLookSpeed * dt, lookY * P.keyLookSpeed * dt);
 
     const fwd = (this.keys.KeyW ? 1 : 0) - (this.keys.KeyS ? 1 : 0);
     const strafe = (this.keys.KeyD ? 1 : 0) - (this.keys.KeyA ? 1 : 0);
@@ -163,9 +243,14 @@ export class Controls {
 
   dispose() {
     document.removeEventListener('pointerlockchange', this._onLockChange);
+    document.removeEventListener('pointerlockerror', this._onLockError);
     document.removeEventListener('mousemove', this._onMouseMove);
     window.removeEventListener('keydown', this._onKeyDown);
     window.removeEventListener('keyup', this._onKeyUp);
+    this.canvas.removeEventListener('pointerdown', this._onDragStart);
+    window.removeEventListener('pointermove', this._onDragMove);
+    window.removeEventListener('pointerup', this._onDragEnd);
+    window.removeEventListener('pointercancel', this._onDragEnd);
   }
 }
 

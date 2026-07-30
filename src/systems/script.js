@@ -60,6 +60,14 @@ export class Script {
   onWake(day) {
     this.pending = EVENTS.filter(e => e.day === day).map(e => ({ ...e, fired: false }));
 
+    // §6. He puts something on while he cooks. The same handful of tracks
+    // across days 2–8, and after Day 9 it never plays again — which is the
+    // emotional score of the entire second act.
+    if (day >= 2 && day <= 8) {
+      setTimeout(() => audio.startMusic(day % 3), 9000);
+      setTimeout(() => audio.stopMusic(), 150000);
+    }
+
     const opener = OPENERS[day];
     if (opener) setTimeout(() => this.ctx.ui.say(opener, 7000), 700);
 
@@ -89,6 +97,27 @@ export class Script {
   }
 
   /**
+   * Grant a flag only if the player actually watched the thing, for as long
+   * as it was there to watch. The curtain being open is not the same as
+   * having looked, and understanding is only ever earned by looking.
+   */
+  grantOnSight(ids, seconds, flag, why) {
+    const camera = this.ctx.camera;
+    const street = this.ctx.world.street;
+    const until = performance.now() + seconds * 1000;
+    const check = () => {
+      if (state.ended) return;
+      if (state.curtainOpen && !this.ctx.ui.isOpen &&
+          ids.some(id => street.lookingAt(camera, id, 16))) {
+        understanding.grant(flag, why);
+        return;
+      }
+      if (performance.now() < until) requestAnimationFrame(check);
+    };
+    requestAnimationFrame(check);
+  }
+
+  /**
    * The Tormentor reads noise and light. The Incursion reads that somebody
    * lives here. Some behaviours that hide you from one expose you to the
    * other, and this is the only feedback the game ever gives about it.
@@ -107,7 +136,7 @@ export class Script {
           'And there are things on the street going through what is left of it, unhurried, working. ' +
           'They are always after. They have never once been before.',
           8000);
-        if (state.curtainOpen) understanding.grant('gleaners_follow', 'the morning');
+        this.grantOnSight(['gleaner.a', 'gleaner.b'], 45, 'gleaners_follow', 'the morning');
         setTimeout(() => {
           world.street.show('gleaner.a', false);
           world.street.show('gleaner.b', false);
@@ -147,16 +176,34 @@ export class Script {
         break;
 
       case 'collapse': {
-        audio.play(e.near ? 'collapse_near' : 'collapse_distant');
-        effects.shake(e.near ? 0.9 : 0.35, e.near ? 2.0 : 1.2);
-        ui.say(e.text, 7000);
-        // The pause is it standing in the wreckage. The player learns to
-        // count the gaps; the game never says what the number means.
+        /* §3 + §4.1. ONCE in the whole game, the compressor is forced off
+         * so that the collapse arrives into a room that has just gone
+         * quiet. It is never repeated, and nothing marks it. */
+        const trick = !state.eventsFired.fridgeTrick && state.day === 8;
+        const lead = trick && audio.forceFridgeOff() ? 1500 : 0;
+        if (lead) state.eventsFired.fridgeTrick = state.day;
+
         setTimeout(() => {
-          audio.play('tormentor_pause');
-          ui.say(`…${e.gap}.`, 2600);
-          setTimeout(() => audio.play('collapse_distant'), 900);
-        }, (e.gap || 6) * 900);
+          audio.play(e.near ? 'collapse_near' : 'collapse_distant');
+          effects.shake(e.near ? 0.9 : 0.35, e.near ? 2.0 : 1.2);
+          ui.say(e.text, 7000);
+
+          /* The gap IS the sound: it is the Tormentor standing in the
+           * wreckage waiting to see if anything runs. Gap length is real
+           * information and it is never explained. */
+          setTimeout(() => {
+            audio.play('tormentor_pause');
+            setTimeout(() => {
+              // The second one is nearer if the gap was short. Direction
+              // and distance are real, so the player hears it close.
+              const nearer = (e.gap || 6) <= 5;
+              audio.play(nearer ? 'collapse_near' : 'collapse_distant',
+                { dz: nearer ? 6 : 0 });
+              if (nearer) effects.shake(0.5, 1.4);
+            }, 900);
+          }, (e.gap || 6) * 1000);
+        }, lead);
+
         if (state.day >= 8) understanding.grant('tormentor_noise_light', 'the gaps');
         break;
       }
@@ -174,7 +221,8 @@ export class Script {
         world.street.show('gleaner.c', true);
         audio.play('gleaner_chitter');
         ui.say(e.text, 7000);
-        if (state.curtainOpen) understanding.grant('gleaners_follow', 'the window');
+        this.grantOnSight(['gleaner.a', 'gleaner.b', 'gleaner.c'], 60,
+                          'gleaners_follow', 'the window');
         setTimeout(() => {
           world.street.show('gleaner.a', false);
           world.street.show('gleaner.b', false);
@@ -183,8 +231,8 @@ export class Script {
         break;
 
       case 'silence':
-        audio.stop('bed_street_night');
-        audio.play('bed_silence_total', { loop: true });
+        // Every layer. Not a fade — a cut. Held longer than is comfortable.
+        audio.bed('bed_silence_total', { seconds: 13 });
         effects.atmosphere('silence', 4);
         ui.say(e.text, 7000);
         understanding.grant('anguish_silence', 'the street');

@@ -31,6 +31,26 @@ function generation(d) {
 /** Which files carry a plate, and what it is. */
 const PLATES = {
   d03: { kind: 'tablet' },
+  // §8.2 — Zānuwām is never rendered in the world. This is the only place
+  // anybody has ever seen it: a plate drawn from testimony, in Persis,
+  // by somebody who was told about it.
+  d05: { kind: 'archive', entity: 'zanuwam', opts: {
+    title: 'The Zānuwām, as described at Persis',
+    sub: 'Drawn after the account of ██████████, from the Ctesiphon roll.\nThe head is reported without variation. Nothing else is.',
+    accession: 'CF acc. 1992·031 / pl. ii',
+    stamp: 'EXAMINED 1953',
+    scale: 0.70,
+  } },
+  // §8.1 — no sighting, no photograph, no window event, in 2,500 years.
+  // One engraving, made in 1897 by the man who chose the wrong word.
+  d04: { kind: 'archive', entity: 'king', opts: {
+    title: 'The Crippled King upon his Throne',
+    sub: 'From the Tyre tablet, after ██████████, 1897.\nThe crown and the seat are described as made by no hand.',
+    accession: 'CF acc. 1991·067 / pl. i',
+    stamp: 'DO NOT COPY',
+    paper: '#d2c6a6',
+    scale: 0.72,
+  } },
   d10: { kind: 'evidence', opts: { id: 'd10', marker: 2, tone: '#1c1414',
     exhibit: 'EXHIBIT 9‑A   CF‑1996‑0202   PLATE 1 OF 4',
     caption: 'Recovered at 400 m from site. Material is not identified. Scale in cm.' } },
@@ -117,14 +137,22 @@ function renderDoc(host, args, nav, day) {
   // The plate, if this file has one.
   const plate = PLATES[d.id];
   if (plate) {
-    const src = plate.kind === 'tablet' ? IMG.tabletPlate() : IMG.evidencePlate(plate.opts);
+    const src = plate.kind === 'tablet' ? IMG.tabletPlate()
+      : plate.kind === 'archive' ? IMG.archivePlate(plate.entity, plate.opts)
+      : IMG.evidencePlate(plate.opts);
+    const alt = plate.kind === 'tablet'
+      ? 'Photographic plate, clay tablet, scale reference obscured.'
+      : plate.kind === 'archive'
+        ? 'An aged engraved plate, foxed and water-marked, of ' + plate.opts.title
+        : 'Evidence photograph with scale and marker.';
+    const cap = plate.kind === 'tablet'
+      ? 'PLATE 3 — recovered object, obverse. Scale reference withheld under standing guidance.'
+      : plate.kind === 'archive'
+        ? plate.opts.accession + ' — plate as recovered. No conservation has been attempted.'
+        : plate.opts.exhibit;
     scan.appendChild(h('div', { class: 'plate' },
-      h('img', { src, alt: plate.kind === 'tablet'
-        ? 'Photographic plate, clay tablet, scale reference obscured.'
-        : 'Evidence photograph with scale and marker.' }),
-      h('div', { class: 'cap' }, plate.kind === 'tablet'
-        ? 'PLATE 3 — recovered object, obverse. Scale reference withheld under standing guidance.'
-        : (plate.opts.exhibit))));
+      h('img', { src, alt }),
+      h('div', { class: 'cap' }, cap)));
   }
 
   // Marginalia. A later hand contradicting an earlier one.

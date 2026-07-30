@@ -205,3 +205,63 @@ hr.rule { border: 0; border-top: 1px solid #1c1f23; margin: 20px 0; }
   #overlay.noise-mild::after, #overlay.noise-heavy::after { animation: none; }
   #overlay { transition: none; }
 }
+
+
+/* ---------------- sound captions (§8) ----------------
+ * Directional, because direction is gameplay. These are not decoration:
+ * a player who cannot hear must still be able to count the gaps.
+ */
+#captions {
+  position: absolute; left: 50%; bottom: 21%; transform: translateX(-50%);
+  width: min(760px, 84vw); display: flex; flex-direction: column;
+  align-items: center; gap: 4px; pointer-events: none;
+}
+#captions .cap {
+  background: rgba(4,5,7,0.72); border-left: 2px solid #8d9a7c;
+  color: #dfe4d4; font-size: 14px; letter-spacing: 0.02em;
+  padding: 4px 12px; max-width: 100%; text-align: left;
+  transition: opacity 380ms ease;
+}
+#captions .cap.soft { color: #97a08c; font-size: 12.5px; border-left-color: #4d5545; }
+#captions .cap.big { font-size: 16px; border-left-color: #c9a05a; color: #efe7d6; }
+#captions .cap.out { opacity: 0; }
+
+#audio-compass {
+  position: absolute; left: 50%; top: 50%; width: 220px; height: 220px;
+  margin: -110px 0 0 -110px; pointer-events: none;
+  transform: rotate(var(--deg, 0deg));
+  color: #c9a05a; font-size: 22px; text-align: center; line-height: 1;
+  opacity: 0.8;
+}
+#audio-compass[data-low] { color: #8d7ac9; }
+
+/* ---------------- the look-mode hint ----------------
+   Chrome, not content: when the browser refuses pointer lock (an embedded
+   frame does), the player has to be told how to look. Clean and legible. */
+#look-hint {
+  /* Top centre: the bottom half of the screen belongs to his voice and to
+     the captions, and nothing may sit on top of either. */
+  position: absolute; left: 50%; top: 22px; transform: translateX(-50%);
+  pointer-events: none; z-index: 12;
+  padding: 8px 16px; border: 1px solid #34383f; background: rgba(8,9,10,0.82);
+  color: #b9b3a6; font-size: 12px; letter-spacing: 0.09em; white-space: nowrap;
+  transition: opacity 700ms linear;
+}
+#look-hint.hidden { display: none; }
+#look-hint.fading { opacity: 0; }
+
+/* ---------------- the photosensitivity notice ---------------- */
+#warning {
+  position: fixed; inset: 0; z-index: 60; background: #000;
+  display: flex; align-items: center; justify-content: center;
+}
+#warning.hidden { display: none; }
+.warn-inner { max-width: 620px; padding: 0 28px; color: #b9b3a6; }
+.warn-inner h2 { font-size: 16px; letter-spacing: 0.22em; color: #ded7c8;
+  font-weight: 400; margin: 0 0 22px; }
+.warn-inner p { font-size: 14px; line-height: 1.75; margin: 0 0 16px; }
+.warn-inner b { color: #dcd5c6; }
+#warn-ok { margin-top: 16px; background: #101214; border: 1px solid #3a3e45;
+  color: #cbc4b6; padding: 10px 22px; font: inherit; font-size: 13px; cursor: pointer;
+  letter-spacing: 0.08em; }
+#warn-ok:hover { border-color: #6a6f78; color: #ece5d6; }

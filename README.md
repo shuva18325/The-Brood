@@ -12,16 +12,16 @@ shotgun, and everything he owned.
 
 ---
 
-## Status: PROMPT 2 (GRAPHICS) — complete
+## Status: PROMPT 3 (AUDIO & RELEASE) — complete
 
-All fifteen days are playable, all three endings resolve, and the game now
-looks like something. There is still no sound.
+All fifteen days are playable, all three endings resolve, the game looks like
+something, and it can be heard. **Headphones. The mix is quiet on purpose.**
 
 | Prompt | Owns | State |
 |---|---|---|
 | 1 | Systems, content, structure. Everything runnable. | **done** |
 | 2 | `effects.js` + tuning `config.js`. Lighting, grade, horror effects. | **done** |
-| 3 | `audio.js`. Ambient bed, positional cues, bugs. | not started |
+| 3 | `audio.js` + `snd/`. The absence arc, room tone, cues, release testing. | **done** |
 
 ### The thesis
 
@@ -47,23 +47,67 @@ npm start          # python3 -m http.server 8080  →  http://localhost:8080
 ```
 
 Three.js is vendored in `vendor/three/` — nothing is fetched at runtime, and
-the game works offline.
+the game works offline. There are no asset files at all: every texture, every
+photograph, every document and every sound is generated at load.
 
-**Controls** — `WASD` move · mouse look · `E` interact · `C` crouch · `Esc` back / pause.
+**Controls** — `WASD` move · mouse, drag, or arrow keys to look · `E` interact ·
+`C` crouch · `Esc` back / pause.
+
+Mouse look uses pointer lock. A page embedded in a sandboxed frame is refused
+pointer lock by the browser, so **drag-to-look and arrow-key look are always
+live**, and the game says so once if the lock is denied. The refusal is
+detected, never swallowed.
+
+## Building the single file
+
+```
+npm run build              # dist/the-brood.html — standalone, opens from disk
+npm run build:artifact     # same, minus the document skeleton, for a host
+                           # that supplies its own <head>
+```
+
+esbuild inlines every module, all three stylesheets and the vendored three.js
+into one HTML file (~990 KB). It runs under a strict CSP with no external
+hosts because it never had anything to fetch.
 
 ## Verifying it
 
 ```
-npm install        # playwright, dev only
-npm run verify
+npm install                # playwright + esbuild, dev only
+npm run verify             # 104 checks against the source
+npm run verify:artifact    # 16 checks against the built file, inside a
+                           # sandboxed iframe with no pointer lock and no
+                           # same-origin storage
+npm run shot -- out.png 12 22.5 0.37   # a frame at a given day/hour/heading
 ```
 
 `tools/verify.mjs` serves the game, drives it headlessly through
-`window.BROOD`, and checks 48 things: that Day 1 reaches Day 15, that Act 2
-opens on Day 10, that all three endings resolve, that the two detection
-profiles diverge, that waiting makes the car worth less, that reading the
-impact log beats that clock, that the Understanding score never appears in the
-DOM, and that the effects/audio stub contracts are intact.
+`window.BROOD`, and checks 104 things across three groups:
+
+- **Systems** — Day 1 reaches Day 15, Act 2 opens on Day 10, all three endings
+  resolve, the two detection profiles diverge, waiting makes the car worth
+  less, reading the impact log beats that clock, the Understanding score never
+  appears in the DOM.
+- **Audio** — every one of the 102 cues renders, the absence arc removes the
+  right layer on the right day, the master is unlimited by default, each room
+  has its own impulse response, the Anguish gate reaches *actual zero*, the
+  compressor trick fires exactly once, the EAS chain is right for each day, the
+  anchor desync grows, and captions carry direction.
+- **Release** — save/load at all fifteen boundaries plus mid-screen and
+  mid-event, a soft-lock hunt across every overlay, the flag audit, Day 9→10
+  under sixteen state combinations, careless-versus-careful balance, and 900
+  cues in a row without losing the audio context.
+
+`tools/verify-artifact.mjs` then boots the *built* file the way the host will:
+inside `sandbox="allow-scripts"`, where pointer lock is refused and
+`localStorage` throws. It checks the notice comes up first, a new game starts,
+the room is actually lit (it samples the framebuffer), drag-look and the walls
+work, audio starts on a gesture, a screen opens and closes, and fourteen sleeps
+still reach the fifteenth day.
+
+> Both harnesses run under SwiftShader software rasterisation at roughly one
+> frame per second. Every frame-rate number this container could produce is
+> meaningless, so none is reported. Performance figures need real hardware.
 
 ---
 
@@ -97,6 +141,13 @@ src/
     entityArt.js           the entities, drawn in three layers
     photo.js               the degradation that makes a drawing a photograph
 
+  snd/
+    synth.js               every generator: noise, impulse responses, the
+                           collapse, voice prints, the EAS tones, the CRT whine
+    engine.js              buses, the gate that makes true silence possible,
+                           per-room convolution, HRTF placement
+    world.js               room tone, the absence arc, the fridge, the TV
+
   systems/
     clock.js               time of day; runs behind overlays too
     concealment.js         the master clock, and the two detection profiles
@@ -117,6 +168,7 @@ src/
 
   ui/
     index.js               the freeze-and-overlay manager + settings
+    captions.js            directional captions, the silence, the compass
     imagery.js             every on-screen image, generated on a canvas
     css/base.css           the game's own chrome (HUD, plate, menu)
     css/web.css            the news site, the forum, the sheet, scans
@@ -162,16 +214,15 @@ string. What the bodies now do:
 - `pathogenManifest()` stops the frame and recolours the monitor's light in
   the 3D room. No creature.
 
-### `audio.js` — prompt 3
+### `audio.js` — implemented in prompt 3
 
-`CUES` is the full vocabulary and it is already exhaustive; adding cues is
-fine, needing prompt 1 edited is not. `play(cue, {at, loop, …})`, `stop(cue)`,
-`bed(cue)`, `duck()`. An unknown cue warns to console, which is how a typo in a
-system module gets caught.
+The prompt-1 contract is unchanged and nothing upstream needed editing:
+`play(cue, {at, loop, …})`, `stop(cue)`, `bed(cue)`, `duck()`, `master()`, and
+an unknown cue still warns to console. `snd/` sits behind it, and no system
+module imports `snd/` directly.
 
-Sound does enormous work in this game. The gaps between the collapses, the
-total silence that means Anguish, the static on Day 15 that is the loudest
-thing in the apartment — those are all already emitted as events.
+Nothing is a sample. Every sound in the game is synthesised at runtime from
+noise buffers, oscillators, biquads and procedural impulse responses.
 
 ### `config.js`
 
@@ -204,6 +255,113 @@ curtain. Two things it depends on and neither is obvious: the shadow
 `normalBias` must stay far below the bar radius (32 mm) or the sample offsets
 straight past them, and the apartment needs a **roof** — never seen — or the
 cone clears the wall tops and floods the interior from above.
+
+The window is *two* lights, not one. The beam through the bars is the direct
+half; `windowFill` is the diffuse half — sky bounce through the same aperture,
+wide, soft, shadowed by the walls but deliberately **not** by the bars, because
+there is only ever one bar-shadow in this game. It uses `decay: 1`, not 2: a
+1.5 m aperture is an area source, and inverse-square is the wrong law for one
+at these distances — it would blow out the near wall to get any light onto the
+far one. That is why its intensities are single digits next to the beam's four.
+Different exponent, different units.
+
+Without it a daytime room renders as a night room with a stripe in it, because
+a rasteriser has no bounce light. It is worth almost nothing after sunset,
+which is the whole arrangement: **daylight is free, and sodium light is a
+stripe on the floor.** Every day therefore opens with the curtain open — he
+opens it at seven, an open window costs almost nothing before dark, and it
+means the first thing anyone sees is the bars laid across the floor.
+
+### Surfaces
+
+Every large surface carries a **normal map and a roughness map derived by Sobel
+from its own diffuse texture** (`normalFrom` / `roughFrom` in
+`world/materials.js`). No files, no extra triangles: it is what stops low-poly
+geometry in low light reading as flat polygons — the light gets something to
+catch on the plaster, the brick edges and the laminate seams.
+
+The trap is that a noisy height field turns into television snow the moment any
+light reaches it, because the Sobel gradient of noise is a field of 45° normals.
+Ceilings are the worst case, seen at a grazing angle: the ceiling's relief is
+`0.7` strength at `0.30` scale, against `2.8` for brick. **When a surface
+sparkles, lower its normal strength — do not lower the light.**
+
+---
+
+## The sound
+
+Nothing is a sample. Every sound is synthesised at runtime.
+
+### The absence arc — the most important thing in the mix
+
+The horror is **subtraction, and it is never cued.** A layer that is gone is
+simply not in today's bed; there is no sting, no swell, no attention drawn.
+
+| Layer | Last heard |
+|---|---|
+| Children outside | Day 3 |
+| Dogs | Day 4 |
+| Birds | Day 5 |
+| The neighbour's television | Day 6 |
+| Traffic | Day 7 |
+| Sirens (which only start on Day 4) | Day 8 |
+| The highway, two miles off | Day 10 |
+| Air-conditioning units | Day 12 |
+
+`LAYERS` in `snd/world.js` is the whole thing — a table of last days. The room
+tone itself thins with it: the mains hum loses its harmonics as the building
+empties, because there is less of the building drawing power.
+
+### The fridge is a masking system
+
+The compressor is the loudest thing in the apartment and it cycles all game.
+It is there so that **it can stop.** Exactly once, a distant collapse is timed
+against a forced compressor-off, so the room goes quiet at the moment there is
+something to hear. That trick fires once and is never repeated. From Day 12 it
+starts hard, with a thump and a rattle. On Day 14 it dies for good, and the
+food and the white noise go together.
+
+### Signature sounds
+
+- **Collapses** are brown noise, a sine sweep from 64 down to 19 Hz, and a
+  debris tail through a distance-dependent lowpass. The gaps between them are
+  the composition, not the hits.
+- **Crawlers** are always below waist height and behind you: `y: 0.12`, placed
+  to the side of the camera, never in front.
+- **Anguish is absolute digital silence** — a hard gate node at zero, a cut and
+  not a fade. Every bus routes through it. When it lifts, the room tone comes
+  back alone, over two seconds.
+- **The Choir** replays a voice print the player has already heard, with the
+  formants shifted, the pitch drifting, and the phrasing accumulating error.
+- **The CRT whine** is 15,734 Hz — the NTSC horizontal line rate, which is why
+  televisions of that era whined at that pitch.
+- **The EAS attention tone** is 853 Hz and 960 Hz together, which is the real
+  specification. From Day 10 the tone is correct and the *message* is wrong.
+  On Day 14 the tone plays with no message behind it. On Day 15 it does not
+  stop. The anchor's audio drifts out of sync with his mouth by
+  `CONFIG.tv.desyncMsByDay`, and it only ever grows.
+
+### Music
+
+Almost none, and all of it diegetic. He puts something on while he cooks,
+Days 2–8 — three seeded pentatonic tracks through a highpass and a peaking EQ
+so they sound like a phone speaker in another room. **After Day 9 it never
+plays again**, and that absence is the score of the whole second act.
+
+### The mix
+
+Quiet and uncompressed. The master sits at 0.55 and the limiter is a *toggle*,
+off by default, so a loud event is actually loud. Screens duck the world.
+Positional cues use HRTF panning and per-room convolution — six impulse
+responses, generated procedurally; the bathroom rings for 850 ms and the
+bedroom is the deadest room in the flat.
+
+### Captions are a correctness requirement, not a courtesy
+
+The game hides survival-critical information in audio, so captions carry
+**direction**: `[distant collapse — north]`, `[scratching, low, near the door
+— below — east]`. They are on by default. There is also an optional on-screen
+compass, off by default, for players who want the bearing without the text.
 
 ---
 
@@ -238,7 +396,12 @@ is also a light switch: no glass means daylight enters freely when it's open.
   pause menu. `prefers-reduced-motion` forces it on and locks the control.
   Every luminance flash is amplitude-capped and rate-limited to 3 Hz in both
   modes; nothing in the game requires seeing one.
-- **Volume** in the same panel. Both choices persist per machine.
+- **A photosensitivity notice before the title screen**, not buried in a menu.
+- **Captions for every sound, with direction**, on by default, because the game
+  hides survival-critical information in audio. An optional audio compass too.
+- **Four separate volume sliders** — master, ambient, effects, interface — and
+  a limiter toggle for players who need the loud events tamed.
+- Every choice persists per machine.
 - Keyboard focus stays visible on every 2D surface; sites, tabs, files and
   mail rows are all reachable by tab and Enter.
 - Post is a single fullscreen pass on one render target, pixel ratio capped

@@ -91,6 +91,17 @@ export class Lighting {
     // Shadow work is wasted when the light is off.
     shaft.castShadow = shaft.intensity > 0.05;
 
+    // The diffuse half of the same window. Same curtain, same grid, no
+    // shadow — and it goes with the sun rather than with the streetlamp.
+    const W = CONFIG.light.windowFill;
+    const WP = W[phase] || W.night;
+    const fill = this.apt.dynamic.windowFill;
+    if (fill) {
+      fill.color.lerp(this._c.set(WP.color), k);
+      fill.intensity = lerp(fill.intensity,
+        state.curtainOpen ? WP.intensity * (phase === 'night' ? gridOn : 1) : 0, k * 1.8);
+    }
+
     /* ---- screens --------------------------------------------------- */
     const D = this.apt.dynamic;
     const sdim = effects.screenDim();

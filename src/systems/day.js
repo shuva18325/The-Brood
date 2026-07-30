@@ -88,6 +88,9 @@ export const day = {
     state.waterRunning = false;
     state.cooking = false;
     state.fridgeOpen = false;
+    // Whatever he did last night, he opens the curtain in the morning. It is
+    // seven o'clock and daylight is the one thing here that is free.
+    state.curtainOpen = true;
     for (const k of Object.keys(state.lights)) state.lights[k] = false;
     clock.reset(CONFIG.clock.wakeHour);
 

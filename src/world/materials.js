@@ -100,14 +100,24 @@ const TEX = {
     grain(g, s, s, 14, 6);
   }),
 
+  /* Artex, painted over twice. The stipple has to stay low-contrast: a
+   * ceiling is lit at a grazing angle and a noisy height field up there
+   * turns into television snow the moment any light reaches it. */
   ceiling: () => canvas(256, (g, s) => {
-    g.fillStyle = '#adaa9e'; g.fillRect(0, 0, s, s);
-    // artex-ish stipple, because of course
-    for (let i = 0; i < 1400; i++) {
-      g.fillStyle = `rgba(${130 + Math.random() * 40 | 0},${128 + Math.random() * 36 | 0},${118 + Math.random() * 30 | 0},0.35)`;
-      g.beginPath(); g.arc(Math.random() * s, Math.random() * s, 1 + Math.random() * 3, 0, 7); g.fill();
+    g.fillStyle = '#a7a498'; g.fillRect(0, 0, s, s);
+    for (let i = 0; i < 620; i++) {
+      g.fillStyle = `rgba(${150 + Math.random() * 24 | 0},${148 + Math.random() * 22 | 0},${138 + Math.random() * 20 | 0},0.13)`;
+      g.beginPath(); g.arc(Math.random() * s, Math.random() * s, 2 + Math.random() * 5, 0, 7); g.fill();
     }
-    grain(g, s, s, 12, 4);
+    // The long brown bloom over the kitchen end. It is not going to be dealt with.
+    for (let r = 0; r < 4; r++) {
+      g.strokeStyle = `rgba(${142 - r * 8},${128 - r * 9},${104 - r * 8},${0.13 - r * 0.024})`;
+      g.lineWidth = 8 + r * 6;
+      g.beginPath();
+      g.ellipse(s * 0.30, s * 0.66, s * (0.09 + r * 0.05), s * (0.05 + r * 0.03), 0.7, 0, 7);
+      g.stroke();
+    }
+    grain(g, s, s, 8, 3);
   }),
 
   /* Worn laminate. Seams visible. One edge lifted, near the door. */
@@ -321,6 +331,98 @@ function tex(name) {
   return cache.get(name);
 }
 
+/**
+ * A normal map, derived from the diffuse texture's own luminance by Sobel.
+ *
+ * This is the single highest-value thing in the file. Low-poly geometry in
+ * low light reads as flat polygons because there is no surface variation
+ * for the light to catch; a normal map gives the plaster its texture, the
+ * bricks their edges and the laminate its seams, without adding a triangle.
+ *
+ * @param strength 0..~4 — how deep the relief reads.
+ */
+function normalFrom(name, strength = 1.6) {
+  const key = 'N:' + name + strength;
+  if (cache.has(key)) return cache.get(key);
+
+  const source = tex(name);
+  const src = source.image;
+  const w = src.width, h = src.height;
+
+  const rc = document.createElement('canvas');
+  rc.width = w; rc.height = h;
+  const rg = rc.getContext('2d');
+  rg.drawImage(src, 0, 0);
+  const px = rg.getImageData(0, 0, w, h).data;
+
+  // Luminance as a height field.
+  const ht = new Float32Array(w * h);
+  for (let i = 0, p = 0; i < ht.length; i++, p += 4) {
+    ht[i] = (0.2126 * px[p] + 0.7152 * px[p + 1] + 0.0722 * px[p + 2]) / 255;
+  }
+
+  const out = document.createElement('canvas');
+  out.width = w; out.height = h;
+  const og = out.getContext('2d');
+  const img = og.createImageData(w, h);
+  const d = img.data;
+  const at = (x, y) => ht[((y + h) % h) * w + ((x + w) % w)];
+
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      // Sobel, wrapped, so the map tiles exactly like the diffuse does.
+      const gx = (at(x + 1, y - 1) + 2 * at(x + 1, y) + at(x + 1, y + 1))
+               - (at(x - 1, y - 1) + 2 * at(x - 1, y) + at(x - 1, y + 1));
+      const gy = (at(x - 1, y + 1) + 2 * at(x, y + 1) + at(x + 1, y + 1))
+               - (at(x - 1, y - 1) + 2 * at(x, y - 1) + at(x + 1, y - 1));
+
+      let nx = -gx * strength, ny = -gy * strength, nz = 1;
+      const len = Math.hypot(nx, ny, nz) || 1;
+      nx /= len; ny /= len; nz /= len;
+
+      const i = (y * w + x) * 4;
+      d[i]     = (nx * 0.5 + 0.5) * 255;
+      d[i + 1] = (ny * 0.5 + 0.5) * 255;
+      d[i + 2] = (nz * 0.5 + 0.5) * 255;
+      d[i + 3] = 255;
+    }
+  }
+  og.putImageData(img, 0, 0);
+
+  const t = new THREE.CanvasTexture(out);
+  t.wrapS = t.wrapT = THREE.RepeatWrapping;
+  t.anisotropy = 4;
+  cache.set(key, t);
+  return t;
+}
+
+/**
+ * A roughness map, also from the diffuse: darker, damper, dirtier areas
+ * are rougher. Cheap, and it stops every surface having one uniform sheen.
+ */
+function roughFrom(name, lo = 0.72, hi = 1.0) {
+  const key = 'R:' + name + lo + hi;
+  if (cache.has(key)) return cache.get(key);
+  const src = tex(name).image;
+  const w = src.width, h = src.height;
+  const c = document.createElement('canvas');
+  c.width = w; c.height = h;
+  const g = c.getContext('2d');
+  g.drawImage(src, 0, 0);
+  const img = g.getImageData(0, 0, w, h);
+  const d = img.data;
+  for (let i = 0; i < d.length; i += 4) {
+    const lum = (0.2126 * d[i] + 0.7152 * d[i + 1] + 0.0722 * d[i + 2]) / 255;
+    const r = (hi - (hi - lo) * lum) * 255;
+    d[i] = d[i + 1] = d[i + 2] = r;
+  }
+  g.putImageData(img, 0, 0);
+  const t = new THREE.CanvasTexture(c);
+  t.wrapS = t.wrapT = THREE.RepeatWrapping;
+  cache.set(key, t);
+  return t;
+}
+
 export const MAT = {};
 
 export function buildMaterials() {
@@ -328,28 +430,42 @@ export function buildMaterials() {
     map, roughness: 0.94, metalness: 0.0, ...opts,
   });
 
-  MAT.wall        = std(tex('wall'));
-  MAT.wallStained = std(tex('wallStained'));
-  MAT.wallBath    = std(tex('tile'), { roughness: 0.55 });
-  MAT.ceiling     = std(tex('ceiling'));
-  MAT.floorWood   = std(tex('laminate'), { roughness: 0.72 });
-  MAT.floorLino   = std(tex('lino'), { roughness: 0.68 });
-  MAT.floorTile   = std(tex('tile'), { roughness: 0.5 });
-  MAT.brick       = std(tex('brick'));
-  MAT.asphalt     = std(tex('asphalt'), { roughness: 0.98 });
-  MAT.pavement    = std(tex('pavement'));
+  /* Every large surface gets a normal map and a roughness map derived from
+   * its own diffuse. In a room this dark that is what stops a wall reading
+   * as a flat polygon — the light has something to catch. */
+  const surf = (name, nStrength, rLo, rHi, opts = {}) => std(tex(name), {
+    normalMap: normalFrom(name, nStrength),
+    normalScale: new THREE.Vector2(opts.ns ?? 1, opts.ns ?? 1),
+    roughnessMap: roughFrom(name, rLo, rHi),
+    ...opts,
+  });
+
+  MAT.wall        = surf('wall', 1.5, 0.80, 1.0, { ns: 0.9 });
+  MAT.wallStained = surf('wallStained', 1.7, 0.78, 1.0, { ns: 1.0 });
+  MAT.wallBath    = surf('tile', 2.6, 0.22, 0.62, { ns: 1.3, roughness: 0.4 });
+  // A ceiling is only ever seen at a grazing angle. Almost no relief, or the
+  // stipple resolves as snow instead of as plaster.
+  MAT.ceiling     = surf('ceiling', 0.7, 0.90, 1.0, { ns: 0.30 });
+  MAT.floorWood   = surf('laminate', 2.0, 0.44, 0.86, { ns: 1.15, roughness: 0.68 });
+  MAT.floorLino   = surf('lino', 1.8, 0.40, 0.82, { ns: 1.0, roughness: 0.62 });
+  MAT.floorTile   = surf('tile', 2.4, 0.24, 0.60, { ns: 1.2, roughness: 0.42 });
+  MAT.brick       = surf('brick', 2.8, 0.84, 1.0, { ns: 1.4 });
+  MAT.asphalt     = surf('asphalt', 2.2, 0.92, 1.0, { ns: 1.2, roughness: 0.98 });
+  MAT.pavement    = surf('pavement', 2.0, 0.88, 1.0, { ns: 1.1 });
   MAT.kerb        = std(null, { color: 0x4f5049, roughness: 0.95 });
-  MAT.blueHouse   = std(tex('paintBlue'));
-  MAT.curtain     = std(tex('curtain'), { side: THREE.DoubleSide, roughness: 1 });
+  MAT.blueHouse   = surf('paintBlue', 1.6, 0.70, 0.95, { ns: 0.9 });
+  MAT.curtain     = surf('curtain', 2.6, 0.90, 1.0,
+    { ns: 1.5, side: THREE.DoubleSide, roughness: 1 });
   MAT.metal       = std(tex('darkMetal'), { roughness: 0.5, metalness: 0.55 });
-  MAT.barMetal    = std(tex('barMetal'), { roughness: 0.72, metalness: 0.35 });
+  MAT.barMetal    = surf('barMetal', 2.4, 0.40, 0.86,
+    { ns: 1.2, roughness: 0.72, metalness: 0.35 });
   MAT.tyre        = std(tex('tyre'), { roughness: 1 });
   MAT.screenOff   = std(tex('screenOff'), { roughness: 0.22 });
   MAT.paper       = std(tex('paper'), { side: THREE.DoubleSide });
-  MAT.beige       = std(tex('beige'), { roughness: 0.78 });
+  MAT.beige       = surf('beige', 1.0, 0.62, 0.88, { ns: 0.6, roughness: 0.78 });
   MAT.white       = std(tex('applianceWhite'), { roughness: 0.62 });
-  MAT.fabric      = std(tex('fabric'), { roughness: 1 });
-  MAT.blanket     = std(tex('blanket'), { roughness: 1 });
+  MAT.fabric      = surf('fabric', 2.2, 0.92, 1.0, { ns: 1.3, roughness: 1 });
+  MAT.blanket     = surf('blanket', 2.4, 0.90, 1.0, { ns: 1.4, roughness: 1 });
 
   MAT.wood        = std(null, { color: 0x54432f, roughness: 0.88 });
   MAT.woodDark    = std(null, { color: 0x2e2418, roughness: 0.92 });

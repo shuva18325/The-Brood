@@ -238,6 +238,28 @@ export function buildApartment(scene) {
     spot.target = target;
     dynamic.windowShaft = spot;
     dynamic.windowShaftTarget = target;
+
+    /* --- and the daylight that does not come in a beam ---------------
+     * The same aperture, the other half of the same light: sky bounce,
+     * wide, soft, shadowless, and worth nothing after sunset. Without it
+     * a daytime room with an open window renders as a night room with a
+     * stripe in it, because there is no bounce light in a rasteriser.
+     */
+    const F = CONFIG.light.windowFill;
+    const fill = new THREE.SpotLight(0xffffff, 0, F.distance, F.angle, F.penumbra, F.decay);
+    fill.position.set(F.from[0], F.from[1], F.from[2]);
+    fill.castShadow = true;
+    fill.shadow.mapSize.set(1024, 1024);
+    fill.shadow.bias = F.shadowBias;
+    fill.shadow.normalBias = F.shadowNormalBias;
+    fill.shadow.camera.near = 0.4;
+    fill.shadow.camera.far = 18;
+    scene.add(fill);
+    const fillTarget = new THREE.Object3D();
+    fillTarget.position.set(F.to[0], F.to[1], F.to[2]);
+    scene.add(fillTarget);
+    fill.target = fillTarget;
+    dynamic.windowFill = fill;
   }
 
   /* ---------------------------------------------------------------- */

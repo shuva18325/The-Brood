@@ -83,6 +83,39 @@ export const CONFIG = {
     },
 
     /**
+     * The diffuse half of the window: sky bounce coming through the same
+     * hole. Wide, soft, shadowed by the walls but not by the bars, and
+     * worth almost nothing after sunset — which is the whole point. By day
+     * the room is legible for free; at night it is a stripe on the floor.
+     *
+     * This is not "ambient raised to make the room navigable": it sits in
+     * the aperture and it is occluded, so the bathroom stays dark and the
+     * back of the flat stays dark.
+     *
+     * NOTE ON UNITS: decay is 1, not 2. An aperture 1.5 m across is an area
+     * source, not a point, and inverse-square is the wrong law for one at
+     * these distances — it would blow out the near wall to get any light on
+     * the far one. Hence intensities in single digits next to the shaft's
+     * four. Different exponent, different units.
+     */
+    windowFill: {
+      day:   { color: 0x9DB2C6, intensity: 7.6 },
+      dusk:  { color: 0x9A7A5C, intensity: 2.4 },
+      night: { color: 0x2E3646, intensity: 0.52 },
+      dawn:  { color: 0x6B7E94, intensity: 1.8 },
+      distance: 18,
+      decay: 1.0,
+      angle: 1.12,
+      penumbra: 0.48,
+      from: [-4.05, 1.70, -0.2],
+      to:   [2.8, 1.05, 0.1],
+      // Deliberately coarse: this light must be stopped by walls and must
+      // NOT redraw the bars. There is only one bar-shadow in this game.
+      shadowBias: -0.0012,
+      shadowNormalBias: 0.055,
+    },
+
+    /**
      * Interior bulbs. A dying CFL is greenish, cold, and never quite still.
      * Every one of these is a liability and the player knows it.
      */
@@ -183,6 +216,10 @@ export const CONFIG = {
     accel: 12,
     friction: 11,
     lookSensitivity: 0.0021,
+    /** Drag-to-look, used when pointer lock is unavailable (embedded frames). */
+    dragSensitivity: 0.0030,
+    /** Arrow-key look, rad/s. The last resort, and it must be usable. */
+    keyLookSpeed: 1.35,
     maxPitch: Math.PI / 2 - 0.05,
     interactRange: 2.0,
 
@@ -351,7 +388,24 @@ export const CONFIG = {
     flashCapNormal: 0.34,
     /** Max flashes per second, ever, in either mode. */
     maxFlashHz: 3,
+
+    /* Mixing (§7). Separate sliders, because a player who needs the
+     * ambient bed down to hear the captions should not lose the effects. */
     masterVolume: 0.8,
+    ambientVolume: 1.0,
+    effectsVolume: 1.0,
+    interfaceVolume: 0.8,
+    /** A hard limiter for players who cannot risk peaks. OFF by default —
+     *  compressing this master would flatten the only dynamic that matters. */
+    limiter: false,
+
+    /* Captions (§8). This game hides survival-critical information in
+     * audio, so these are a correctness feature. ON by default. */
+    captions: true,
+    /** A visual arrow for positional audio. Off by default. */
+    audioCompass: false,
+    /** The photosensitivity notice, shown once per machine. */
+    warningSeen: false,
   },
 
   /* ------------------------------------------------------------------ */

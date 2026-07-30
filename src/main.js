@@ -71,7 +71,6 @@ const ctx = {
 
 const ui = new UI(ctx);
 ctx.ui = ui;
-ui.loadSettings();
 const script = new Script(ctx);
 ctx.script = script;
 
@@ -115,6 +114,7 @@ function frame() {
 
 canvas.addEventListener('click', () => {
   audio.unlock();
+  ui.applyMix();
   if (state.started && !state.ended && !ui.isOpen && ui.el.menu.classList.contains('hidden')) {
     world.controls.requestLock();
   }
@@ -128,6 +128,11 @@ bus.on('controls:lock', (locked) => {
   }
 });
 
+// Pointer lock refused. The game keeps running; the player drags to look.
+bus.on('controls:lockDenied', () => {
+  if (state.started && !state.ended) ui.lookHint();
+});
+
 /* ------------------------------------------------------------------ */
 /* start / load                                                        */
 /* ------------------------------------------------------------------ */
@@ -135,6 +140,11 @@ bus.on('controls:lock', (locked) => {
 function startNew() {
   reset();
   state.started = true;
+  audio.unlock();
+  ui.applyMix();
+  audio.menuDrone(false);
+  audio.startWorld();
+  audio.applyDay(state.day);
   clock.reset(CONFIG.clock.wakeHour);
   world.applyState();
   world.updateFridge();
@@ -146,6 +156,11 @@ function startNew() {
 
 function continueSaved() {
   state.started = true;
+  audio.unlock();
+  ui.applyMix();
+  audio.menuDrone(false);
+  audio.startWorld();
+  audio.applyDay(state.day);
   world.applyState();
   world.onDayAdvance();
   ui.hideMenu();
@@ -154,6 +169,9 @@ function continueSaved() {
 }
 
 function showTitle() {
+  // One sustained low drone, no melody, no percussion. It needs a gesture
+  // first, so it starts the moment anything is clicked.
+  audio.menuDrone(true);
   const buttons = [];
   if (hasSave()) {
     buttons.push({
@@ -172,7 +190,8 @@ function showTitle() {
     onClick: () => ui.settings(),
   });
   ui.showMenu(buttons,
-    `WASD — move · mouse — look · E — the thing you are looking at · C — crouch · ESC — stop<br>` +
+    `WASD — move · mouse or drag — look · arrow keys also look · ` +
+    `E — the thing you are looking at · C — crouch · ESC — stop<br>` +
     `One save slot. It writes itself when you sleep.`);
 }
 
@@ -184,6 +203,7 @@ if (CONFIG.debug.exposeApi) {
   window.BROOD = {
     ctx, state, bus, audio, effects, world, ui, script,
     clock, concealment, understanding, day, endings,
+    controls: world.controls,
 
     startNew, continueSaved,
 
@@ -235,8 +255,45 @@ if (CONFIG.debug.exposeApi) {
 
 /* ------------------------------------------------------------------ */
 
-showTitle();
+/* ------------------------------------------------------------------ */
+/* the photosensitivity notice, before the title screen (§8)            */
+/* ------------------------------------------------------------------ */
+
+const warnEl = document.getElementById('warning');
+const warnOk = document.getElementById('warn-ok');
+
+function dismissWarning() {
+  CONFIG.a11y.warningSeen = true;
+  ui.saveSettings();
+  warnEl.classList.add('hidden');
+  audio.unlock();
+  ui.applyMix();
+  showTitle();
+}
+
+bus.on('ui:title', () => showTitle());
+
+if (warnOk) warnOk.addEventListener('click', dismissWarning);
+
+ui.loadSettings();
+
+if (CONFIG.a11y.warningSeen) {
+  warnEl.classList.add('hidden');
+  showTitle();
+} else {
+  // The menu is behind the notice; do not show it yet.
+  ui.el.menu.classList.add('hidden');
+}
+
 frame();
+
+/* The absence arc, the fridge, and his music all key off the day. */
+bus.on('day:advance', (day) => {
+  audio.applyDay(day);
+  audio.menuDrone(false);
+});
+
+bus.on('act:two', () => audio.stopMusic());
 
 bus.on('ending:resolved', (r) => {
   ctx.freeze(true);

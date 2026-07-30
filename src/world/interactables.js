@@ -65,6 +65,8 @@ export function buildInteractables(ctx) {
         audio.play('tv_on'); bus.emit('tv:on');
         ui.open('tv');
       } else {
+        // Cutting the power cuts the 15.7 kHz whine with it, and that
+        // absence is a cue in itself.
         audio.play('tv_off');
       }
     },

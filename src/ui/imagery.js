@@ -463,6 +463,136 @@ export function pathogenPlate(w = 420, h = 420) {
   }, (c) => P.jpeg(c, 0.3));
 }
 
+/**
+ * An archival plate — a 19th-century engraving of a thing somebody drew
+ * from testimony, aged to look like the document when it was first found.
+ *
+ * Laid paper, foxing, a plate mark, ink that has bled into the fibre, a
+ * water tide-line, and a pencilled accession number in a curator's hand.
+ * The Foundation did not make this. It inherited it.
+ */
+export function archivePlate(kind, opts = {}) {
+  const w = 460, h = 620;
+  return make('arch.' + kind, w, h, (g, W, H, c) => {
+    /* --- the paper -------------------------------------------------- */
+    g.fillStyle = opts.paper || '#d8cdb0';
+    g.fillRect(0, 0, W, H);
+
+    // Laid lines: the chain and wire marks of hand-made paper.
+    g.strokeStyle = 'rgba(160,146,116,0.22)';
+    g.lineWidth = 1;
+    for (let y = 0; y < H; y += 3) {
+      g.beginPath(); g.moveTo(0, y); g.lineTo(W, y); g.stroke();
+    }
+    g.strokeStyle = 'rgba(150,136,106,0.18)';
+    for (let x = 0; x < W; x += 26) {
+      g.beginPath(); g.moveTo(x, 0); g.lineTo(x, H); g.stroke();
+    }
+
+    // Foxing. The brown blooms are mould, and they are always worst at
+    // the edges where the paper was handled.
+    for (let i = 0; i < 130; i++) {
+      const edge = Math.random() < 0.6;
+      const x = edge ? (Math.random() < 0.5 ? Math.random() * W * 0.16 : W - Math.random() * W * 0.16) : Math.random() * W;
+      const y = edge ? (Math.random() < 0.5 ? Math.random() * H * 0.13 : H - Math.random() * H * 0.13) : Math.random() * H;
+      const r = 2 + Math.random() * 9;
+      const fx = g.createRadialGradient(x, y, 0, x, y, r);
+      fx.addColorStop(0, `rgba(${130 + Math.random() * 30 | 0},${88 + Math.random() * 24 | 0},48,${0.16 + Math.random() * 0.24})`);
+      fx.addColorStop(1, 'rgba(150,110,60,0)');
+      g.fillStyle = fx;
+      g.fillRect(x - r, y - r, r * 2, r * 2);
+    }
+
+    // A water tide-line across one corner. Something was stored badly.
+    g.save();
+    g.globalCompositeOperation = 'multiply';
+    const tide = g.createLinearGradient(0, H * 0.62, W * 0.5, H);
+    tide.addColorStop(0, 'rgba(255,255,255,0)');
+    tide.addColorStop(0.55, 'rgba(176,150,104,0.55)');
+    tide.addColorStop(0.62, 'rgba(150,124,80,0.75)');
+    tide.addColorStop(0.68, 'rgba(214,196,160,0.35)');
+    tide.addColorStop(1, 'rgba(255,255,255,0)');
+    g.fillStyle = tide;
+    g.fillRect(0, 0, W, H);
+    g.restore();
+
+    /* --- the plate mark: the impression the copper plate left --------- */
+    const m = { x: W * 0.085, y: H * 0.075, w: W * 0.83, h: H * 0.70 };
+    g.strokeStyle = 'rgba(122,104,74,0.55)';
+    g.lineWidth = 2.5;
+    g.strokeRect(m.x, m.y, m.w, m.h);
+    g.strokeStyle = 'rgba(232,222,198,0.6)';
+    g.lineWidth = 1;
+    g.strokeRect(m.x + 2, m.y + 2, m.w - 4, m.h - 4);
+
+    /* --- the subject, in engraver's ink ------------------------------ */
+    g.save();
+    g.beginPath(); g.rect(m.x + 3, m.y + 3, m.w - 6, m.h - 6); g.clip();
+
+    // A flat ground: the engraver put it against nothing, because the
+    // testimony did not include a background.
+    g.fillStyle = 'rgba(84,70,48,0.10)';
+    g.fillRect(m.x, m.y + m.h * 0.72, m.w, m.h * 0.28);
+    // Hatching for the ground shadow.
+    g.strokeStyle = 'rgba(76,62,42,0.22)';
+    g.lineWidth = 1;
+    for (let i = 0; i < 90; i++) {
+      const y = m.y + m.h * (0.72 + Math.random() * 0.28);
+      const x = m.x + Math.random() * m.w;
+      g.beginPath(); g.moveTo(x, y); g.lineTo(x + 10 + Math.random() * 26, y + 3); g.stroke();
+    }
+
+    const sw = m.w * (opts.scale || 0.66);
+    drawEntity(g, kind, m.x + (m.w - sw) / 2, m.y + m.h * 0.06, sw);
+    g.restore();
+
+    // Ink bleed: the lines have crept into the fibre for a hundred years.
+    P.chromaBleed(c, 0.6);
+
+    /* --- the caption, letterpress, under the plate mark -------------- */
+    g.fillStyle = 'rgba(52,42,28,0.86)';
+    g.textAlign = 'center';
+    g.font = `italic ${Math.round(H * 0.026)}px Georgia, "Times New Roman", serif`;
+    g.fillText(opts.title || '', W / 2, m.y + m.h + H * 0.055);
+    g.font = `${Math.round(H * 0.020)}px Georgia, serif`;
+    g.fillStyle = 'rgba(70,58,40,0.78)';
+    const sub = (opts.sub || '').split('\n');
+    sub.forEach((line, i) => g.fillText(line, W / 2, m.y + m.h + H * (0.085 + i * 0.028)));
+    g.textAlign = 'left';
+
+    /* --- a curator's pencil, bottom left ---------------------------- */
+    g.save();
+    g.translate(W * 0.10, H * 0.955);
+    g.rotate(-0.035);
+    g.fillStyle = 'rgba(58,58,68,0.62)';
+    g.font = `${Math.round(H * 0.024)}px "Segoe Script", "Bradley Hand", cursive`;
+    g.fillText(opts.accession || '', 0, 0);
+    g.restore();
+
+    // And an inspection stamp somebody put on it in the wrong decade.
+    if (opts.stamp) {
+      g.save();
+      g.translate(W * 0.70, H * 0.90);
+      g.rotate(-0.14);
+      g.strokeStyle = 'rgba(108,58,52,0.42)';
+      g.lineWidth = 2;
+      g.strokeRect(-58, -16, 116, 32);
+      g.fillStyle = 'rgba(108,58,52,0.48)';
+      g.font = `bold ${Math.round(H * 0.020)}px Arial, sans-serif`;
+      g.textAlign = 'center';
+      g.fillText(opts.stamp, 0, 6);
+      g.textAlign = 'left';
+      g.restore();
+    }
+
+    // Finally: it is a photograph OF a plate, taken on a flatbed in 1998.
+    P.cast(c, 1.05, 1.0, 0.90, 0.55);
+    P.noise(c, 13);
+    P.resample(c, 0.78);
+    P.vignette(c, 0.30);
+  }, (c) => P.jpeg(c, 0.46));
+}
+
 /** SMPTE colour bars, for off-air hours. Drawn correctly, on purpose. */
 export function colourBars(w = 640, h = 480) {
   return make('bars', w, h, (g, W, H) => {
@@ -482,4 +612,5 @@ export function colourBars(w = 640, h = 480) {
 }
 
 export default { stationLogo, stationBug, wallpaper, weatherStock, ad, avatar,
-  phoneSnap, evidencePlate, tabletPlate, videoFrame, insertFrame, pathogenPlate, colourBars };
+  phoneSnap, evidencePlate, tabletPlate, videoFrame, insertFrame, pathogenPlate,
+  archivePlate, colourBars };

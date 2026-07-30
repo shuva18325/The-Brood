@@ -15,6 +15,7 @@ export const THREADS = [
   { id:'persian', title:'[ARCHIVE] Ctesiphon material / the Persian one / translation notes', day:7 },
   { id:'berkley', title:'in Berkley. posting while I can.', day:8 },
   { id:'video',   title:'video thread — post what you filmed, no debate in here', day:3 },
+  { id:'frame',   title:'did anyone else get a frame on 9 tonight', day:13 },
 ];
 
 export const POSTS = [
@@ -805,6 +806,62 @@ I am so tired of being right.`, u:6, flags:['incursion_needs_opening'] },
   body:`Nobody answer that.
 
 Nobody answer that.`, u:8, flags:['texts_are_bait'] },
+
+/* ================= frame =================
+ * §9.4. The payoff for the single-frame insert. Nobody confirms anything,
+ * because nobody can. This is what a forum does with one frame.
+ */
+{ id:'f190', thread:'frame', day:13, author:'nightjar_88', time:'19:48', op:true,
+  body:`Watching 9 about ten minutes ago, the loop, and there was a frame in it.
+
+One frame. Not a glitch, not the roll it's been doing. A picture.
+
+I'm not going to describe it because I want to know if anyone else got it before I say what I think I saw.` },
+
+{ id:'f191', thread:'frame', day:13, author:'vaporlock', time:'19:55',
+  body:`nope. watched the whole loop twice. bars, card, voice, gap, card.
+
+your set is dying man. mine puts a green line across the top every 40 seconds and I've stopped caring` },
+
+{ id:'f192', thread:'frame', day:13, author:'oysterknife', time:'20:02',
+  body:`I got something. I don't know if it's the same something.
+
+I was in the kitchen and it was in my peripheral so all I have is that the screen got darker for less than a second. Could've been the brownout. We've had four today.` },
+
+{ id:'f193', thread:'frame', day:13, author:'deadmall', time:'20:11',
+  body:`I record the loop. I've been recording the loop since the 11th because I wanted the timestamps.
+
+There is a frame. I have it. Uploading now.` },
+
+{ id:'f194', thread:'frame', day:13, author:'deadmall', time:'20:34',
+  body:`[img]http://f.mirrorbox.io/u/deadmall/9_1913_f0442.png[/img]
+
+that's the frame. 19:13:41. one frame, no audio change either side of it, I checked the waveform.` },
+
+{ id:'f195', thread:'frame', day:13, author:'nightjar_88', time:'20:40',
+  body:`Image isn't loading for me. Just the broken icon.` },
+
+{ id:'f196', thread:'frame', day:13, author:'granby_st', time:'20:44',
+  body:`Not loading here either. deadmall can you re-up somewhere else` },
+
+{ id:'f197', thread:'frame', day:13, author:'deadmall', time:'21:02',
+  body:`I've tried three hosts. It uploads, I get a link, and then the link is dead in about four minutes.
+
+I still have the file. I'm looking at it right now. I am not going to describe it either.` },
+
+{ id:'f198', thread:'frame', day:13, author:'Q_from_Suffolk', time:'21:15',
+  body:`ok so nobody can see it, the guy who has it won't say what it is, and the two people who think they saw it can't agree on whether the screen got darker or brighter.
+
+come on. it's a fifteen year old TV in a brownout.` },
+
+{ id:'f199', thread:'frame', day:13, author:'mudflat', time:'23:40',
+  body:`Nobody in this thread is wrong.
+
+That's what I'd like people to sit with. Q is right that this is exactly what a failing set does. deadmall is right that he has a file. nightjar is right that he saw something.
+
+All three of those can be true and there is no test that separates them, and there is not going to be one, because the only copy is on one man's hard drive and the links keep dying.
+
+I'd let it go. I'm not going to, but I'd let it go.` },
 
 /* ================= video ================= */
 { id:'f180', thread:'video', day:3, author:'granby_st', time:'12:00', op:true,

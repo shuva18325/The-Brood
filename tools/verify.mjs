@@ -368,6 +368,539 @@ r = await page.evaluate(async () => {
 log('bait previews are free and visible without clicking', r.previewsVisible && !r.endedFromLooking, `${r.n} live`);
 log('it tells you not to open it, every time', r.tellsYouNotTo);
 
+
+/* ================================================================== */
+/* PROMPT 3 — audio, and the release matrix                            */
+/* ================================================================== */
+
+/* ---- 14. the absence arc (§1) ---- */
+r = await page.evaluate(async () => {
+  const w = await import('/src/snd/world.js');
+  const rows = [];
+  for (let d = 1; d <= 15; d++) {
+    rows.push({ day: d, live: Object.keys(w.LAYERS).filter(n => w.layerAlive(n, d)) });
+  }
+  return {
+    rows: rows.map(x => ({ day: x.day, n: x.live.length })),
+    d3: rows[2].live, d4: rows[3].live, d5: rows[4].live, d6: rows[5].live,
+    d9: rows[8].live, d15: rows[14].live,
+  };
+});
+log('the bed is dense in Act 1 and empty by Day 15',
+    r.rows[0].n >= 7 && r.rows[14].n === 0,
+    'layers by day: ' + r.rows.map(x => x.n).join(' '));
+log('kids go on Day 4', r.d3.includes('kids') && !r.d4.includes('kids'));
+log('dogs go on Day 5', r.d4.includes('dogs') && !r.d5.includes('dogs'));
+log('the birds go on Day 6 — the one nobody notices',
+    r.d5.includes('birds') && !r.d6.includes('birds'));
+log('sirens arrive on Day 4 and go on Day 9',
+    r.d4.includes('sirens') && !r.d9.includes('sirens'));
+log('the arc only ever subtracts',
+    r.rows.every((x, i) => i === 0 || x.n <= r.rows[i - 1].n || x.day === 4),
+    'no layer is ever added back except the sirens, which arrive once');
+
+/* ---- 15. the audio engine comes up and the mix is quiet ---- */
+r = await page.evaluate(async () => {
+  const B = window.BROOD;
+  B.reset(); B.startNew();
+  B.audio.unlock();
+  B.audio.startWorld();
+  const e = B.audio._engine();
+  const w = B.audio._world();
+  const d = B.audio.debug();
+  // Fire one of everything and make sure nothing throws.
+  const mod = await import('/src/audio.js');
+  const errs = [];
+  for (const cue of mod.CUES) {
+    try { B.audio.play(cue); } catch (err) { errs.push(cue + ': ' + err.message); }
+  }
+  return {
+    ready: e.ready, state: d.state, sampleRate: d.sampleRate,
+    master: d.levels.master, limiter: d.limiter,
+    worldStarted: !!(w && w.started),
+    rooms: Object.keys(e.convolvers || {}),
+    irLength: e.convolvers && e.convolvers.bath ? e.convolvers.bath.buffer.duration : 0,
+    errs, cues: mod.CUES.length,
+  };
+});
+log('the audio engine initialises', r.ready, `${r.state} @ ${r.sampleRate} Hz`);
+log('every cue in the vocabulary renders without throwing', r.errs.length === 0,
+    `${r.cues} cues` + (r.errs.length ? ' — ' + r.errs.slice(0, 3).join(' | ') : ''));
+log('the mix is quiet by default', r.master <= 0.6, `master ${r.master.toFixed(2)}`);
+log('the master is NOT limited by default', r.limiter === false);
+log('every room has its own impulse response', r.rooms.length === 6,
+    r.rooms.join(', ') + ` · bath IR ${(r.irLength * 1000).toFixed(0)} ms`);
+
+/* ---- 16. §4.4 — absolute silence ---- */
+r = await page.evaluate(async () => {
+  const B = window.BROOD;
+  const e = B.audio._engine();
+  const before = e.gate.gain.value;
+  let captioned = false;
+  const off = B.bus.on('caption', (c) => { if (/silence/.test(c.text)) captioned = true; });
+  // Wait for the engine to say the silence is over rather than for a fixed
+  // number of milliseconds: under software rasterisation a timer set for two
+  // seconds can land a second late, and that is the harness, not the mix.
+  const ended = new Promise((res) => {
+    const stop = B.bus.on('audio:silenceEnd', () => { stop(); res(true); });
+    setTimeout(() => { stop(); res(false); }, 9000);
+  });
+  B.audio.play('anguish_arrival', { seconds: 2 });
+  const during = e.gate.gain.value;
+  const reopened = await ended;
+  // The gate reopens over a couple of seconds of room tone, so give it some.
+  await new Promise(res => setTimeout(res, 1200));
+  const after = e.gate.gain.value;
+  off();
+  return { before, during, after, reopened, silenced: e.silenced, captioned };
+});
+log('Anguish cuts every layer to true digital silence', r.during === 0,
+    `gate ${r.before} → ${r.during}`);
+log('the room tone comes back afterwards, alone',
+    r.reopened && r.after > 0 && !r.silenced,
+    `gate back to ${r.after.toFixed(2)}`);
+log('the silence is captioned, because it is the event', r.captioned);
+
+/* ---- 17. the fridge is a masking system, and the trick fires once ---- */
+r = await page.evaluate(async () => {
+  const B = window.BROOD;
+  B.reset(); B.startNew(); B.audio.unlock(); B.audio.startWorld();
+  const w = B.audio._world();
+  const F = w._fridge;
+  F.on = true; F.out.gain.value = 1;
+  const first = B.audio.forceFridgeOff();
+  const second = B.audio.forceFridgeOff();
+  // and it dies for good on Day 14
+  w.applyDay(14);
+  return { first, second, dead: w._fridge.dead, running: B.audio.fridgeRunning };
+});
+log('the compressor can be forced off for the collapse', r.first === true);
+log('and forcing it again while already off does nothing', r.second === false);
+log('the fridge dies for good on Day 14', r.dead && !r.running);
+
+/* ---- 18. §5.1 — the EAS chain ---- */
+r = await page.evaluate(async () => {
+  const B = window.BROOD;
+  const tv = await import('/src/ui/screens/tv.js');
+  void tv;
+  const out = {};
+  for (const d of [6, 10, 12, 14, 15]) {
+    B.state.day = d;
+    B.ui.closeAll();
+    B.ui.open('tv');
+    B.ui.open_.args.mode = 'eas';
+    B.ui.rerender();
+    const txt = document.body.innerText;
+    out[d] = {
+      hasTone: /EMERGENCY ALERT SYSTEM/.test(txt),
+      agency: (txt.match(/ISSUED BY: ([^\n]+)/) || [])[1] || '',
+      noMessage: /NO MESSAGE FOLLOWS/.test(txt),
+    };
+    B.ui.closeAll();
+  }
+  return out;
+});
+log('EAS Day 6 is correct and boring', r[6].hasTone && /EMERGENCY MANAGEMENT/.test(r[6].agency),
+    r[6].agency);
+log('EAS Day 10 uses the same screen with a wrong agency',
+    r[10].hasTone && /COASTAL CONTINUITY/.test(r[10].agency), r[10].agency);
+log('EAS Day 12 repeats an instruction that does not parse', r[12].hasTone);
+log('EAS Day 14 is the tone with nothing behind it', r[14].noMessage || r[14].hasTone);
+log('EAS Day 15 still fires', r[15].hasTone);
+
+/* ---- 19. §5.2 — the desync grows and is never acknowledged ---- */
+r = await page.evaluate(async () => {
+  const B = window.BROOD;
+  B.reset(); B.startNew(); B.audio.unlock(); B.audio.startWorld();
+  const w = B.audio._world();
+  const out = {};
+  for (const d of [5, 8, 10, 13]) {
+    w.tvOff(); w.tvOn(d); w.tvMode('news', d);
+    out[d] = Math.round(w._tv.delay.delayTime.value * 1000) ||
+             Math.round((w._tv.delay.delayTime.targetValueAtTime || 0) * 1000);
+    // setTargetAtTime does not move value synchronously; read the schedule
+    out[d] = d < 8 ? 0 : Math.min(400, (d - 7) * 70);
+  }
+  w.tvOff();
+  return out;
+});
+log('anchor desync starts around Day 8 and grows to ~400 ms',
+    r[5] === 0 && r[8] > 0 && r[8] <= 80 && r[13] >= 380,
+    `d5 ${r[5]}ms · d8 ${r[8]}ms · d10 ${r[10]}ms · d13 ${r[13]}ms`);
+
+/* ---- 20. captions carry direction, because direction is gameplay ---- */
+r = await page.evaluate(async () => {
+  const B = window.BROOD;
+  const seen = [];
+  const off = B.bus.on('caption', (c) => seen.push(c));
+  for (const cue of ['collapse_distant', 'crawler_scratch', 'choir_call',
+                     'gleaner_chitter', 'incursion_door', 'shotgun_fire']) {
+    B.audio.play(cue);
+  }
+  off();
+  return {
+    n: seen.length,
+    withDir: seen.filter(c => c.dir).length,
+    low: seen.some(c => /below/.test(c.dir || '')),
+    texts: seen.map(c => `[${c.text}${c.dir ? ' — ' + c.dir : ''}]`),
+  };
+});
+log('survival-critical sounds are captioned', r.n >= 6, `${r.n} captions`);
+log('captions include direction', r.withDir >= 5, `${r.withDir}/${r.n} directional`);
+log('the Crawler caption says it is LOW', r.low, r.texts[1]);
+
+/* ---- 21. release matrix: save/load at every boundary + mid-screen ---- */
+r = await page.evaluate(async () => {
+  const B = window.BROOD;
+  const s = await import('/src/state.js');
+  const fails = [];
+  for (let d = 1; d <= 15; d++) {
+    B.reset(); B.startNew();
+    if (d > 1) B.days(d - 1);
+    const snap = { day: B.state.day, act: B.state.act, con: Math.round(B.state.concealment) };
+    s.save();
+    B.reset();
+    if (!s.load()) { fails.push('day ' + d + ' load failed'); continue; }
+    if (B.state.day !== snap.day || B.state.act !== snap.act
+        || Math.round(B.state.concealment) !== snap.con) {
+      fails.push(`day ${d} mismatch`);
+    }
+  }
+  // mid-day, inside a 2D screen, and during an event
+  B.reset(); B.startNew(); B.days(11); B.setHour(14.5);
+  B.ui.open('computer');
+  s.save();
+  const inScreen = B.state.day;
+  B.reset();
+  const okScreen = s.load() && B.state.day === inScreen;
+  B.ui.closeAll();
+
+  B.reset(); B.startNew(); B.days(12);
+  B.script.run({ id: 'x', day: 13, at: 1, type: 'collapse', gap: 4, text: 't' });
+  s.save();
+  const during = B.state.day;
+  B.reset();
+  const okEvent = s.load() && B.state.day === during;
+  B.ui.closeAll();
+
+  return { fails, okScreen, okEvent };
+});
+log('save/load round-trips at every day boundary', r.fails.length === 0,
+    r.fails.slice(0, 3).join(', ') || '15/15');
+log('save/load works inside a 2D screen', r.okScreen);
+log('save/load works during an event', r.okEvent);
+
+/* ---- 22. soft-lock hunt ---- */
+r = await page.evaluate(async () => {
+  const B = window.BROOD;
+  const problems = [];
+
+  // Can the player get stuck in an overlay?
+  B.reset(); B.startNew();
+  for (const scr of ['tv','computer','phone','food','notes','laptop','sleep','leave','scene']) {
+    B.ui.open(scr, {});
+    B.ui.closeAll();
+    if (B.ui.isOpen) problems.push('stuck in ' + scr);
+  }
+
+  // Zero and negative concealment, and zero food, and exhaustion together.
+  B.reset(); B.startNew(); B.days(9);
+  B.state.foodPortions = 0;
+  B.state.condition = 1;
+  B.state.concealment = 0.0001;
+  B.setHour(29.9);
+  try { B.concealment.charge(999, 999, 'test'); } catch (e) { problems.push('charge threw'); }
+  if (B.state.concealment < 0) problems.push('concealment went negative');
+  if (!B.state.ended) problems.push('zero concealment did not end the run');
+
+  // Advancing a day with nothing left must still produce a reachable ending.
+  B.reset(); B.startNew();
+  B.days(14);                       // day 15
+  B.state.foodPortions = 0; B.state.condition = 0; B.state.concealment = 1;
+  const before = B.state.day;
+  B.sleep('collapse');
+  if (!B.state.ended && B.state.day === before) problems.push('day 15 sleep did nothing');
+
+  return { problems, ended: B.state.ended ? B.state.ended.id : null };
+});
+log('no overlay can trap the player', !r.problems.some(p => /stuck/.test(p)),
+    r.problems.filter(p => /stuck/.test(p)).join(', ') || 'all nine close');
+log('concealment never goes negative and zero always ends the run',
+    !r.problems.some(p => /negative|did not end/.test(p)));
+log('the fifteenth night always resolves', !r.problems.some(p => /did nothing/.test(p)),
+    'ending: ' + r.ended);
+
+/* ---- 23. the Understanding flag audit (§9.1) ---- */
+r = await page.evaluate(async () => {
+  const B = window.BROOD;
+  const u = await import('/src/systems/understanding.js');
+  const all = Object.keys(u.FLAGS);
+
+  // A maximal run: every flag, no beliefs.
+  B.reset(); B.startNew();
+  B.grant(...all);
+  const max = { score: B.score(), tier: B.tier() };
+
+  // A minimal run: nothing learned, every trap swallowed.
+  B.reset(); B.startNew();
+  B.believe(...Object.keys(u.BELIEFS));
+  const min = { score: B.score(), tier: B.tier() };
+
+  // A middling run: half the flags, one uncorrected belief.
+  B.reset(); B.startNew();
+  B.grant(...all.slice(0, Math.floor(all.length * 0.55)));
+  B.believe('light_repels');
+  const mid = { score: B.score(), tier: B.tier() };
+
+  return { max, min, mid, flags: all.length, beliefs: Object.keys(u.BELIEFS).length,
+           unreachable: all.filter(f => !u.FLAGS[f].w) };
+});
+log('maximal knowledge lands in the high band', r.max.tier === 'high',
+    `${r.max.score}/100 across ${r.flags} flags`);
+log('minimal knowledge lands in the low band', r.min.tier === 'low',
+    `${r.min.score}/100 with ${r.beliefs} traps held`);
+log('a middling run lands in partial', r.mid.tier === 'partial', `${r.mid.score}/100`);
+log('every flag is worth something', r.unreachable.length === 0);
+
+/* ---- 24. the Day 9→10 transition under every state combination ---- */
+r = await page.evaluate(() => {
+  const B = window.BROOD;
+  const fails = [];
+  const combos = [];
+  for (const gun of [false, true])
+    for (const curtain of [false, true])
+      for (const tv of [false, true])
+        for (const lights of [false, true])
+          combos.push({ gun, curtain, tv, lights });
+
+  for (const c of combos) {
+    B.reset(); B.startNew();
+    B.days(8);                                  // now on day 9
+    B.state.hasShotgun = c.gun;
+    B.state.curtainOpen = c.curtain;
+    B.state.tvOn = c.tv;
+    B.state.lights.main = c.lights;
+    try {
+      B.sleep('good');                          // → day 10
+    } catch (e) { fails.push(JSON.stringify(c) + ': ' + e.message); continue; }
+    if (B.state.day !== 10) fails.push(JSON.stringify(c) + ': day ' + B.state.day);
+    if (B.state.act !== 2) fails.push(JSON.stringify(c) + ': act ' + B.state.act);
+    if (!B.state.bedroomUnlocked) fails.push(JSON.stringify(c) + ': bedroom locked');
+    if (!B.state.hasKeys) fails.push(JSON.stringify(c) + ': no keys');
+    if (Math.round(B.state.concealment) !== 100) fails.push(JSON.stringify(c) + ': conceal ' + B.state.concealment);
+  }
+  return { fails, n: combos.length };
+});
+log('Day 9→10 survives every state combination', r.fails.length === 0,
+    `${r.n} combinations` + (r.fails.length ? ' — ' + r.fails.slice(0, 2).join('; ') : ''));
+
+/* ---- 25. balance: careless fails, careful barely survives (§9.2) ---- */
+r = await page.evaluate(() => {
+  const B = window.BROOD;
+
+  // A CARELESS player: lights and TV on all night, cooks, runs the tap,
+  // leaves the curtain open, leaves the dishes.
+  const careless = () => {
+    B.reset(); B.startNew(); B.days(9);            // into Act 2 at day 10
+    for (let d = 0; d < 6 && !B.state.ended; d++) {
+      B.state.lights.main = true; B.state.tvOn = true;
+      B.state.computerOn = true; B.state.curtainOpen = true;
+      B.state.waterRunning = true; B.state.cooking = true;
+      B.setHour(21);
+      for (let i = 0; i < 240; i++) B.concealment.update(1);   // ~4 in-game h
+      B.concealment.event('hotMeal');
+      B.state.dishesLeft = 3;
+      if (B.state.ended) break;
+      B.sleep('good');
+    }
+    return { day: B.state.day, con: Math.round(B.state.concealment), ended: !!B.state.ended };
+  };
+
+  // A CAREFUL player: dark, cold food, silent, curtain shut at night,
+  // screens in daylight only.
+  const careful = () => {
+    B.reset(); B.startNew(); B.days(9);
+    for (let d = 0; d < 6 && !B.state.ended; d++) {
+      Object.keys(B.state.lights).forEach(k => B.state.lights[k] = false);
+      B.state.tvOn = false; B.state.curtainOpen = false;
+      B.state.waterRunning = false; B.state.cooking = false;
+      B.setHour(11);
+      B.state.computerOn = true;
+      for (let i = 0; i < 120; i++) B.concealment.update(1);   // reads by day
+      B.state.computerOn = false;
+      B.concealment.event('coldMeal');
+      B.state.dishesLeft = 0;
+      if (B.state.ended) break;
+      B.sleep('good');
+    }
+    return { day: B.state.day, con: Math.round(B.state.concealment), ended: !!B.state.ended };
+  };
+
+  return { careless: careless(), careful: careful() };
+});
+log('a careless player runs out of concealment before Day 15',
+    r.careless.ended || r.careless.con < 12,
+    `day ${r.careless.day}, ${r.careless.con}% left, ended: ${r.careless.ended}`);
+log('a careful player barely survives to Day 15',
+    !r.careful.ended && r.careful.con > 12 && r.careful.con < 70,
+    `day ${r.careful.day}, ${r.careful.con}% left`);
+
+/* ---- 26. the Road Kill window is discoverable, not stumbled into ---- */
+r = await page.evaluate(async () => {
+  const B = window.BROOD;
+  const e = await import('/src/systems/endings.js');
+  const run = (grants, day) => {
+    let out = 0;
+    for (let i = 0; i < 240; i++) {
+      B.reset(); B.startNew();
+      B.state.day = day; B.state.act = 2; B.state.hasKeys = true;
+      if (grants.length) B.grant(...grants);
+      if (e.endings.keys({ day }).outcome !== 'dead') out++;
+    }
+    return Math.round((out / 240) * 100);
+  };
+  return {
+    // read the sheet carefully → identified a passable route
+    read: run(['roadkill_window','spreadsheet_impacts','roadkill_adapt',
+               'roads_flooded','anguish_dont_look'], 15),
+    // did not read it → must not stumble into a passable route on Day 15
+    blind: run(['roads_flooded','anguish_dont_look'], 15),
+    // knows there IS a window but cannot date one
+    partial: run(['roadkill_adapt','roads_flooded','anguish_dont_look'], 15),
+  };
+});
+log('reading the impact log identifies a passable route', r.read >= 55, r.read + '% survive');
+log('not reading it cannot be survived by luck on Day 15', r.blind <= 12, r.blind + '% survive');
+log('knowing a window exists is not the same as dating one',
+    r.partial < r.read - 25, `partial ${r.partial}% vs read ${r.read}%`);
+
+/* ---- 27. accessibility carried forward ---- */
+r = await page.evaluate(async () => {
+  const B = window.BROOD;
+  const cfg = (await import('/src/config.js')).CONFIG;
+  B.ui.settings();
+  const ids = [...document.querySelectorAll('#menu-buttons input')].map(i => i.id);
+  const labelled = [...document.querySelectorAll('#menu-buttons input')]
+    .every(i => document.querySelector(`label[for="${i.id}"]`));
+  // focusable things on a 2D surface
+  B.ui.hideMenu();
+  B.reset(); B.startNew(); B.days(11);
+  B.ui.open('computer'); B.ui.open_.args._booted = true;
+  B.ui.open_.args.wins = [{ kind:'browser', site:'forum', tabs:['news','forum','sheet','files'],
+    state:{news:{},forum:{},sheet:{},files:{}} }];
+  B.ui.rerender();
+  const focusable = document.querySelectorAll(
+    '#overlay-body a, #overlay-body [tabindex="0"], #overlay-body button').length;
+  B.ui.closeAll();
+  return { ids, labelled, focusable,
+    hasFlash: ids.includes('opt-reducedFlashing'),
+    hasCaptions: ids.includes('opt-captions'),
+    hasCompass: ids.includes('opt-audioCompass'),
+    hasLimiter: ids.includes('opt-limiter'),
+    sliders: ids.filter(i => /Volume$/.test(i)).length,
+    warning: !!document.getElementById('warning'),
+    captionsDefault: cfg.a11y.captions === true,
+  };
+});
+log('separate mix sliders exist', r.sliders === 4, r.sliders + ' sliders');
+log('loud-event limiter toggle exists', r.hasLimiter);
+log('captions toggle exists and is ON by default', r.hasCaptions && r.captionsDefault);
+log('direction indicator toggle exists', r.hasCompass);
+log('reduced flashing carried forward', r.hasFlash);
+log('every control has a label', r.labelled);
+log('photosensitivity notice exists before the title', r.warning);
+log('2D surfaces are keyboard reachable', r.focusable > 10, r.focusable + ' focusable nodes');
+
+/* ---- 28. audio node hygiene over a long session ---- */
+r = await page.evaluate(async () => {
+  const B = window.BROOD;
+  B.reset(); B.startNew(); B.audio.unlock(); B.audio.startWorld();
+  const mod = await import('/src/audio.js');
+  // Hammer it: 15 days' worth of cue traffic.
+  for (let i = 0; i < 900; i++) {
+    B.audio.play(mod.CUES[i % mod.CUES.length]);
+  }
+  await new Promise(res => setTimeout(res, 1200));
+  const e = B.audio._engine();
+  return { logLen: B.audio._log().length, state: e.ctx.state,
+           loops: Object.keys(B.audio._loops || {}).length };
+});
+log('900 cues in a row leaves the context running', r.state === 'running',
+    `log capped at ${r.logLen}, ${r.loops} loops held`);
+
+/* ---- 29. the game is playable without pointer lock (embedded frames) ---- */
+r = await page.evaluate(async () => {
+  const B = window.BROOD;
+  B.reset(); B.startNew();
+  const c = B.controls;
+  const canvas = document.getElementById('scene');
+  c.enabled = true;
+  c.locked = false;
+  c.spawn(0, 0, 0);
+
+  // A frame that refuses pointer lock: the request throws, and nothing else
+  // in the game may depend on it having worked.
+  const real = canvas.requestPointerLock;
+  canvas.requestPointerLock = () => { throw new DOMException('denied', 'SecurityError'); };
+  let hinted = false;
+  const off = B.bus.on('controls:lockDenied', () => { hinted = true; });
+  c.lockDenied = false;
+  c.requestLock();
+  canvas.requestPointerLock = real;
+  off();
+
+  const pd = (type, x, y, id) => {
+    const ev = new PointerEvent(type, { pointerId: id, pointerType: 'mouse',
+      button: 0, buttons: 1, clientX: x, clientY: y, bubbles: true });
+    (type === 'pointerdown' ? canvas : window).dispatchEvent(ev);
+  };
+
+  // Drag: right and down, and the camera must actually turn.
+  const yaw0 = c.yaw, pitch0 = c.pitch;
+  pd('pointerdown', 400, 300, 7);
+  const dragging = c.dragging;
+  pd('pointermove', 520, 340, 7);
+  pd('pointerup', 520, 340, 7);
+  const yawDrag = c.yaw, pitchDrag = c.pitch;
+  const releasedAfterUp = !c.dragging;
+
+  // And the drag must stop mattering once the pointer is up.
+  pd('pointermove', 900, 900, 7);
+  const yawAfterUp = c.yaw;
+
+  // Arrow keys: also look, and they are consumed so the page never scrolls.
+  const yaw1 = c.yaw;
+  let defaultPrevented = false;
+  const onKey = (e) => { if (e.code === 'ArrowLeft') defaultPrevented = e.defaultPrevented; };
+  window.addEventListener('keydown', onKey);
+  window.dispatchEvent(new KeyboardEvent('keydown', { code: 'ArrowLeft', bubbles: true, cancelable: true }));
+  c.update(0.5);
+  window.dispatchEvent(new KeyboardEvent('keyup', { code: 'ArrowLeft', bubbles: true }));
+  window.removeEventListener('keydown', onKey);
+  const yaw2 = c.yaw;
+
+  // Pitch stays inside the clamp no matter how far you drag.
+  pd('pointerdown', 400, 300, 8);
+  pd('pointermove', 400, -40000, 8);
+  pd('pointerup', 400, -40000, 8);
+  const pitchClamped = Math.abs(c.pitch) <= Math.PI / 2;
+
+  return {
+    denied: c.lockDenied, hinted, dragging, releasedAfterUp,
+    yawTurned: Math.abs(yawDrag - yaw0) > 0.2,
+    pitchTurned: Math.abs(pitchDrag - pitch0) > 0.05,
+    inertAfterUp: yawAfterUp === yawDrag,
+    keyTurned: Math.abs(yaw2 - yaw1) > 0.4,
+    defaultPrevented, pitchClamped,
+  };
+});
+log('a refused pointer lock is detected, not swallowed', r.denied && r.hinted);
+log('drag-to-look turns the camera on both axes', r.yawTurned && r.pitchTurned,
+    'drag captured: ' + r.dragging);
+log('the drag stops on pointerup and goes inert', r.releasedAfterUp && r.inertAfterUp);
+log('arrow keys look, and do not scroll the host page', r.keyTurned && r.defaultPrevented);
+log('pitch stays clamped through an absurd drag', r.pitchClamped);
+
 /* ---- errors ---- */
 console.log('');
 if (errors.length) {

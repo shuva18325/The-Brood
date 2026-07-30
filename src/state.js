@@ -43,7 +43,10 @@ export function freshState() {
 
     /* --- the room --- */
     lights: { main: false, kitchen: false, bath: false, bedroom: false, landing: false },
-    curtainOpen: false,
+    // Every day starts at seven in the morning, and by day an open window
+    // costs almost nothing. So it starts open: the first thing anyone sees
+    // is the bars laid across the floor. Closing it is the evening's choice.
+    curtainOpen: true,
     tvOn: false,
     tvVolume: 'low',         // off | low | up
     computerOn: false,

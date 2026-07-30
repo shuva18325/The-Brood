@@ -153,6 +153,11 @@ function paint(st) {
   }[st.mode] || paintNews;
   build(pic, st);
 
+  // The audio chain follows the picture: thinning, then carrier hum, then
+  // dropout, then snow. Never a clean cut.
+  const w = audio._world && audio._world();
+  if (w) w.tvMode(st.mode, st.day);
+
   st.screen.insertBefore(pic, st.screen.firstChild);
   st.screen.appendChild(h('div', { class: 'tv-shell' }));
 }
