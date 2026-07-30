@@ -163,6 +163,9 @@ hr.rule { border: 0; border-top: 1px solid #1c1f23; margin: 20px 0; }
 .opt-row label { font-size: 13px; color: #b6b0a3; cursor: pointer; }
 .opt-row input[type=range] { width: 160px; }
 .opt-note { font-size: 11px; color: #55585d; margin: -4px 0 12px; text-align: left; }
+/* The current value of a ranged control. Tabular so it does not jitter. */
+.opt-value { font-size: 11px; color: #8d877b; min-width: 74px; text-align: right;
+  font-variant-numeric: tabular-nums; }
 
 .ending-beat { max-width: 68ch; margin: 0 auto 1.9em; white-space: pre-wrap;
   line-height: 1.85; color: #c8c2b4; }

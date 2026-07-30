@@ -226,6 +226,21 @@ const TEX = {
     grain(g, s, s, 16, 8);
   }),
 
+  /* Rain streaks on transparent black, tiled. Weather, seen through bars. */
+  rain: () => canvas(256, (g, s) => {
+    g.clearRect(0, 0, s, s);
+    for (let i = 0; i < 220; i++) {
+      const x = Math.random() * s, y = Math.random() * s;
+      const len = 14 + Math.random() * 40;
+      g.strokeStyle = `rgba(206,214,222,${0.05 + Math.random() * 0.16})`;
+      g.lineWidth = 0.6 + Math.random() * 0.9;
+      g.beginPath();
+      g.moveTo(x, y);
+      g.lineTo(x + 3 + Math.random() * 3, y + len);
+      g.stroke();
+    }
+  }),
+
   /* A curtain that came with the place, in a colour nobody picked. */
   curtain: () => canvas(256, (g, s) => {
     g.fillStyle = '#4a3d38'; g.fillRect(0, 0, s, s);
@@ -477,6 +492,15 @@ export function buildMaterials() {
   });
 
   MAT.sky = new THREE.MeshBasicMaterial({ color: 0x1b2026, side: THREE.BackSide, fog: false });
+
+  // Rain, as a scrolling sheet of streaks. Seen through bars at twelve metres
+  // this reads as rain and costs one texture.
+  MAT.rainSheet = (() => {
+    const t = tex('rain');
+    t.wrapS = t.wrapT = THREE.RepeatWrapping;
+    t.repeat.set(3, 2);
+    return t;
+  })();
 
   // Emissive screens. The light they throw is a Concealment fact.
   MAT.screenTV = new THREE.MeshStandardMaterial({

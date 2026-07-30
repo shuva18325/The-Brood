@@ -52,6 +52,9 @@ export const day = {
     else if (ate === 'ration') summary.notes.push('You ate half of what you wanted.');
 
     /* --- darkness -------------------------------------------------- */
+    // A bulb that was already on this morning counts as light, even though
+    // nothing emitted light:on today — he did not sit in the dark.
+    if (Object.values(state.lights).some(Boolean)) state.flags.litSomethingToday = true;
     if (state.flags.litSomethingToday) {
       state.flags.livedInDarkness = 0;
     } else {
@@ -72,6 +75,16 @@ export const day = {
     if (state.dishesLeft > 0) {
       for (let i = 0; i < Math.min(3, state.dishesLeft); i++) concealment.event('dishesLeft');
     }
+    // Lights burning all night, one charge each. They are NOT switched off
+    // for him: the switch state persists, so tomorrow he wakes in a lit room
+    // and pays again unless he does something about it.
+    const leftOn = Object.keys(state.lights).filter(k => state.lights[k]);
+    for (const room of leftOn) { void room; concealment.event('lightLeftOn'); }
+    if (leftOn.length) {
+      summary.notes.push(leftOn.length === 1
+        ? 'You slept with a light on.'
+        : `You slept with ${leftOn.length} lights on.`);
+    }
     concealment.dailyBase();
     concealment.rollDay();
 
@@ -91,7 +104,9 @@ export const day = {
     // Whatever he did last night, he opens the curtain in the morning. It is
     // seven o'clock and daylight is the one thing here that is free.
     state.curtainOpen = true;
-    for (const k of Object.keys(state.lights)) state.lights[k] = false;
+    // The lights are NOT reset. A switch is a physical object with a state,
+    // and if he went to sleep with the kitchen on then the kitchen is on when
+    // he wakes up. He has to walk over and deal with it.
     clock.reset(CONFIG.clock.wakeHour);
 
     if (state.day >= D.actTwo && state.act === 1) enterActTwo();

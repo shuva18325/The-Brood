@@ -57,18 +57,19 @@ export function buildInteractables(ctx) {
   add({
     id: 'tv',
     anchor: A.tv,
-    range: 1.6,
-    label: () => state.tvOn ? 'turn the television off' : 'turn the television on',
+    range: 1.9,
+    // Pressing E at a television means "watch it", always. It used to toggle,
+    // which meant every second press switched the set off instead of showing
+    // it — the set is turned off from inside the overlay, where the player can
+    // see what they are giving up.
+    label: () => (state.tvOn ? 'watch the television' : 'turn the television on'),
     act() {
-      state.tvOn = !state.tvOn;
-      if (state.tvOn) {
-        audio.play('tv_on'); bus.emit('tv:on');
-        ui.open('tv');
-      } else {
-        // Cutting the power cuts the 15.7 kHz whine with it, and that
-        // absence is a cue in itself.
-        audio.play('tv_off');
+      if (!state.tvOn) {
+        state.tvOn = true;
+        audio.play('tv_on');
+        bus.emit('tv:on');
       }
+      ui.open('tv');
     },
   });
 

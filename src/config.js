@@ -120,12 +120,27 @@ export const CONFIG = {
      * Every one of these is a liability and the player knows it.
      */
     bulb: {
-      main:    { color: 0xB4C2AC, intensity: 26, distance: 9.0, decay: 2.0 },
-      kitchen: { color: 0xC2CBB4, intensity: 19, distance: 6.0, decay: 2.0 },
-      bath:    { color: 0xB8C6B0, intensity: 14, distance: 4.5, decay: 2.0 },
-      bedroom: { color: 0xC6B79A, intensity: 17, distance: 5.5, decay: 2.0 },  // his bulb is warmer. he chose it.
-      landing: { color: 0xA8B8A4, intensity: 11, distance: 5.5, decay: 2.0 },
+      main:    { color: 0xB4C2AC, intensity: 30, distance: 9.0, decay: 2.0 },
+      kitchen: { color: 0xC2CBB4, intensity: 22, distance: 6.0, decay: 2.0 },
+      bath:    { color: 0xB8C6B0, intensity: 15, distance: 4.5, decay: 2.0 },
+      bedroom: { color: 0xC6B79A, intensity: 19, distance: 5.5, decay: 2.0 },  // his bulb is warmer. he chose it.
+      landing: { color: 0xA8B8A4, intensity: 12, distance: 5.5, decay: 2.0 },
     },
+
+    /**
+     * The bounce. A bare bulb 300 mm below a white ceiling throws most of its
+     * light back off that ceiling, and a rasteriser models none of it — so the
+     * direct light clips the ceiling to white while the floor two metres below
+     * stays black. This is the missing half, and it is what makes a lit room
+     * usable rather than merely lit.
+     *
+     * decay 1, like windowFill, because a ceiling is an area source. Never
+     * casts a shadow: bounce light has no hard edges to cast.
+     *
+     * Raising these is the correct way to make the room brighter. Raising
+     * `ambient` is not — that flattens everything everywhere.
+     */
+    bulbBounce: { scale: 0.115, decay: 1.0, distanceScale: 1.5, drop: 0.62 },
     /** CFL flicker: amplitude and rate. Sits at the edge of perception. */
     bulbFlicker: { amount: 0.055, rateA: 8.3, rateB: 21.7, warmup: 2.4 },
 
@@ -142,6 +157,46 @@ export const CONFIG = {
     streetlamp: { color: 0xC87F3A, intensity: 2600, distance: 26, decay: 2.0 },
     /** It gives up early, and after this day the street is only ever dark. */
     streetlampLastDay: 6,
+
+    /**
+     * THE SKY OVER THE STREET.
+     *
+     * The exterior had no light source at all: three interior lights, and
+     * outside was lit by nothing but the ambient floor. So the most important
+     * object in the game — the window — was a black rectangle behind bars at
+     * noon on a clear day.
+     *
+     * It is not fixed with a sun. Tidewater in this weather is flat overcast,
+     * and under a uniform sky a surface's appearance is simply its albedo
+     * times the sky's luminance, with no shadow term at all. That closed form
+     * is applied per-material to the exterior only, which is why the interior
+     * stays as dark as it was. A directional light would have been the wrong
+     * physics AND would have leaked through the aperture.
+     *
+     * `level` is the sky's luminance; `tint` is its colour.
+     */
+    sky: {
+      day:   { level: 0.66, tint: 0xA8BACB, horizon: 0x8C9DAE },
+      dusk:  { level: 0.19, tint: 0xB0784E, horizon: 0xD9884A },
+      night: { level: 0.030, tint: 0x1A2130, horizon: 0x2A2A38 },
+      dawn:  { level: 0.15, tint: 0x6E8298, horizon: 0x93A2B4 },
+      /** Overcast thickens as the fires do. Multiplies `level` by day. */
+      overcastFromDay: 9,
+      overcastPerDay: 0.055,
+      overcastMax: 0.46,
+    },
+
+    /** Weather, seen only through the window. Never gameplay, always mood. */
+    weather: {
+      // Which days it rains. It has not rained since he got here, and the
+      // first rain lands on the day the water arrives.
+      rainDays: [12, 13, 17, 18],
+      rainSkyMul: 0.62,
+      // Smoke on the northern horizon, from the day the refineries go.
+      smokeFromDay: 8,
+      smokePerDay: 0.075,
+      smokeMax: 0.80,
+    },
   },
 
   /* ------------------------------------------------------------------ */
@@ -177,6 +232,27 @@ export const CONFIG = {
     // A bare bulb and an unglazed window both blow out. This rolls the top
     // end off instead of hard-clipping it to a flat white shape.
     exposure: 1.35,
+
+    /**
+     * THE EXPOSURE FLOOR. A dark game on a bright panel is atmosphere; a dark
+     * game on a dim panel is a black rectangle, and no amount of art direction
+     * survives that. So exposure is lifted by how much light the player has
+     * actually arranged for: a bulb on, the curtain open in daylight, a screen
+     * running. Deliberate light is always rewarded with visible room.
+     *
+     * This is not a substitute for lighting the scene. It is the guarantee
+     * that when the player DOES light the scene, they see it.
+     */
+    exposureFloor: {
+      // Added to exposure per source the player has going.
+      bulb: 0.42,          // any bulb in the room they are standing in
+      bulbElsewhere: 0.10, // a bulb somewhere else in the flat
+      daylight: 0.30,      // curtain open, and it is day or dawn
+      screen: 0.12,        // television or monitor running
+      max: 0.85,           // total lift, capped
+      blendSeconds: 1.4,   // eases, so a switch is not a hard cut
+    },
+
     vignette: { amount: 0.72, softness: 0.55 },
     grain: { base: 0.048, perLevel: 0.020, size: 1.35, speed: 24 },
     aberration: { base: 0.0016, perLevel: 0.0022, edgeBias: 2.2 },
@@ -209,7 +285,15 @@ export const CONFIG = {
   /* ------------------------------------------------------------------ */
   player: {
     eyeHeight: 1.62,
-    radius: 0.28,
+    /**
+     * The body. 0.28 was a shoulder-width capsule and it was too fat for an
+     * apartment this cramped: with 900 mm doorways it left a 340 mm window to
+     * thread, which is not a body, it is a puzzle. 0.22 still stops the player
+     * pressing their face through a wall.
+     */
+    radius: 0.22,
+    /** How long a player may press into geometry before being freed. */
+    unstickSeconds: 2.0,
     walkSpeed: 1.95,
     crouchSpeed: 0.95,
     crouchHeight: 1.05,
@@ -279,6 +363,12 @@ export const CONFIG = {
       answerPhone:    { noiseLight: 1.2,  habitation: 0.4 },
       shotgunFired:   { noiseLight: 34.0, habitation: 6.0 },
       frontDoorOpened:{ noiseLight: 6.0,  habitation: 12.0 },
+      // A light left burning while he sleeps. Per bulb, charged at the day
+      // advance. He does not choose this at the moment it costs him — he
+      // chose it hours earlier and then forgot, which is the whole point.
+      lightLeftOn:    { noiseLight: 7.0,  habitation: 3.0 },
+      // Letting the survivor in. §2.
+      strangerAdmitted:{ noiseLight: 5.0, habitation: 14.0 },
     },
 
     profileHotShare: 0.60,
@@ -337,10 +427,22 @@ export const CONFIG = {
     shoesFromDay: 10,
     /** Rubbish on the street arrives and never leaves. */
     trashFromDay: 2,
+    /** All of it, by this day. Stretched with the run, not compressed. */
+    trashFullDay: 17,
     /** The water comes and the blocks below stop being blocks. */
-    waterFromDay: 9,
+    waterFromDay: 11,
+    /** How far up the street it has come, per day, after that. */
+    waterPerDay: 0.95,
     /** The blue house curtain twitches in the mornings until it doesn't. */
     blueCurtainLastDay: 8,
+    /**
+     * The cars go, one at a time, and never all at once. His is the one that
+     * never moves, and its staying is the point — so it is not in this list.
+     * [day, index]. Index 1 is his.
+     */
+    carsGone: [[7, 0], [13, 2]],
+    /** A window across the street is broken on this day and stays broken. */
+    houseBrokenFromDay: 14,
   },
 
   /* ------------------------------------------------------------------ */
@@ -388,6 +490,19 @@ export const CONFIG = {
     flashCapNormal: 0.34,
     /** Max flashes per second, ever, in either mode. */
     maxFlashHz: 3,
+
+    /**
+     * BRIGHTNESS. Non-negotiable on a game this dark: panel variance is
+     * enormous and a scene authored on a good monitor is a black rectangle on
+     * a cheap one. Multiplies post exposure. 1.0 is as authored.
+     */
+    brightness: 1.0,
+    brightnessMin: 0.7,
+    brightnessMax: 2.2,
+    /** Display gamma trim, applied after the grade. 1.0 is as authored. */
+    gamma: 1.0,
+    gammaMin: 0.75,
+    gammaMax: 1.35,
 
     /* Mixing (§7). Separate sliders, because a player who needs the
      * ambient bed down to hear the captions should not lose the effects. */

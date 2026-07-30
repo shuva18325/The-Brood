@@ -349,27 +349,34 @@ export function buildApartment(scene) {
     }
   }
 
-  // The TV. Deep-bodied, dusty, and a remote with the buttons worn off.
+  /* The TV. Deep-bodied, dusty, and a remote with the buttons worn off.
+   *
+   * It stands against the partition SOUTH of the doorway, not in front of it.
+   * It used to sit squarely in the only route from the main room to the rest
+   * of the flat, which is the entire reason the player could not get out of
+   * the hall: there was no way through. Furniture in a doorway is a bug, not
+   * a detail. It is also better here — he sleeps on the floor facing it. */
   {
-    root.add(shade(place(box(1.1, 0.48, 0.5, MAT.wood), 0.25, 0.24, 0.5)));
-    root.add(shade(place(box(0.66, 0.52, 0.58, MAT.beige), 0.25, 0.76, 0.5)));
+    const TZ = 1.95;
+    root.add(shade(place(box(1.1, 0.48, 0.5, MAT.wood), 0.25, 0.24, TZ)));
+    root.add(shade(place(box(0.66, 0.52, 0.58, MAT.beige), 0.25, 0.76, TZ)));
     // the bezel is deeper than the screen, which is what makes it a CRT
-    root.add(shade(place(box(0.06, 0.46, 0.52, MAT.beige), -0.07, 0.78, 0.5)));
+    root.add(shade(place(box(0.06, 0.46, 0.52, MAT.beige), -0.07, 0.78, TZ)));
     const screen = new THREE.Mesh(new THREE.PlaneGeometry(0.46, 0.35), MAT.screenTV);
-    screen.position.set(-0.098, 0.78, 0.5);
+    screen.position.set(-0.098, 0.78, TZ);
     screen.rotation.y = -Math.PI / 2;
     root.add(screen);
     dynamic.tvScreen = screen;
-    anchors.tv = place(new THREE.Object3D(), -0.55, 0.85, 0.5);
+    anchors.tv = place(new THREE.Object3D(), -0.55, 0.85, TZ);
     root.add(anchors.tv);
 
-    const remote = shade(place(box(0.05, 0.02, 0.16, MAT.plasticBk), 0.3, 0.50, 0.9));
+    const remote = shade(place(box(0.05, 0.02, 0.16, MAT.plasticBk), 0.3, 0.50, TZ + 0.4));
     remote.rotation.y = 0.4;
     root.add(remote);
 
     const tvLight = new THREE.PointLight(CONFIG.light.screen.tv.color, 0,
       CONFIG.light.screen.tv.distance, CONFIG.light.screen.tv.decay);
-    tvLight.position.set(-0.3, 0.85, 0.5);
+    tvLight.position.set(-0.3, 0.85, TZ);
     root.add(tvLight);
     dynamic.tvLight = tvLight;
   }
@@ -492,19 +499,26 @@ export function buildApartment(scene) {
   /* ---------------------------------------------------------------- */
   /* his room — the only room in the game that feels lived in           */
   /* ---------------------------------------------------------------- */
+  /* Laid out around a walking lane. The desk used to sit square across the
+   * doorway and the dresser finished the job, so his room was sealed off by
+   * its own furniture. Everything is against a wall now, and the lane from
+   * the door to the bed is 780 mm of clear floor. */
   {
-    root.add(shade(place(box(1.5, 0.38, 1.1, MAT.wood), 3.4, 0.19, 2.95)));
-    root.add(shade(place(box(1.45, 0.15, 1.05, MAT.fabric), 3.4, 0.46, 2.95)));
-    root.add(shade(place(box(1.4, 0.06, 0.95, MAT.blanket), 3.4, 0.56, 3.0)));
-    root.add(shade(place(box(0.5, 0.10, 0.32, MAT.white), 3.2, 0.58, 2.5)));
+    // The bed, south-east corner.
+    root.add(shade(place(box(1.05, 0.38, 1.15, MAT.wood), 3.62, 0.19, 2.97)));
+    root.add(shade(place(box(1.00, 0.15, 1.10, MAT.fabric), 3.62, 0.46, 2.97)));
+    root.add(shade(place(box(0.96, 0.06, 1.00, MAT.blanket), 3.62, 0.56, 3.02)));
+    root.add(shade(place(box(0.42, 0.10, 0.30, MAT.white), 3.45, 0.58, 2.62)));
 
-    root.add(shade(place(box(0.9, 0.045, 0.55, MAT.wood), 3.05, 0.73, 1.45)));
-    for (const [dx, dz] of [[-0.4, -0.2], [0.4, -0.2], [-0.4, 0.2], [0.4, 0.2]]) {
-      root.add(shade(place(box(0.055, 0.72, 0.055, MAT.woodDark), 3.05 + dx, 0.36, 1.45 + dz)));
+    // The desk, against the east wall, north end. Clear of the doorway.
+    root.add(shade(place(box(0.36, 0.045, 0.84, MAT.wood), 3.96, 0.73, 1.56)));
+    for (const [dx, dz] of [[-0.14, -0.36], [0.14, -0.36], [-0.14, 0.36], [0.14, 0.36]]) {
+      root.add(shade(place(box(0.055, 0.72, 0.055, MAT.woodDark), 3.96 + dx, 0.36, 1.56 + dz)));
     }
-    const laptop = shade(place(box(0.34, 0.018, 0.24, MAT.plasticBk), 3.0, 0.765, 1.42));
+    const laptop = shade(place(box(0.26, 0.018, 0.32, MAT.plasticBk), 3.95, 0.765, 1.50));
+    laptop.rotation.y = -0.2;
     root.add(laptop);
-    anchors.laptop = place(new THREE.Object3D(), 3.0, 0.95, 1.75);
+    anchors.laptop = place(new THREE.Object3D(), 3.62, 0.95, 1.50);
     root.add(anchors.laptop);
 
     // His notes, in a drift across the desk and the floor.
@@ -514,23 +528,28 @@ export function buildApartment(scene) {
       const p = new THREE.Mesh(new THREE.PlaneGeometry(0.19, 0.26), MAT.paper);
       p.rotation.x = -Math.PI / 2;
       p.rotation.z = Math.random() * 3;
-      p.position.set(2.7 + Math.random() * 1.3, i > 5 ? 0.01 : 0.757, 1.2 + Math.random() * 1.7);
+      // On the desk, or on the floor of the lane, where he dropped them.
+      const onDesk = i <= 4;
+      p.position.set(
+        onDesk ? 3.80 + Math.random() * 0.32 : 3.05 + Math.random() * 0.70,
+        onDesk ? 0.757 : 0.01,
+        onDesk ? 1.25 + Math.random() * 0.60 : 1.30 + Math.random() * 1.00);
       p.receiveShadow = true;
       notes.add(p);
     }
     dynamic.notesGroup = notes;
-    anchors.notes = place(new THREE.Object3D(), 3.3, 0.9, 1.9);
+    anchors.notes = place(new THREE.Object3D(), 3.55, 0.9, 1.70);
     root.add(anchors.notes);
 
     // The dresser. The top drawer is open and it is empty and it should not be.
-    root.add(shade(place(box(0.5, 1.1, 0.75, MAT.wood), 3.9, 0.55, 1.55)));
-    root.add(shade(place(box(0.44, 0.2, 0.3, MAT.woodDark), 3.62, 0.88, 1.55)));
-    anchors.dresser = place(new THREE.Object3D(), 3.4, 1.0, 1.55);
+    root.add(shade(place(box(0.40, 1.1, 0.86, MAT.wood), 2.79, 0.55, 3.00)));
+    root.add(shade(place(box(0.34, 0.2, 0.36, MAT.woodDark), 3.04, 0.88, 3.00)));
+    anchors.dresser = place(new THREE.Object3D(), 3.20, 1.0, 3.00);
     root.add(anchors.dresser);
 
     // A photograph on the wall. The only picture in the apartment.
     const pic = new THREE.Mesh(new THREE.PlaneGeometry(0.3, 0.22), MAT.paper);
-    pic.position.set(2.53, 1.55, 2.4);
+    pic.position.set(2.58, 1.55, 1.85);
     pic.rotation.y = Math.PI / 2;
     root.add(pic);
   }
@@ -632,7 +651,17 @@ export function buildApartment(scene) {
     root.add(bulb);
     // The flex, and no shade. Nobody put a shade on any of these.
     root.add(place(box(0.008, 0.2, 0.008, MAT.plasticBk), p[0], p[1] + 0.12, p[2]));
-    lights[room] = { light: l, bulb, cfg };
+
+    // The bounce off the ceiling. Sits lower than the bulb, spreads further,
+    // falls off gently, casts nothing. Without it the ceiling clips white and
+    // the floor stays black, which is the state the room was unusable in.
+    const B = CONFIG.light.bulbBounce;
+    const bounce = new THREE.PointLight(cfg.color, 0, cfg.distance * B.distanceScale, B.decay);
+    bounce.position.set(p[0], p[1] - B.drop, p[2]);
+    bounce.castShadow = false;
+    root.add(bounce);
+
+    lights[room] = { light: l, bounce, bulb, cfg };
   }
 
   // Switches, on the wall by each doorway.

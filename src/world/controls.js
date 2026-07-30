@@ -13,7 +13,7 @@ import * as THREE from 'three';
 import { CONFIG } from '../config.js';
 import bus from '../bus.js';
 import audio from '../audio.js';
-import { roomAt } from './plan.js';
+import { roomAt, ROOM_CENTRES } from './plan.js';
 
 const P = CONFIG.player;
 
@@ -39,6 +39,9 @@ export class Controls {
     this.keys = Object.create(null);
     this.room = null;
     this._stepAccum = 0;
+    this._stuckFor = 0;
+    this._lastX = 0;
+    this._lastZ = 0;
 
     this._onMouseMove = this._onMouseMove.bind(this);
     this._onKeyDown = this._onKeyDown.bind(this);
@@ -68,6 +71,11 @@ export class Controls {
     this.yaw = yaw;
     this.pitch = 0;
     this.velocity.set(0, 0, 0);
+    this._stuckFor = 0;
+    this._lastX = x;
+    this._lastZ = z;
+    // A spawn point that has drifted inside a prop is not the player's fault.
+    this._depenetrate(P.radius, P.eyeHeight);
     this._apply();
   }
 
@@ -189,6 +197,7 @@ export class Controls {
     this.velocity.z += (target.z - this.velocity.z) * Math.min(1, rate * dt);
 
     this._move(this.velocity.x * dt, this.velocity.z * dt);
+    this._unstickWatch(dt, !!(fwd || strafe));
 
     const moved = Math.hypot(this.velocity.x, this.velocity.z);
     if (moved > 0.35) {
@@ -206,32 +215,103 @@ export class Controls {
     this._apply();
   }
 
-  /** Move with collide-and-slide against the AABB list. */
+  /**
+   * Move with collide-and-slide against the AABB list.
+   *
+   * The important property is the second one: a body that is ALREADY inside
+   * geometry must still be able to move. The old version rejected any move
+   * from a blocked position, which meant one bad frame — a spawn on a prop, a
+   * collider added under your feet — wedged the player permanently. Now an
+   * overlapping body may move freely, and a separate depenetration step walks
+   * it out along its shallowest face.
+   */
   _move(dx, dz) {
     const r = P.radius;
-    let x = this.position.x, z = this.position.z;
     const headY = this.crouching ? P.crouchHeight : P.eyeHeight;
+    let x = this.position.x, z = this.position.z;
+
+    const stuckNow = !!this._hit(x, z, r, headY);
 
     // X then Z, so a diagonal into a corner slides instead of sticking.
-    x = this._axis(x + dx, z, r, headY, 'x', x);
-    z = this._axis(x, z + dz, r, headY, 'z', z);
+    if (stuckNow || !this._hit(x + dx, z, r, headY)) x += dx;
+    if (stuckNow || !this._hit(x, z + dz, r, headY)) z += dz;
 
     this.position.x = x;
     this.position.z = z;
     this.position.y = headY;
+
+    if (stuckNow) this._depenetrate(r, headY);
   }
 
-  _axis(x, z, r, headY, axis, fallback) {
+  /** The first solid thing overlapping a body at (x, z), or null. */
+  _hit(x, z, r, headY) {
     for (const c of this.colliders) {
       // Something shorter than the knee is walked over, not into.
       if (c.h < 0.34) continue;
-      // Crouching gets you under nothing here; the bar is head height.
       if (x + r > c.x0 && x - r < c.x1 && z + r > c.z0 && z - r < c.z1) {
+        // Crouching gets you under nothing here; the bar is head height.
         if (c.h < headY * 0.35) continue;
-        return fallback;
+        return c;
       }
     }
-    return axis === 'x' ? x : z;
+    return null;
+  }
+
+  /**
+   * Push out of whatever the body is inside, along the shallowest face. One
+   * collider per call, which is enough: the next frame handles the next one,
+   * and a body in a corner walks itself out over a few frames rather than
+   * popping across the room.
+   */
+  _depenetrate(r, headY) {
+    const c = this._hit(this.position.x, this.position.z, r, headY);
+    if (!c) return false;
+    const x = this.position.x, z = this.position.z;
+    const out = [
+      { d: (c.x0 - r) - x, axis: 'x' },   // west
+      { d: (c.x1 + r) - x, axis: 'x' },   // east
+      { d: (c.z0 - r) - z, axis: 'z' },   // north
+      { d: (c.z1 + r) - z, axis: 'z' },   // south
+    ].sort((a, b) => Math.abs(a.d) - Math.abs(b.d))[0];
+    // A hair past the face, so the very next test is clean.
+    if (out.axis === 'x') this.position.x += out.d + Math.sign(out.d) * 0.002;
+    else this.position.z += out.d + Math.sign(out.d) * 0.002;
+    return true;
+  }
+
+  /**
+   * §1.3. The failsafe. If the player has been pressing into geometry for
+   * longer than they could plausibly mean to, walk them toward the middle of
+   * the room they are in. Not a teleport — a nudge, at walking pace, so it
+   * reads as squeezing free rather than as the game giving up.
+   */
+  _unstickWatch(dt, wished) {
+    const moved = Math.hypot(
+      this.position.x - this._lastX, this.position.z - this._lastZ);
+    this._lastX = this.position.x;
+    this._lastZ = this.position.z;
+
+    // Only counts as stuck if they are ASKING to move and nothing happens.
+    if (wished && moved < 0.006) this._stuckFor += dt;
+    else this._stuckFor = Math.max(0, this._stuckFor - dt * 2);
+
+    if (this._stuckFor < P.unstickSeconds) return;
+
+    const room = roomAt(this.position.x, this.position.z);
+    const c = ROOM_CENTRES[room] || ROOM_CENTRES.main;
+    const dx = c.x - this.position.x, dz = c.z - this.position.z;
+    const len = Math.hypot(dx, dz);
+    if (len < 0.05) { this._stuckFor = 0; return; }
+    const step = Math.min(len, P.walkSpeed * dt);
+    const r = P.radius;
+    const headY = this.crouching ? P.crouchHeight : P.eyeHeight;
+    this.position.x += (dx / len) * step;
+    this.position.z += (dz / len) * step;
+    this._depenetrate(r, headY);
+    if (!this._hit(this.position.x, this.position.z, r, headY)) {
+      // Free. Let go, but leave a little credit so a corner does not re-trap.
+      this._stuckFor = P.unstickSeconds * 0.4;
+    }
   }
 
   _apply() {

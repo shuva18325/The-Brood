@@ -28,7 +28,7 @@ let snowRaf = 0;
 /* what the set is doing today                                         */
 /* ------------------------------------------------------------------ */
 
-function scheduleFor(day, hour) {
+export function scheduleFor(day, hour) {
   // Off-air hours. The station reduced its broadcast day on the eleventh,
   // and before that it simply signed off overnight like any affiliate.
   const onAir = day >= 11
@@ -64,7 +64,7 @@ export function render(ctx, host, args, ui) {
   const st = {
     mode: args.mode || 'ident',
     day, decay, screen, ui, ctx,
-    holdLeft: CONFIG.tv.holdSeconds[Math.min(14, day - 1)],
+    holdLeft: holdFor(day),
     elapsed: 0,
   };
   args.mode = null;
@@ -76,7 +76,8 @@ export function render(ctx, host, args, ui) {
   const controls = h('div', { class: 'tv-controls' },
     h('button', { class: 'k' + (state.tvVolume === 'low' ? ' on' : ''), onclick: () => setVol(st, 'low') }, 'volume — as low as it goes'),
     h('button', { class: 'k' + (state.tvVolume === 'up' ? ' on' : ''), onclick: () => setVol(st, 'up') }, 'turn it up'),
-    h('button', { class: 'k', onclick: () => { st.mode = 'ident'; st.holdLeft = CONFIG.tv.holdSeconds[Math.min(14, day - 1)]; paint(st); } }, 'try the channel again'),
+    h('button', { class: 'k', onclick: () => { st.mode = 'ident'; st.holdLeft = holdFor(day); paint(st); } }, 'try the channel again'),
+    h('button', { class: 'k', onclick: () => switchOff(st) }, 'switch it off'),
   );
   screen.appendChild(controls);
 
@@ -92,13 +93,30 @@ export function render(ctx, host, args, ui) {
       paint(st);
       setTimeout(() => {
         if (!tick) return;
-        st.holdLeft = CONFIG.tv.holdSeconds[Math.min(14, day - 1)];
+        st.holdLeft = holdFor(day);
         st.mode = scheduleFor(day, state.hour);
         paint(st);
       }, 2200);
     }
     maybeInsert(st);
   }, 1000);
+}
+
+/** How long the set holds the channel today. The table is fifteen long; the
+ *  run is twenty, so the last entry stands for every day after it. */
+function holdFor(day) {
+  const t = CONFIG.tv.holdSeconds;
+  return t[Math.min(t.length - 1, Math.max(0, day - 1))];
+}
+
+/** Cutting the power cuts the 15.7 kHz whine with it, and that absence is a
+ *  cue in itself. Done from in here so the player sees what they are losing. */
+function switchOff(st) {
+  state.tvOn = false;
+  audio.play('tv_off');
+  bus.emit('tv:off');
+  stop();
+  st.ui.close();
 }
 
 function setVol(st, v) {

@@ -317,6 +317,40 @@ export class UI {
       return i;
     };
 
+    /**
+     * A slider over an arbitrary range rather than 0..1, with the current
+     * value shown. Brightness has to be adjustable *and* readable, because a
+     * player correcting for their panel needs to know where they put it.
+     */
+    const ranged = (labelText, key, min, max, fmt) => {
+      const { row: r, label: l } = row(labelText);
+      const i = document.createElement('input');
+      i.type = 'range';
+      i.min = String(Math.round(min * 100));
+      i.max = String(Math.round(max * 100));
+      i.step = '1';
+      i.id = 'opt-' + key;
+      i.value = String(Math.round((A[key] ?? 1) * 100));
+      l.setAttribute('for', i.id);
+      const out = document.createElement('span');
+      out.className = 'opt-value';
+      const show = () => { out.textContent = fmt(A[key]); };
+      i.oninput = () => { A[key] = Number(i.value) / 100; show(); this.saveSettings(); };
+      show();
+      r.appendChild(i);
+      r.appendChild(out);
+      return i;
+    };
+
+    /* --- the display. First, because a player who cannot see cannot play. --- */
+    ranged('Brightness', 'brightness', A.brightnessMin, A.brightnessMax,
+           (v) => (v === 1 ? 'as authored' : `${Math.round(v * 100)}%`));
+    ranged('Gamma', 'gamma', A.gammaMin, A.gammaMax,
+           (v) => v.toFixed(2));
+    note('This game is very dark on purpose, and monitors vary enormously. ' +
+         'Turn the bulb on, look at the far wall, and raise brightness until ' +
+         'you can see the corner of the room. Nothing is hidden in pure black.');
+
     /* --- the mix. Quiet by default, on purpose. --- */
     slider('Master', 'masterVolume', (v) => audio.master(v));
     slider('Ambient', 'ambientVolume', (v) => audio.level('ambient', v));

@@ -10,7 +10,7 @@ import state from '../state.js';
 import bus from '../bus.js';
 import audio from '../audio.js';
 import effects from '../effects.js';
-import { SPAWN, WINDOW } from './plan.js';
+import { SPAWN, WINDOW, roomAt } from './plan.js';
 import { buildApartment, drawTally } from './apartment.js';
 import { buildStreet } from './street.js';
 import { Lighting } from './lighting.js';
@@ -52,6 +52,9 @@ export class World {
 
     addEventListener('resize', () => this.resize());
   }
+
+  /** Which room a point is in. Exposed so the walk test can name a pocket. */
+  roomAt(x, z) { return roomAt(x, z); }
 
   bindInteraction(ctx) {
     const list = buildInteractables(ctx);

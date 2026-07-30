@@ -46,6 +46,7 @@ uniform float uGain;
 uniform float uCrush;
 uniform float uProtectWarm;
 uniform float uExposure;
+uniform float uGamma;
 
 uniform float uFlash;
 uniform float uFade;
@@ -141,6 +142,11 @@ void main() {
   col += uFlash;
   col *= uFade;
 
+  /* ---- the player's own display trim -------------------------------
+     Last thing before output, after everything the game decided, because it
+     is correcting for the monitor and not for the scene. */
+  if (abs(uGamma - 1.0) > 0.001) col = pow(max(col, 0.0), vec3(1.0 / uGamma));
+
   gl_FragColor = vec4(max(col, 0.0), 1.0);
 }`;
 
@@ -181,6 +187,7 @@ export class PostChain {
       uCrush:        { value: 0.01 },
       uProtectWarm:  { value: CONFIG.grade.protectWarm },
       uExposure:     { value: CONFIG.post.exposure },
+      uGamma:        { value: CONFIG.a11y.gamma },
       uFlash:        { value: 0 },
       uFade:         { value: 1 },
       uTint:         { value: new THREE.Color(1, 1, 1) },

@@ -31,17 +31,32 @@ export const ROOMS = {
   landing: { x0: 4.2,  x1: 6.6,  z0: -0.4, z1: 1.0,  name: 'landing' },
 };
 
-/** Doorway gaps, expressed as intervals along the wall they pierce. */
+/**
+ * Doorway gaps, expressed as intervals along the wall they pierce.
+ *
+ * A doorway is 900 mm in the real world and that is exactly what these were.
+ * It is not enough. A first-person body has a radius, the walls have
+ * thickness, and threading two 900 mm gaps in a row while looking somewhere
+ * else is how a player ends up wedged in a hall wondering if the game is
+ * broken. So: 1100 mm, and the main→hall and hall→landing doors are on the
+ * SAME centreline, so crossing the flat west to east is a straight walk.
+ */
 export const DOORS = {
   // main <-> kitchen/hall, in the x=1.0 partition
-  mainKitchen: { axis: 'x', at: 1.0, from: -3.0, to: -1.6 },
-  mainHall:    { axis: 'x', at: 1.0, from: -0.1, to: 0.85 },
+  mainKitchen: { axis: 'x', at: 1.0, from: -3.05, to: -1.55 },
+  mainHall:    { axis: 'x', at: 1.0, from: -0.15, to: 0.95 },
   // hall <-> bath and hall <-> bedroom, in the z=1.0 partition
-  bath:        { axis: 'z', at: 1.0, from: 1.35, to: 2.25 },
-  bedroom:     { axis: 'z', at: 1.0, from: 2.85, to: 3.75 },
-  // hall <-> landing, in the x=4.2 partition
-  landing:     { axis: 'x', at: 4.2, from: 0.0,  to: 0.85 },
+  bath:        { axis: 'z', at: 1.0, from: 1.28, to: 2.38 },
+  bedroom:     { axis: 'z', at: 1.0, from: 2.64, to: 3.74 },
+  // hall <-> landing, in the x=4.2 partition — same centreline as mainHall
+  landing:     { axis: 'x', at: 4.2, from: -0.15, to: 0.95 },
 };
+
+/** The centre of a doorway, which is where an unstick nudge aims. */
+export function doorCentre(name) {
+  const d = DOORS[name];
+  return d ? (d.from + d.to) / 2 : 0;
+}
 
 /** The window. Bars in a frame with a curtain over them. No glass. */
 export const WINDOW = {
@@ -85,6 +100,9 @@ export function buildColliders() {
   wall(6.6, -0.4 - WALL_T, 6.6 + WALL_T, 1.0 + WALL_T, 'wall.east.frontdoor');
   // kitchen/landing outer returns
   wall(4.2, -3.6, 4.2 + WALL_T, -0.4, 'wall.kitchen.east');
+  // His room's east wall. It was missing, and the player could walk out of
+  // the building through it into unlit void with no floor under them.
+  wall(4.2, 1.0, 4.2 + WALL_T, 3.6 + WALL_T, 'wall.bedroom.east');
   wall(4.2 - WALL_T, -0.4 - WALL_T, 6.6, -0.4, 'wall.landing.north');
   wall(4.2 - WALL_T, 1.0, 6.6, 1.0 + WALL_T, 'wall.landing.south');
 
@@ -107,15 +125,19 @@ export function buildColliders() {
   /* --- furniture ------------------------------------------------------ */
   B.push({ x0: -4.05, z0:  1.85, x1: -2.35, z1:  3.35, h: 0.16, tag: 'mat' });
   B.push({ x0: -3.30, z0: -3.55, x1: -1.30, z1: -2.85, h: 0.76, tag: 'desk' });
-  B.push({ x0: -0.35, z0: -0.10, x1:  0.85, z1:  1.05, h: 0.62, tag: 'tvstand' });
+  // Against the partition, SOUTH of the doorway. It must never overlap
+  // DOORS.mainHall, which is the only way out of the main room.
+  B.push({ x0: -0.35, z0:  1.65, x1:  0.85, z1:  2.25, h: 0.62, tag: 'tvstand' });
   B.push({ x0: -4.05, z0: -2.20, x1: -3.45, z1: -1.20, h: 0.78, tag: 'chair' });
 
   B.push({ x0:  1.15, z0: -3.55, x1:  3.30, z1: -2.90, h: 0.90, tag: 'counter' });
   B.push({ x0:  3.35, z0: -3.55, x1:  4.15, z1: -2.55, h: 1.62, tag: 'fridge' });
 
-  B.push({ x0:  2.60, z0:  2.35, x1:  4.15, z1:  3.55, h: 0.55, tag: 'his.bed' });
-  B.push({ x0:  2.60, z0:  1.15, x1:  3.55, z1:  1.75, h: 0.75, tag: 'his.desk' });
-  B.push({ x0:  3.60, z0:  1.15, x1:  4.15, z1:  1.95, h: 1.10, tag: 'his.dresser' });
+  // His room, laid out around a lane from the door to the bed. Nothing in
+  // here may overlap DOORS.bedroom or the x 3.00–3.78 walking lane.
+  B.push({ x0:  3.09, z0:  2.39, x1:  4.15, z1:  3.55, h: 0.55, tag: 'his.bed' });
+  B.push({ x0:  3.78, z0:  1.14, x1:  4.15, z1:  1.98, h: 0.75, tag: 'his.desk' });
+  B.push({ x0:  2.59, z0:  2.57, x1:  2.99, z1:  3.43, h: 1.10, tag: 'his.dresser' });
 
   B.push({ x0:  1.10, z0:  2.90, x1:  1.70, z1:  3.50, h: 0.75, tag: 'toilet' });
   B.push({ x0:  1.95, z0:  3.05, x1:  2.45, z1:  3.50, h: 0.85, tag: 'bathsink' });
@@ -148,3 +170,17 @@ export function roomAt(x, z) {
 }
 
 export const SPAWN = { x: -3.2, z: 2.4, yaw: -Math.PI * 0.35 };
+
+/**
+ * The open centre of each room — somewhere a body definitely fits. The
+ * unstick failsafe walks the player toward the nearest of these rather than
+ * teleporting them, so being freed never reads as a glitch.
+ */
+export const ROOM_CENTRES = {
+  main:    { x: -2.0, z: -0.6 },
+  kitchen: { x:  2.1, z: -1.6 },
+  hall:    { x:  2.6, z:  0.35 },
+  bath:    { x:  1.75, z:  1.9 },
+  bedroom: { x:  3.35, z:  1.95 },
+  landing: { x:  4.9, z:  0.35 },
+};

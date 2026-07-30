@@ -25,6 +25,7 @@ import Script from './systems/script.js';
 
 import World from './world/index.js';
 import UI from './ui/index.js';
+import { scheduleFor as tvScheduleFor } from './ui/screens/tv.js';
 
 /* ------------------------------------------------------------------ */
 
@@ -205,6 +206,25 @@ if (CONFIG.debug.exposeApi) {
     clock, concealment, understanding, day, endings,
     controls: world.controls,
 
+    /**
+     * Fire a ray into the scene and report what it hits, as plain data. Used
+     * to prove that the view out of the window is a view of something.
+     */
+    raycast(from, dir, far = 60, limit = 6) {
+      const rc = new THREE.Raycaster(
+        new THREE.Vector3(from[0], from[1], from[2]),
+        new THREE.Vector3(dir[0], dir[1], dir[2]).normalize(), 0.01, far);
+      return rc.intersectObjects(world.scene.children, true)
+        .filter(h => h.object.visible && h.object.type !== 'Sprite')
+        .slice(0, limit)
+        .map(h => ({
+          d: +h.distance.toFixed(2),
+          x: +h.point.x.toFixed(2),
+          y: +h.point.y.toFixed(2),
+          tag: h.object.name || h.object.userData.tag || h.object.geometry.type,
+        }));
+    },
+
     startNew, continueSaved,
 
     /** Advance one day without walking to the mat. */
@@ -224,6 +244,9 @@ if (CONFIG.debug.exposeApi) {
     },
 
     setHour(h) { clock.advanceTo(h); },
+
+    /** What the set would be doing at a given day and hour. */
+    tvSchedule(d, h) { return tvScheduleFor(d, h); },
 
     /** Mark every piece of day-available content as read. */
     readEverything() {

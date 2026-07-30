@@ -12,7 +12,7 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
-const [out = 'shot.png', day = '1', hour = '7', yaw = '0', pitch = '0', on = ''] = process.argv.slice(2);
+const [out = 'shot.png', day = '1', hour = '7', yaw = '0', pitch = '0', on = '', at = ''] = process.argv.slice(2);
 const TMP = join(ROOT, '.shot');
 await mkdir(TMP, { recursive: true });
 
@@ -53,7 +53,7 @@ await page.goto(`http://localhost:${server.address().port}/`, { waitUntil: 'load
 const frame = page.frames().find(f => f.url().includes('inner.html'));
 await frame.waitForFunction(() => !!window.BROOD, null, { timeout: 40000 });
 
-const info = await frame.evaluate(async ([d, h, y, p, lit]) => {
+const info = await frame.evaluate(async ([d, h, y, p, lit, spot]) => {
   document.getElementById('warn-ok').click();
   await new Promise(res => setTimeout(res, 300));
   const btn = [...document.querySelectorAll('#menu-buttons button')]
@@ -64,6 +64,7 @@ const info = await frame.evaluate(async ([d, h, y, p, lit]) => {
   if (d > 1) B.days(d - 1);
   B.setHour(h);
   for (const room of lit) { B.state.lights[room] = true; }
+  if (spot) B.controls.spawn(spot[0], spot[1], y);
   B.controls.yaw = y; B.controls.pitch = p;
   B.controls._apply();
   // This container rasterises in software at roughly one frame a second, so
@@ -84,7 +85,7 @@ const info = await frame.evaluate(async ([d, h, y, p, lit]) => {
            yaw: +B.controls.yaw.toFixed(2), pitch: +B.controls.pitch.toFixed(2),
            curtain: B.state.curtainOpen,
            exposure: B.effects.debug ? B.effects.debug() : null };
-}, [Number(day), Number(hour), Number(yaw), Number(pitch), on ? on.split(',') : []]);
+}, [Number(day), Number(hour), Number(yaw), Number(pitch), on ? on.split(',') : [], at ? at.split(',').map(Number) : null]);
 
 console.log(info);
 await page.screenshot({ path: out });

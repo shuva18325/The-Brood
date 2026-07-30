@@ -30,6 +30,8 @@ export class Lighting {
     this.atmosBlend = 0;
 
     this._c = new THREE.Color();
+    this._skyTint = new THREE.Color();
+    this._skyLevel = 0;
   }
 
   update(dt) {
@@ -71,6 +73,11 @@ export class Lighting {
       // CFLs come up slowly and go out instantly.
       const rate = on ? k / B.warmup : k * 6;
       L.light.intensity = lerp(L.light.intensity, target, Math.min(1, rate * 3));
+      // The bounce tracks the bulb exactly. It is the same light.
+      if (L.bounce) {
+        L.bounce.intensity = lerp(L.bounce.intensity,
+          target * CONFIG.light.bulbBounce.scale, Math.min(1, rate * 3));
+      }
       L.bulb.material.emissiveIntensity =
         lerp(L.bulb.material.emissiveIntensity, on ? 2.2 * flick * dim : 0, k * 3);
     }
@@ -136,6 +143,67 @@ export class Lighting {
     sd.streetlamp.intensity = lerp(sd.streetlamp.intensity,
       lampOn ? CONFIG.light.streetlamp.intensity * flicker : 0, k);
     sd.streetlampHead.material.emissiveIntensity = lampOn ? 1.6 * flicker : 0;
+
+    this._sky(dt, k, phase);
+  }
+
+  /**
+   * THE SKY OVER THE STREET.
+   *
+   * Under a uniform overcast sky a surface's appearance is albedo × sky
+   * luminance, with no shadow term. So every exterior material's emissive is
+   * driven straight from that product, which lights the street without a
+   * single extra light in the scene and without touching the interior.
+   */
+  _sky(dt, k, phase) {
+    const S = CONFIG.light.sky;
+    const W = CONFIG.light.weather;
+    const P = S[phase] || S.night;
+    const day = state.day;
+
+    // The overcast thickens as the fires do, and rain closes it down further.
+    const overcast = day >= S.overcastFromDay
+      ? Math.min(S.overcastMax, (day - S.overcastFromDay + 1) * S.overcastPerDay) : 0;
+    const raining = W.rainDays.includes(day);
+    const level = P.level * (1 - overcast) * (raining ? W.rainSkyMul : 1);
+
+    this._skyLevel = lerp(this._skyLevel ?? level, level, k * 0.6);
+    this._skyTint.set(P.tint);
+
+    for (const s of this.street.dynamic.skylit) {
+      // emissive = albedo × sky, weighted by how much sky that surface sees.
+      s.mat.emissive.copy(s.albedo).multiply(this._skyTint)
+        .multiplyScalar(this._skyLevel * s.weight);
+    }
+
+    // The dome. It is the brightest thing out there and it always was.
+    const dome = this.street.dynamic.sky;
+    if (dome) {
+      dome.material.color.copy(this._c.set(P.horizon))
+        .multiplyScalar(0.35 + this._skyLevel * 1.15);
+    }
+
+    // Smoke, from the day the refineries go. It never clears.
+    const smoke = day >= W.smokeFromDay
+      ? Math.min(W.smokeMax, (day - W.smokeFromDay + 1) * W.smokePerDay) : 0;
+    const cols = this.street.dynamic.smokeCols || [];
+    for (let i = 0; i < cols.length; i++) {
+      const m = cols[i].material;
+      m.opacity = lerp(m.opacity, smoke * (0.55 + i * 0.09), k * 0.5);
+      // It leans, slowly, and it is never still.
+      cols[i].position.x = i * 3.5 + Math.sin(this._t * 0.07 + i) * 1.6;
+    }
+
+    // Rain. Two sheets, scrolled at different rates so it never repeats.
+    const rain = this.street.dynamic.rain || [];
+    for (let i = 0; i < rain.length; i++) {
+      const m = rain[i].material;
+      m.opacity = lerp(m.opacity, raining ? (i ? 0.30 : 0.44) : 0, k * 0.4);
+      if (m.map && m.opacity > 0.002) {
+        m.map.offset.y = (m.map.offset.y - dt * (i ? 2.1 : 3.4)) % 1;
+        m.map.offset.x = (m.map.offset.x + dt * 0.06) % 1;
+      }
+    }
   }
 
   /** Called when the player is at the window and can actually see out. */

@@ -60,6 +60,40 @@ let flashPulse = { left: 0, hz: 0, amp: 0 };
 /** Grade, chased rather than snapped. */
 const grade = { saturation: 0.94, greenPull: 0, temp: 0.055, lift: 0.008, gain: 1.02, crush: 0.01 };
 
+/**
+ * The exposure floor, chased. How much light has the player actually arranged
+ * for? Deliberate light is always rewarded with a visible room, so that a dark
+ * panel cannot turn the game into a black rectangle.
+ */
+let expLift = 0;
+
+function exposureTarget(state, world) {
+  if (!state) return 0;
+  const F = CONFIG.post.exposureFloor;
+  let lift = 0;
+
+  const here = world && world.controls ? world.controls.room : null;
+  let anyBulb = false, bulbHere = false;
+  for (const [room, on] of Object.entries(state.lights)) {
+    if (!on) continue;
+    anyBulb = true;
+    if (room === here) bulbHere = true;
+    // The landing bulb lights the hall you can see it from, and the main
+    // room bulb reaches the kitchen. Rooms here are not sealed boxes.
+    if (here === 'hall' && (room === 'landing' || room === 'main')) bulbHere = true;
+    if (here === 'kitchen' && room === 'main') bulbHere = true;
+    if (here === 'main' && room === 'kitchen') bulbHere = true;
+  }
+  if (bulbHere) lift += F.bulb;
+  else if (anyBulb) lift += F.bulbElsewhere;
+
+  const daylit = state.phase === 'day' || state.phase === 'dawn';
+  if (state.curtainOpen && daylit) lift += F.daylight;
+  if (state.tvOn || state.computerOn) lift += F.screen;
+
+  return Math.min(F.max, lift);
+}
+
 /* ------------------------------------------------------------------ */
 /* text corruption                                                     */
 /*                                                                     */
@@ -187,6 +221,11 @@ export const effects = {
     grade.gain       += (band.gain       - grade.gain)       * k;
     grade.crush      += (band.crush      - grade.crush)      * k;
 
+    /* ---- the exposure floor ---------------------------------------- */
+    const lift = exposureTarget(state, ctx.world);
+    expLift += (lift - expLift) *
+      Math.min(1, dt / CONFIG.post.exposureFloor.blendSeconds);
+
     /* ---- flash / fade ---------------------------------------------- */
     if (flashPulse.left > 0) {
       flashPulse.left = Math.max(0, flashPulse.left - dt);
@@ -219,6 +258,9 @@ export const effects = {
       u.uTint.value.copy(timed.tint);
       u.uTintAmt.value     = timed.tintAmt;
       u.uVignette.value    = CONFIG.post.vignette.amount + level * 0.03;
+      // Scene exposure, the floor the player earned, and their own trim.
+      u.uExposure.value    = (G.exposure + expLift) * CONFIG.a11y.brightness;
+      u.uGamma.value       = CONFIG.a11y.gamma;
     }
   },
 
